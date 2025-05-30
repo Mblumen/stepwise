@@ -37,7 +37,6 @@ public class ActiveTracksFragment extends Fragment {
 
     private FragmentActiveTracksBinding binding;
     private ActiveTracksViewModel viewModel;
-    private ActiveTracksAdapter adapter;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         viewModel = new ViewModelProvider(this).get(ActiveTracksViewModel.class);
@@ -46,7 +45,7 @@ public class ActiveTracksFragment extends Fragment {
         View root = binding.getRoot();
 
         RecyclerView recyclerView = binding.recyclerviewActivetracks;
-        adapter = new ActiveTracksAdapter(requireContext());
+        ActiveTracksAdapter adapter = new ActiveTracksAdapter(requireContext());
         recyclerView.setAdapter(adapter);
         viewModel.getAllTracks().observe(getViewLifecycleOwner(), adapter::submitList);
         // Assuming you have a way to get all milestones mapped by trackId
@@ -62,7 +61,7 @@ public class ActiveTracksFragment extends Fragment {
 
     public static class MilestoneAdapter extends ListAdapter<Milestone, MilestoneAdapter.MilestoneViewHolder> {
         //private List<Milestone> milestones;
-        private Context context;
+        private final Context context;
 
         public MilestoneAdapter(Context context) {
             super(new DiffUtil.ItemCallback<>() {
@@ -92,6 +91,7 @@ public class ActiveTracksFragment extends Fragment {
             holder.title.setText(milestone.title);
             holder.steps.setText(context.getString(R.string.integer_count, milestone.stepOffset));
             holder.description.setText(milestone.description);
+            holder.milestoneImage.setImageResource(AppImage.getResIdFor(milestone.image));
         }
 
 
@@ -100,19 +100,21 @@ public class ActiveTracksFragment extends Fragment {
             TextView title;
             TextView steps;
             TextView description;
+            ImageView milestoneImage;
 
             public MilestoneViewHolder(MilestoneBinding binding) {
                 super(binding.getRoot());
                 title = binding.milestoneTitle;
                 steps = binding.milestoneSteps;
                 description = binding.milestoneDescription;
+                milestoneImage = binding.milestoneImage;
             }
         }
     }
 
     public class ActiveTracksAdapter extends ListAdapter<Track, ActiveTracksAdapter.ActiveTrackViewHolder> {
         private int expandedPosition = -1;
-        private Context context;
+        private final Context context;
 
         private RecyclerView recyclerView;
 

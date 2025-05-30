@@ -23,6 +23,7 @@
         item
     </string>
     <string name="active_track_item_details_image_content_description">Represents an image view in the details of a track item</string>
+    <string name="milestone_image_content_description">Represents an image view in the milestone item</string>
     <string name="track_start_point_icon_description">Represents the icon for the start of a track</string>
     <string name="track_end_point_icon_description">Represents the icon for the end of a track</string>
     <string name="track_distance_icon_description">Represents the icon for the distance of a track</string>

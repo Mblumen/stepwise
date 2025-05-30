@@ -9,10 +9,11 @@
     android:background="@color/white">
 
     <ImageView
-        android:id="@+id/imageSpot"
+        android:id="@+id/milestone_image"
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:scaleType="centerCrop"
+        android:contentDescription="@string/milestone_image_content_description"
         tools:src="@drawable/berlin"/>
 
     <LinearLayout
@@ -42,6 +43,7 @@
                 android:layout_width="@dimen/icon_size_small"
                 android:layout_height="@dimen/icon_size_small"
                 android:src="@drawable/steps"
+                android:contentDescription="@string/track_distance_icon_description"
                 app:tint="@color/dark_gray" />
 
             <TextView
