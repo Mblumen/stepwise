@@ -80,7 +80,7 @@ public abstract class AppDatabase extends RoomDatabase {
         UserProgress progress3 = new UserProgress();
         progress3.trackId = trackId3;
         progress3.status = ProgressStatus.PAUSED;
-        progress3.stepsWalked = 6284;
+        progress3.stepsWalked = 25425;
         db.userProgressDao().upsertProgress(progress3);
 
         // Insert a fourth track with no progress
@@ -102,9 +102,9 @@ public abstract class AppDatabase extends RoomDatabase {
 
         long trackId = db.trackDao().insertTrack(track);
 
-        insertMockMilestone(db, trackId, 1000, "Milestone 1", "Description for milestone 1", "berlin");
-        insertMockMilestone(db, trackId, 2000, "Milestone 2", "Description for milestone 2", "munich");
-        insertMockMilestone(db, trackId, 3000, "Milestone 3", "Description for milestone 3", "paris");
+        insertMockMilestone(db, trackId, 3000, "Milestone 1", "Description for milestone 1", "berlin");
+        insertMockMilestone(db, trackId, 15000, "Milestone 2", "Description for milestone 2", "munich");
+        insertMockMilestone(db, trackId, 25000, "Milestone 3", "Description for milestone 3", "paris");
 
         return trackId;
     }

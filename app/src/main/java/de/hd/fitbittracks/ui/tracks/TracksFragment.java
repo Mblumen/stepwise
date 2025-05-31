@@ -1,4 +1,4 @@
-package de.hd.fitbittracks.ui.activetracks;
+package de.hd.fitbittracks.ui.tracks;
 
 import android.animation.LayoutTransition;
 import android.content.Context;
@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -20,8 +21,10 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import de.hd.fitbittracks.R;
-import de.hd.fitbittracks.databinding.FragmentActiveTracksBinding;
-import de.hd.fitbittracks.databinding.ItemTransformBinding;
+import de.hd.fitbittracks.databinding.BasicListItemSharedBinding;
+import de.hd.fitbittracks.databinding.DetailsListItemSharedBinding;
+import de.hd.fitbittracks.databinding.FragmentTracksBinding;
+import de.hd.fitbittracks.databinding.ItemTrackBinding;
 import de.hd.fitbittracks.databinding.MilestoneBinding;
 import de.hd.fitbittracks.entities.Milestone;
 import de.hd.fitbittracks.entities.Track;
@@ -33,19 +36,19 @@ import de.hd.fitbittracks.enums.AppImage;
  * the [RecyclerView] using LinearLayoutManager in a small screen
  * and shows items using GridLayoutManager in a large screen.
  */
-public class ActiveTracksFragment extends Fragment {
+public class TracksFragment extends Fragment {
 
-    private FragmentActiveTracksBinding binding;
-    private ActiveTracksViewModel viewModel;
+    private FragmentTracksBinding binding;
+    private TracksViewModel viewModel;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        viewModel = new ViewModelProvider(this).get(ActiveTracksViewModel.class);
+        viewModel = new ViewModelProvider(this).get(TracksViewModel.class);
 
-        binding = FragmentActiveTracksBinding.inflate(inflater, container, false);
+        binding = FragmentTracksBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        RecyclerView recyclerView = binding.recyclerviewActivetracks;
-        ActiveTracksAdapter adapter = new ActiveTracksAdapter(requireContext());
+        RecyclerView recyclerView = binding.tracksList;
+        TracksAdapter adapter = new TracksAdapter(requireContext());
         recyclerView.setAdapter(adapter);
         viewModel.getAllTracks().observe(getViewLifecycleOwner(), adapter::submitList);
         // Assuming you have a way to get all milestones mapped by trackId
@@ -112,13 +115,13 @@ public class ActiveTracksFragment extends Fragment {
         }
     }
 
-    public class ActiveTracksAdapter extends ListAdapter<Track, ActiveTracksAdapter.ActiveTrackViewHolder> {
+    public class TracksAdapter extends ListAdapter<Track, TracksAdapter.TrackViewHolder> {
         private int expandedPosition = -1;
         private final Context context;
 
         private RecyclerView recyclerView;
 
-        protected ActiveTracksAdapter(Context context) {
+        protected TracksAdapter(Context context) {
             super(new DiffUtil.ItemCallback<>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull Track oldItem, @NonNull Track newItem) {
@@ -135,9 +138,9 @@ public class ActiveTracksFragment extends Fragment {
 
         @NonNull
         @Override
-        public ActiveTrackViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            ItemTransformBinding binding = ItemTransformBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
-            ActiveTrackViewHolder holder =  new ActiveTrackViewHolder(binding);
+        public TrackViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            ItemTrackBinding binding = ItemTrackBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+            TrackViewHolder holder =  new TrackViewHolder(binding);
             LayoutTransition transition = new LayoutTransition();
             transition.setDuration(2000); // Set your custom duration in ms
             ((ViewGroup) holder.itemView).setLayoutTransition(transition);
@@ -145,11 +148,12 @@ public class ActiveTracksFragment extends Fragment {
         }
 
         @Override
-        public void onBindViewHolder(@NonNull ActiveTrackViewHolder holder, int position) {
+        public void onBindViewHolder(@NonNull TrackViewHolder holder, int position) {
 
             Track track = getItem(position);
             boolean isExpanded = position == expandedPosition;
             holder.baseTitle.setText(track.name);
+            holder.baseSteps.setText(context.getString(R.string.integer_count, track.totalSteps));
             holder.baseImageView.setImageResource(AppImage.getResIdFor(track.image));
 
             holder.detailsTitle.setText(track.name);
@@ -162,6 +166,9 @@ public class ActiveTracksFragment extends Fragment {
             holder.expandedLayout.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
 
             if(isExpanded) {
+                holder.selectButton.setOnClickListener(v -> {;
+                    viewModel.selectTrack(track);
+                });
                 MilestoneAdapter milestoneAdapter = new MilestoneAdapter(context);
                 holder.milestoneRecycler.setLayoutManager(new LinearLayoutManager(holder.itemView.getContext()));
                 holder.milestoneRecycler.setAdapter(milestoneAdapter);
@@ -192,34 +199,39 @@ public class ActiveTracksFragment extends Fragment {
         public void setRecyclerView(RecyclerView recyclerView) {
             this.recyclerView = recyclerView;
         }
-        public static class ActiveTrackViewHolder extends RecyclerView.ViewHolder {
+        public static class TrackViewHolder extends RecyclerView.ViewHolder {
 
             private final LinearLayout baseLayout;
-            private final CardView expandedLayout;
-
             private final ImageView baseImageView;
             private final TextView baseTitle;
+            private final TextView baseSteps;
+            private final CardView expandedLayout;
             private final ImageView detailsImageView;
             private final TextView detailsTitle;
             private final TextView detailsStart;
             private final TextView detailsEnd;
             private final TextView detailsSteps;
             private final RecyclerView milestoneRecycler;
+            private final Button selectButton;
 
-            public ActiveTrackViewHolder(ItemTransformBinding binding) {
+            public TrackViewHolder(ItemTrackBinding binding) {
                 super(binding.getRoot());
-                baseLayout = binding.activeTrackItemBase;
-                expandedLayout = binding.activeTrackItemDetails;
+                BasicListItemSharedBinding sharedBinding = binding.sharedBaseItem;
+                baseLayout = sharedBinding.itemBase;
+                baseImageView = sharedBinding.itemBaseImage;
+                baseTitle = sharedBinding.itemBaseTitle;
+                baseSteps = sharedBinding.itemBaseSteps;
+                expandedLayout = binding.trackItemDetails;
 
-                baseImageView = binding.activeTrackItemBaseImage;
-                baseTitle = binding.activeTrackItemBaseTitle;
+                DetailsListItemSharedBinding detailsSharedBinding = binding.sharedDetailsItem;
+                detailsImageView = detailsSharedBinding.image;
+                detailsTitle = detailsSharedBinding.title;
+                detailsStart = detailsSharedBinding.start;
+                detailsEnd = detailsSharedBinding.end;
+                detailsSteps = detailsSharedBinding.steps;
 
-                detailsImageView = binding.activeTrackItemDetailsImage;
-                detailsTitle = binding.activeTrackItemDetailsTitle;
-                detailsStart = binding.activeTrackItemDetailsStart;
-                detailsEnd = binding.activeTrackItemDetailsEnd;
-                detailsSteps = binding.activeTrackItemDetailsSteps;
-                milestoneRecycler = binding.activeTrackItemDetailsMilestones;
+                milestoneRecycler = binding.trackItemDetailsMilestones;
+                selectButton = binding.trackItemDetailsSelectButton;
             }
         }
     }

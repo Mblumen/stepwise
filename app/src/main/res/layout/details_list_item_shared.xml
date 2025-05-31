@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/card_description_padding">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp">
+
+        <ImageView
+            android:id="@+id/image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/active_track_item_details_image_content_description"
+            tools:src="@drawable/barcelona" />
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#AA000000"
+            android:padding="12dp"
+            android:textColor="@color/white"
+            android:textSize="@dimen/font_size_header"
+            android:textStyle="bold"
+            tools:text="Track Name"/>
+    </FrameLayout>
+
+    <!-- Description below the image -->
+    <LinearLayout
+        android:id="@+id/info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/card_description_padding">
+
+        <TextView
+            android:id="@+id/start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/dark_gray"
+            android:textSize="@dimen/font_size_small"
+            android:paddingBottom="@dimen/text_spacing"
+            app:drawableStartCompat="@drawable/home"
+            tools:text="Barcelona"/>
+
+        <TextView
+            android:id="@+id/end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/dark_gray"
+            android:textSize="@dimen/font_size_small"
+            android:paddingBottom="@dimen/text_spacing"
+            app:drawableStartCompat="@drawable/flag"
+            tools:text="Paris"/>
+
+        <TextView
+            android:id="@+id/steps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/dark_gray"
+            android:textSize="@dimen/font_size_small"
+            app:drawableStartCompat="@drawable/steps"
+            tools:text="12,345"/>
+    </LinearLayout>
+</LinearLayout>

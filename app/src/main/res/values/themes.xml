@@ -22,4 +22,12 @@
     <style name="Theme.FitbitTracks.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="Theme.FitbitTracks.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="Widget.FitbitTracks.BottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView.Colored">
+        <item name="backgroundTint">@color/dark_gray</item>
+        <item name="itemIconTint">@drawable/bottom_nav_item_selector</item>
+        <item name="itemTextColor">@drawable/bottom_nav_item_selector</item>
+        <item name="labelVisibilityMode">labeled</item>
+    </style>
+
 </resources>

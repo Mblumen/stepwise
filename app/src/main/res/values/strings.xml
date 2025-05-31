@@ -7,9 +7,8 @@
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
 
-    <string name="menu_transform">Transform</string>
-    <string name="menu_reflow">Reflow</string>
-    <string name="menu_slideshow">Slideshow</string>
+    <string name="menu_tracks">Tracks</string>
+    <string name="menu_tracks_progress">Progress</string>
     <string name="menu_settings">Settings</string>
 
     <string name="lorem_ipsum_title">Lorem Ipsum"</string>
@@ -28,4 +27,6 @@
     <string name="track_end_point_icon_description">Represents the icon for the end of a track</string>
     <string name="track_distance_icon_description">Represents the icon for the distance of a track</string>
     <string name="integer_count">%1$d</string>
+    <string name="integer_count_of">%1$d/%2$d</string>
+    <string name="milestone_completed">Milestone completed</string>
 </resources>
