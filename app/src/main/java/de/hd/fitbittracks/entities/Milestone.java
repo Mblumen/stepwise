@@ -8,6 +8,8 @@ import androidx.room.PrimaryKey;
 
 import java.util.Objects;
 
+import de.hd.fitbittracks.ui.milestones.MilestoneItem;
+
 @Entity(
         tableName = "milestones",
         foreignKeys = @ForeignKey(
@@ -18,7 +20,7 @@ import java.util.Objects;
         ),
         indices = {@Index("trackId")}
 )
-public class Milestone {
+public class Milestone implements MilestoneItem {
     @PrimaryKey(autoGenerate = true)
     public long id;
 
@@ -33,6 +35,9 @@ public class Milestone {
 
     @NonNull
     public String description;
+    public String mapsUrl; // optional, for location-based milestones
+    public double latitude; // optional, for location-based milestones
+    public double longitude; // optional, for location-based milestones
 
     public String image; // optional
 
@@ -48,5 +53,10 @@ public class Milestone {
         if (!title.equals(that.title)) return false;
         if (!description.equals(that.description)) return false;
         return Objects.equals(image, that.image);
+    }
+
+    @Override
+    public Milestone getMilestone() {
+        return this;
     }
 }

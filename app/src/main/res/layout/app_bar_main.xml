@@ -40,6 +40,7 @@
             android:layout_margin="@dimen/fab_margin"
             android:contentDescription="@string/fab_content_description"
             app:srcCompat="@android:drawable/ic_dialog_email"
-            android:visibility="gone"/>
+            android:visibility="gone"
+            tools:visibility="visible"/>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

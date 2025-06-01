@@ -1,6 +1,7 @@
 package de.hd.fitbittracks.ui.tracks;
 
 import android.app.Application;
+import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -37,7 +38,7 @@ public class TracksViewModel extends AndroidViewModel {
         AppDatabase db = AppDatabase.getInstance(application);
         allTracks = db.trackDao().getAllTracksWithMilestones();
         repository = new TrackRepository(db.milestoneDao());
-        userProgressRepository = new UserProgressRepository(db.userProgressDao());
+        userProgressRepository = new UserProgressRepository(db.userProgressDao(), db.trackDao());
         milestoneDao = db.milestoneDao();
     }
 

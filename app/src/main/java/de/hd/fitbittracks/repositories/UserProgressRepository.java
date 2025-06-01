@@ -3,23 +3,32 @@ package de.hd.fitbittracks.repositories;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
+import androidx.room.Transaction;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import de.hd.fitbittracks.daos.TrackDao;
 import de.hd.fitbittracks.daos.UserProgressDao;
+import de.hd.fitbittracks.entities.Milestone;
 import de.hd.fitbittracks.entities.UserProgress;
+import de.hd.fitbittracks.entities.UserProgressMilestoneStatus;
 import de.hd.fitbittracks.enums.ResultStatus;
 import de.hd.fitbittracks.enums.ProgressStatus;
 import de.hd.fitbittracks.pojos.ListItem;
 import de.hd.fitbittracks.pojos.MethodResult;
 import de.hd.fitbittracks.pojos.Separator;
+import de.hd.fitbittracks.pojos.TrackWithMilestones;
 import de.hd.fitbittracks.pojos.UserProgressWithTrackAndMilestones;
 
 public class UserProgressRepository extends BaseRepository{
     private final UserProgressDao userProgressDao;
-    public UserProgressRepository(UserProgressDao userProgressDao) {
+    private final TrackDao trackDao;
+    public UserProgressRepository(UserProgressDao userProgressDao, TrackDao trackDao) {
         this.userProgressDao = userProgressDao;
+        this.trackDao = trackDao;
     }
 
     public LiveData<List<ListItem>> getProgressWithMilestonesForStatusWithSeparators() {
@@ -90,5 +99,27 @@ public class UserProgressRepository extends BaseRepository{
             return;
         });
         return result;
+    }
+
+    @Transaction
+    public MethodResult updateStepsWalked(int stepsWalked) {
+        UserProgress progress = userProgressDao.getActiveUserProgress();
+        if (progress != null) {
+            int totalSteps = progress.stepsWalked + stepsWalked;
+            progress.stepsWalked = totalSteps;
+            userProgressDao.insertUserProgress(progress);
+
+            TrackWithMilestones trackWithMilestonesById = trackDao.getTrackWithMilestonesById(progress.trackId);
+            List<Long> notifiedMilestones = userProgressDao.getNotifiedMilestonesForProgress(progress.id);
+            List<UserProgressMilestoneStatus> userProgressMilestoneStatuses = userProgressDao.getNotifiedMilestones();
+            List<Milestone> milestones = trackWithMilestonesById.milestones;
+            for (Milestone m : milestones) {
+                if (totalSteps >= m.stepOffset && !notifiedMilestones.contains(m.id)) {
+                    userProgressDao.markMilestoneNotified(new UserProgressMilestoneStatus(progress.id, m.id, true));
+                    return new MethodResult(ResultStatus.SUCCESS, "Milestone reached: " + m.title);
+                }
+            }
+        }
+        return null;
     }
 }

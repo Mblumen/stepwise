@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "bea2b419512d4b21b18fe73e7516d3ef",
+    "identityHash": "531af3ae82be832676b3a69b580ad49b",
     "entities": [
       {
         "tableName": "tracks",
@@ -53,7 +53,7 @@
       },
       {
         "tableName": "milestones",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `trackId` INTEGER NOT NULL, `stepOffset` INTEGER NOT NULL, `stepCount` INTEGER NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `image` TEXT, FOREIGN KEY(`trackId`) REFERENCES `tracks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `trackId` INTEGER NOT NULL, `stepOffset` INTEGER NOT NULL, `stepCount` INTEGER NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `mapsUrl` TEXT, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `image` TEXT, FOREIGN KEY(`trackId`) REFERENCES `tracks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -89,6 +89,23 @@
             "fieldPath": "description",
             "columnName": "description",
             "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mapsUrl",
+            "columnName": "mapsUrl",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "latitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "longitude",
+            "affinity": "REAL",
             "notNull": true
           },
           {
@@ -186,11 +203,42 @@
             ]
           }
         ]
+      },
+      {
+        "tableName": "user_progress_milestone_status",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`progressId` INTEGER NOT NULL, `milestoneId` INTEGER NOT NULL, `notified` INTEGER NOT NULL, PRIMARY KEY(`progressId`, `milestoneId`))",
+        "fields": [
+          {
+            "fieldPath": "progressId",
+            "columnName": "progressId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "milestoneId",
+            "columnName": "milestoneId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notified",
+            "columnName": "notified",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "progressId",
+            "milestoneId"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'bea2b419512d4b21b18fe73e7516d3ef')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '531af3ae82be832676b3a69b580ad49b')"
     ]
   }
 }

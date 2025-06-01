@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "de.hd.fitbittracks"
-        minSdk = 26
+        minSdk = 30
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -73,4 +73,5 @@ dependencies {
 
     implementation ("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+    implementation("com.google.android.gms:play-services-maps:19.2.0")
 }

@@ -8,8 +8,10 @@ import androidx.room.Query;
 import androidx.room.Transaction;
 
 import java.util.List;
+import java.util.Set;
 
 import de.hd.fitbittracks.entities.UserProgress;
+import de.hd.fitbittracks.entities.UserProgressMilestoneStatus;
 import de.hd.fitbittracks.enums.ProgressStatus;
 import de.hd.fitbittracks.pojos.UserProgressWithTrackAndMilestones;
 
@@ -40,4 +42,16 @@ public interface UserProgressDao {
     @Transaction
     @Query("SELECT * FROM user_progress WHERE status IN (:status) ORDER BY status ASC, stepsWalked DESC")
     LiveData<List<UserProgressWithTrackAndMilestones>> getProgressWithTrackAndMilestonesForStatus(ProgressStatus... status);
+
+    @Query("SELECT * FROM user_progress WHERE status = 'active'")
+    UserProgress getActiveUserProgress();
+
+    @Query("SELECT milestoneId FROM user_progress_milestone_status WHERE progressId = :progressId")
+    List<Long>getNotifiedMilestonesForProgress(long progressId);
+
+    @Query("SELECT * FROM user_progress_milestone_status")
+    List<UserProgressMilestoneStatus>getNotifiedMilestones();
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void markMilestoneNotified(UserProgressMilestoneStatus status);
 }

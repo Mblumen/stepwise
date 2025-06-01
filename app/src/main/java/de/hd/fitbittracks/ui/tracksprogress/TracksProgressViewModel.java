@@ -27,7 +27,7 @@ public class TracksProgressViewModel extends AndroidViewModel {
     public TracksProgressViewModel(@NonNull Application application) {
         super(application);
         AppDatabase db = AppDatabase.getInstance(application);
-        UserProgressRepository userProgressRepository = new UserProgressRepository(db.userProgressDao());
+        UserProgressRepository userProgressRepository = new UserProgressRepository(db.userProgressDao(), db.trackDao());
         allProgress = userProgressRepository.getProgressWithMilestonesForStatusWithSeparators();
         //allProgress = db.userProgressDao().getProgressWithTrackAndMilestonesForStatus(ProgressStatus.ACTIVE, ProgressStatus.PAUSED);
         repository = new MilestoneRepository(db.milestoneDao());

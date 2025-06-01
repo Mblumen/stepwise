@@ -2,13 +2,17 @@ package de.hd.fitbittracks.ui.tracksprogress;
 
 import android.animation.LayoutTransition;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -23,15 +27,20 @@ import de.hd.fitbittracks.databinding.DetailsListItemSharedBinding;
 import de.hd.fitbittracks.databinding.FragmentTracksProgressBinding;
 import de.hd.fitbittracks.databinding.ItemProgressBinding;
 import de.hd.fitbittracks.databinding.ListSeparatorBinding;
+import de.hd.fitbittracks.databinding.MilestoneSharedBinding;
 import de.hd.fitbittracks.databinding.MilestoneWithStatusBinding;
+import de.hd.fitbittracks.entities.Milestone;
 import de.hd.fitbittracks.enums.AppImage;
 import de.hd.fitbittracks.enums.ListItemType;
 import de.hd.fitbittracks.enums.ProgressStatus;
+import de.hd.fitbittracks.interfaces.MapsItemClickedListener;
 import de.hd.fitbittracks.pojos.ListItem;
 import de.hd.fitbittracks.pojos.MilestoneWithStatus;
 import de.hd.fitbittracks.pojos.Separator;
 import de.hd.fitbittracks.pojos.UserProgressWithTrackAndMilestones;
 import de.hd.fitbittracks.ui.BaseFragment;
+import de.hd.fitbittracks.ui.milestones.MilestoneBaseAdapter;
+import de.hd.fitbittracks.ui.tracks.TracksFragment;
 
 /**
  * Fragment that demonstrates a responsive layout pattern where the format of the content
@@ -53,7 +62,7 @@ public class TracksProgressFragment extends BaseFragment {
 
         RecyclerView recyclerView = binding.progressList;
         //int firstActivePosition = viewModel.getActiveProgressPosition();
-        ProgressAdapter adapter = new ProgressAdapter(requireContext());
+        ProgressAdapter adapter = new ProgressAdapter(context, this);
         recyclerView.setAdapter(adapter);
         viewModel.getAllProgress().observe(getViewLifecycleOwner(), adapter::submitList);
         // Assuming you have a way to get all milestones mapped by trackId
@@ -67,7 +76,7 @@ public class TracksProgressFragment extends BaseFragment {
         binding = null;
     }
 
-    public static class MilestoneAdapter extends ListAdapter<MilestoneWithStatus, MilestoneAdapter.MilestoneViewHolder> {
+    /*public static class MilestoneAdapter extends ListAdapter<MilestoneWithStatus, MilestoneAdapter.MilestoneViewHolder> {
         //private List<Milestone> milestones;
         private final Context context;
 
@@ -96,14 +105,30 @@ public class TracksProgressFragment extends BaseFragment {
         @Override
         public void onBindViewHolder(@NonNull MilestoneAdapter.MilestoneViewHolder holder, int position) {
             MilestoneWithStatus milestoneWithStatus = getItem(position);
-            holder.title.setText(milestoneWithStatus.milestone.title);
-            holder.steps.setText(context.getString(R.string.integer_count, milestoneWithStatus.milestone.stepOffset));
-            holder.description.setText(milestoneWithStatus.milestone.description);
-            holder.milestoneImage.setImageResource(AppImage.getResIdFor(milestoneWithStatus.milestone.image));
+            Milestone milestone = milestoneWithStatus.milestone;
+            holder.title.setText(milestone.title);
+            holder.steps.setText(context.getString(R.string.integer_count, milestone.stepOffset));
+            holder.description.setText(milestone.description);
+            holder.milestoneImage.setImageResource(AppImage.getResIdFor(milestone.image));
             if(milestoneWithStatus.isCompleted) {
                 holder.milestoneStatusBadge.setVisibility(View.VISIBLE);
             } else {
                 holder.milestoneStatusBadge.setVisibility(View.GONE);
+            }
+            if(!milestone.mapsUrl.isEmpty() || (milestone.latitude > 0 && milestone.longitude > 0)) {
+                holder.mapsButton.setOnClickListener(v -> {
+                    Uri gmmIntentUri = Uri.parse(!milestone.mapsUrl.isEmpty() ? milestone.mapsUrl : "geo:" + milestone.latitude + "," + milestone.longitude + "?q=" + milestone.latitude + "," + milestone.longitude + "(" + Uri.encode(milestone.title) + ")");
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+
+                    if (mapIntent.resolveActivity(context.getPackageManager()) != null) {
+                        context.startActivity(mapIntent);
+                    } else {
+                        Toast.makeText(context, "Google Maps app is not installed.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                holder.mapsButton.setVisibility(View.GONE);
             }
         }
 
@@ -112,25 +137,75 @@ public class TracksProgressFragment extends BaseFragment {
             TextView steps;
             TextView description;
             ImageView milestoneImage;
+
+            ImageButton mapsButton; // If you want to add an image button for actions
             ImageView milestoneStatusBadge;
 
             public MilestoneViewHolder(MilestoneWithStatusBinding binding) {
                 super(binding.getRoot());
-                title = binding.milestoneTitle;
-                steps = binding.milestoneSteps;
-                description = binding.milestoneDescription;
                 milestoneImage = binding.milestoneImage;
+                MilestoneSharedBinding sharedBinding = binding.milestoneInfo;
+                title = sharedBinding.milestoneTitle;
+                steps = sharedBinding.milestoneSteps;
+                description = sharedBinding.milestoneDescription;
+                mapsButton = sharedBinding.milestoneMapButton;
+                milestoneStatusBadge = binding.milestoneStatusBadge;
+            }
+        }
+    }*/
+
+    public static class MilestoneAdapter extends MilestoneBaseAdapter<MilestoneWithStatus> {
+
+        public MilestoneAdapter(Context context, MapsItemClickedListener mapsItemClickedListener) {
+            super(context, new DiffUtil.ItemCallback<>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull MilestoneWithStatus oldItem, @NonNull MilestoneWithStatus newItem) {
+                    return oldItem.milestone.id == newItem.milestone.id;
+                }
+
+                @Override
+                public boolean areContentsTheSame(@NonNull MilestoneWithStatus oldItem, @NonNull MilestoneWithStatus newItem) {
+                    return oldItem.equals(newItem);
+                }
+            }, mapsItemClickedListener);
+        }
+
+        @NonNull
+        @Override
+        public MilestoneProgressViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            MilestoneWithStatusBinding binding = MilestoneWithStatusBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+            return new MilestoneProgressViewHolder(binding);
+        }
+
+        @Override
+        protected void onBindExtendedViewHolder(MilestoneBaseViewHolder holder, MilestoneWithStatus item) {
+            MilestoneProgressViewHolder progressViewHolder = ((MilestoneProgressViewHolder) holder);
+            if(item.isCompleted) {
+                progressViewHolder.milestoneStatusBadge.setVisibility(View.VISIBLE);
+            } else {
+                progressViewHolder.milestoneStatusBadge.setVisibility(View.GONE);
+            }
+        }
+
+        public static class MilestoneProgressViewHolder extends MilestoneBaseViewHolder {
+            ImageView milestoneStatusBadge;
+
+            public MilestoneProgressViewHolder(MilestoneWithStatusBinding binding) {
+                super(binding);
                 milestoneStatusBadge = binding.milestoneStatusBadge;
             }
         }
     }
+
     public class ProgressAdapter extends ListAdapter<ListItem, RecyclerView.ViewHolder> {
         private int expandedPosition = -1;
         private final Context context;
 
         private RecyclerView recyclerView;
 
-        protected ProgressAdapter(Context context) {
+        private MapsItemClickedListener mapsItemClickedListener;
+
+        protected ProgressAdapter(Context context, MapsItemClickedListener mapsItemClickedListener) {
             super(new DiffUtil.ItemCallback<>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull ListItem oldItem, @NonNull ListItem newItem) {
@@ -144,6 +219,7 @@ public class TracksProgressFragment extends BaseFragment {
                 }
             });
             this.context = context;
+            this.mapsItemClickedListener = mapsItemClickedListener;
         }
 
         /*protected ProgressAdapter(Context context) {
@@ -215,7 +291,7 @@ public class TracksProgressFragment extends BaseFragment {
             holder.itemSelectedAccent.setVisibility(userProgressWithTrackAndMilestones.userProgress.status == ProgressStatus.ACTIVE ? View.VISIBLE : View.GONE);
 
             if(isExpanded) {
-                MilestoneAdapter milestoneAdapter = new MilestoneAdapter(context);
+                MilestoneAdapter milestoneAdapter = new MilestoneAdapter(context, mapsItemClickedListener);
                 holder.milestoneRecycler.setLayoutManager(new LinearLayoutManager(holder.itemView.getContext()));
                 holder.milestoneRecycler.setAdapter(milestoneAdapter);
                 viewModel.setTrack(userProgressWithTrackAndMilestones.trackWithMilestones.track);

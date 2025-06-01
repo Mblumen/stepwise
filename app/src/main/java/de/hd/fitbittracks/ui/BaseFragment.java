@@ -1,7 +1,9 @@
 package de.hd.fitbittracks.ui;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,20 +18,26 @@ import androidx.fragment.app.Fragment;
 
 import de.hd.fitbittracks.R;
 import de.hd.fitbittracks.enums.ResultStatus;
+import de.hd.fitbittracks.interfaces.MapsItemClickedListener;
+import de.hd.fitbittracks.pojos.MapsItem;
 
-public abstract class BaseFragment extends Fragment {
+public abstract class BaseFragment extends Fragment implements MapsItemClickedListener {
+
 
     protected ViewGroup container;
+    protected Context context;
 
+    public BaseFragment() {
+    }
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, android.os.Bundle savedInstanceState) {
         this.container = container;
+        this.context = requireContext();
         return null;
     }
-    public void showCustomToast(Context context, String message, ResultStatus status) {
+    public void showCustomToast(String message, ResultStatus status) {
         LayoutInflater inflater = LayoutInflater.from(context);
         View layout = inflater.inflate(R.layout.custom_toast, container, false);
 
-        LinearLayout container = layout.findViewById(R.id.custom_toast_container);
         TextView text = layout.findViewById(R.id.toast_text);
         ImageView icon = layout.findViewById(R.id.toast_icon);
         text.setText(message);
@@ -63,4 +71,21 @@ public abstract class BaseFragment extends Fragment {
         toast.setView(layout);
         toast.show();
     }
+
+    public void onMapsItemClicked(MapsItem mapsItem) {
+        if(mapsItem.url.isEmpty() && (mapsItem.latitude <= 0 || mapsItem.longitude <= 0)) {
+            showCustomToast("No valid location provided.", ResultStatus.ERROR);
+            return;
+        }
+        Uri gmmIntentUri = Uri.parse(!mapsItem.url.isEmpty() ? mapsItem.url : "geo:" + mapsItem.latitude + "," + mapsItem.longitude + "?q=" + mapsItem.latitude + "," + mapsItem.longitude + "(" + Uri.encode(mapsItem.title) + ")");
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+        mapIntent.setPackage("com.google.android.apps.maps");
+
+        if (mapIntent.resolveActivity(context.getPackageManager()) != null) {
+            context.startActivity(mapIntent);
+        } else {
+            showCustomToast("Google Maps app is not installed.", ResultStatus.ERROR);
+        }
+    }
+
 }

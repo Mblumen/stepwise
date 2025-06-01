@@ -38,4 +38,8 @@ public interface TrackDao {
     @Transaction
     @Query("SELECT * FROM tracks")
     LiveData<List<TrackWithMilestones>> getAllTracksWithMilestones();
+
+    @Transaction
+    @Query("SELECT * FROM tracks WHERE id = :trackId")
+    TrackWithMilestones getTrackWithMilestonesById(long trackId);
 }

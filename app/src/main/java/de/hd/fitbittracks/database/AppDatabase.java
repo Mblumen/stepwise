@@ -18,9 +18,10 @@ import de.hd.fitbittracks.daos.UserProgressDao;
 import de.hd.fitbittracks.entities.Milestone;
 import de.hd.fitbittracks.entities.Track;
 import de.hd.fitbittracks.entities.UserProgress;
+import de.hd.fitbittracks.entities.UserProgressMilestoneStatus;
 import de.hd.fitbittracks.enums.ProgressStatus;
 
-@Database(entities = {Track.class, Milestone.class, UserProgress.class}, version = 1)
+@Database(entities = {Track.class, Milestone.class, UserProgress.class, UserProgressMilestoneStatus.class}, version = 1)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
 
@@ -63,7 +64,7 @@ public abstract class AppDatabase extends RoomDatabase {
         UserProgress progress = new UserProgress();
         progress.trackId = trackId;
         progress.status = ProgressStatus.ACTIVE;
-        progress.stepsWalked = 5141;
+        progress.stepsWalked = 2990;
         db.userProgressDao().insertUserProgress(progress);
 
         // Insert a second track with no progress
@@ -102,20 +103,23 @@ public abstract class AppDatabase extends RoomDatabase {
 
         long trackId = db.trackDao().insertTrack(track);
 
-        insertMockMilestone(db, trackId, 3000, "Milestone 1", "Description for milestone 1", "berlin");
-        insertMockMilestone(db, trackId, 15000, "Milestone 2", "Description for milestone 2", "munich");
-        insertMockMilestone(db, trackId, 25000, "Milestone 3", "Description for milestone 3", "paris");
+        insertMockMilestone(db, trackId, 3000, "Milestone 1", "Description for milestone 1. Diese ist länger als sie in die Zeile passt, mal schauen, was passiert.", "berlin", "https://www.google.de/maps/place/Berliner+Fernsehturm/@52.5208182,13.4068442,17z/data=!3m1!5s0x47a84e1f8930e30b:0x45589dc39d6724c4!4m6!3m5!1s0x47a84e1f9014ffeb:0xc8fafc484349e4a1!8m2!3d52.520815!4d13.4094191!16zL20vMDJnOG4w?entry=ttu&g_ep=EgoyMDI1MDUyOC4wIKXMDSoASAFQAw%3D%3D", 0, 0);
+        insertMockMilestone(db, trackId, 15000, "Milestone 2", "Description for milestone 2", "munich", "", 49.38440050589991, 8.678341220795584);
+        insertMockMilestone(db, trackId, 25000, "Milestone 3", "Description for milestone 3", "paris", "", 0, 0);
 
         return trackId;
     }
 
-    private static void insertMockMilestone(AppDatabase db, long trackId, int stepOffset, String title, String description, String imageUrl) {
+    private static void insertMockMilestone(AppDatabase db, long trackId, int stepOffset, String title, String description, String imageUrl, String mapsUrl, double lat, double lon) {
         Milestone milestone = new Milestone();
         milestone.trackId = trackId;
         milestone.stepOffset = stepOffset;
         milestone.title = title;
         milestone.description = description;
         milestone.image = imageUrl;
+        milestone.mapsUrl = mapsUrl;
+        milestone.latitude = lat;
+        milestone.longitude = lon;
 
         db.milestoneDao().insertMilestone(milestone);
     }
