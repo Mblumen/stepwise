@@ -3,6 +3,8 @@ package de.hd.fitbittracks.pojos;
 import androidx.room.Embedded;
 import androidx.room.Relation;
 
+import java.util.Objects;
+
 import de.hd.fitbittracks.entities.Track;
 import de.hd.fitbittracks.entities.UserProgress;
 
@@ -15,4 +17,12 @@ public class UserProgressWithTrack {
             entityColumn = "id"
     )
     public Track track;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserProgressWithTrack that)) return false;
+
+        return Objects.equals(userProgress, that.userProgress);
+    }
 }

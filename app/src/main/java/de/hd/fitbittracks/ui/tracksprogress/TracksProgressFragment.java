@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -20,15 +19,19 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import de.hd.fitbittracks.R;
-import de.hd.fitbittracks.databinding.BasicListItemSharedBinding;
 import de.hd.fitbittracks.databinding.DetailsListItemSharedBinding;
 import de.hd.fitbittracks.databinding.FragmentTracksProgressBinding;
 import de.hd.fitbittracks.databinding.ItemProgressBinding;
+import de.hd.fitbittracks.databinding.ListSeparatorBinding;
 import de.hd.fitbittracks.databinding.MilestoneWithStatusBinding;
 import de.hd.fitbittracks.enums.AppImage;
+import de.hd.fitbittracks.enums.ListItemType;
 import de.hd.fitbittracks.enums.ProgressStatus;
+import de.hd.fitbittracks.pojos.ListItem;
 import de.hd.fitbittracks.pojos.MilestoneWithStatus;
+import de.hd.fitbittracks.pojos.Separator;
 import de.hd.fitbittracks.pojos.UserProgressWithTrackAndMilestones;
+import de.hd.fitbittracks.ui.BaseFragment;
 
 /**
  * Fragment that demonstrates a responsive layout pattern where the format of the content
@@ -36,12 +39,13 @@ import de.hd.fitbittracks.pojos.UserProgressWithTrackAndMilestones;
  * the [RecyclerView] using LinearLayoutManager in a small screen
  * and shows items using GridLayoutManager in a large screen.
  */
-public class TracksProgressFragment extends Fragment {
+public class TracksProgressFragment extends BaseFragment {
 
     private FragmentTracksProgressBinding binding;
     private TracksProgressViewModel viewModel;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        super.onCreateView(inflater, container, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(TracksProgressViewModel.class);
 
         binding = FragmentTracksProgressBinding.inflate(inflater, container, false);
@@ -120,7 +124,7 @@ public class TracksProgressFragment extends Fragment {
             }
         }
     }
-    public class ProgressAdapter extends ListAdapter<UserProgressWithTrackAndMilestones, ProgressAdapter.ProgressViewHolder> {
+    public class ProgressAdapter extends ListAdapter<ListItem, RecyclerView.ViewHolder> {
         private int expandedPosition = -1;
         private final Context context;
 
@@ -129,37 +133,75 @@ public class TracksProgressFragment extends Fragment {
         protected ProgressAdapter(Context context) {
             super(new DiffUtil.ItemCallback<>() {
                 @Override
+                public boolean areItemsTheSame(@NonNull ListItem oldItem, @NonNull ListItem newItem) {
+                    return oldItem.getId() == newItem.getId() && oldItem.getType() == newItem.getType();
+                }
+
+                @Override
+                public boolean areContentsTheSame(@NonNull ListItem oldItem, @NonNull ListItem newItem) {
+                    if (oldItem.getType() != newItem.getType()) return false;
+                    return oldItem.equals(newItem);
+                }
+            });
+            this.context = context;
+        }
+
+        /*protected ProgressAdapter(Context context) {
+            super(new DiffUtil.ItemCallback<>() {
+                @Override
                 public boolean areItemsTheSame(@NonNull UserProgressWithTrackAndMilestones oldItem, @NonNull UserProgressWithTrackAndMilestones newItem) {
                     return oldItem.userProgress.id == newItem.userProgress.id;
                 }
 
                 @Override
                 public boolean areContentsTheSame(@NonNull UserProgressWithTrackAndMilestones oldItem, @NonNull UserProgressWithTrackAndMilestones newItem) {
-                    return oldItem.userProgress.stepsWalked == newItem.userProgress.stepsWalked;
+                    return oldItem.equals(newItem);
                 }
             });
             this.context = context;
+        }*/
+
+        @Override
+        public int getItemViewType(int position) {
+            ListItem item = getItem(position);
+            return item.getType().key;
         }
 
         @NonNull
         @Override
-        public ProgressViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            ItemProgressBinding binding = ItemProgressBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
-            ProgressViewHolder holder =  new ProgressViewHolder(binding);
-            LayoutTransition transition = new LayoutTransition();
-            transition.setDuration(2000); // Set your custom duration in ms
-            ((ViewGroup) holder.itemView).setLayoutTransition(transition);
-            return holder;
+        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+           if(viewType == ListItemType.SEPARATOR.key) {
+                ListSeparatorBinding binding = ListSeparatorBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+                return new ListSeparatorViewHolder(binding);
+            }
+            else {
+                ItemProgressBinding binding = ItemProgressBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+                ProgressViewHolder holder = new ProgressViewHolder(binding);
+                LayoutTransition transition = new LayoutTransition();
+                transition.setDuration(2000); // Set your custom duration in ms
+                ((ViewGroup) holder.itemView).setLayoutTransition(transition);
+                return holder;
+            }
         }
 
         @Override
-        public void onBindViewHolder(@NonNull ProgressViewHolder holder, int position) {
+        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder genericHolder, int position) {
+            if(getItemViewType(position) == ListItemType.SEPARATOR.key) {
+                ListSeparatorViewHolder separatorHolder = (ListSeparatorViewHolder) genericHolder;
+                Separator separator = (Separator) getItem(position);
+                if(separator != null) {
+                    separatorHolder.bind(separator);
+                }
+                return;
+            }
 
-            UserProgressWithTrackAndMilestones userProgressWithTrackAndMilestones = getItem(position);
+            ProgressViewHolder holder = (ProgressViewHolder) genericHolder;
+            UserProgressWithTrackAndMilestones userProgressWithTrackAndMilestones = (UserProgressWithTrackAndMilestones) getItem(position);
             boolean isExpanded = position == expandedPosition;
             holder.baseTitle.setText(userProgressWithTrackAndMilestones.trackWithMilestones.track.name);
             holder.baseImageView.setImageResource(AppImage.getResIdFor(userProgressWithTrackAndMilestones.trackWithMilestones.track.image));
             holder.baseSteps.setText(context.getString(R.string.integer_count_of, userProgressWithTrackAndMilestones.userProgress.stepsWalked, userProgressWithTrackAndMilestones.trackWithMilestones.track.totalSteps));
+            holder.baseMilestoneCount.setText(context.getString(R.string.integer_count, userProgressWithTrackAndMilestones.trackWithMilestones.milestones.size()));
 
             holder.detailsTitle.setText(userProgressWithTrackAndMilestones.trackWithMilestones.track.name);
             holder.detailsImageView.setImageResource(AppImage.getResIdFor(userProgressWithTrackAndMilestones.trackWithMilestones.track.image));
@@ -204,12 +246,27 @@ public class TracksProgressFragment extends Fragment {
         public void setRecyclerView(RecyclerView recyclerView) {
             this.recyclerView = recyclerView;
         }
+
+        public static class ListSeparatorViewHolder extends RecyclerView.ViewHolder {
+            private final TextView separatorText;
+
+            public ListSeparatorViewHolder(ListSeparatorBinding binding) {
+                super(binding.getRoot());
+                separatorText = binding.separatorText;
+            }
+
+            public void bind(Separator separator) {
+                separatorText.setText(separator.title);
+            }
+        }
         public static class ProgressViewHolder extends RecyclerView.ViewHolder {
 
             private final LinearLayout baseLayout;
             private final ImageView baseImageView;
             private final TextView baseTitle;
             private final TextView baseSteps;
+
+            private final TextView baseMilestoneCount;
 
             private final View itemSelectedAccent;
 
@@ -219,7 +276,6 @@ public class TracksProgressFragment extends Fragment {
             private final TextView detailsStart;
             private final TextView detailsEnd;
             private final TextView detailsSteps;
-
             private final RecyclerView milestoneRecycler;
 
             public ProgressViewHolder(ItemProgressBinding binding) {
@@ -228,6 +284,7 @@ public class TracksProgressFragment extends Fragment {
                 baseImageView = binding.progressItemBaseImage;
                 baseTitle = binding.progressItemBaseTitle;
                 baseSteps = binding.progressItemBaseSteps;
+                baseMilestoneCount = binding.progressItemBaseMilestones;
                 itemSelectedAccent = binding.itemSelectedAccent;
 
                 expandedLayout = binding.progressItemDetails;

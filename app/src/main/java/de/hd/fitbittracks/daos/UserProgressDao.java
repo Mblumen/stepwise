@@ -9,38 +9,35 @@ import androidx.room.Transaction;
 
 import java.util.List;
 
-import de.hd.fitbittracks.entities.Track;
 import de.hd.fitbittracks.entities.UserProgress;
 import de.hd.fitbittracks.enums.ProgressStatus;
-import de.hd.fitbittracks.pojos.UserProgressWithTrack;
 import de.hd.fitbittracks.pojos.UserProgressWithTrackAndMilestones;
 
 @Dao
 public interface UserProgressDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void upsertProgress(UserProgress progress);
+    void insertUserProgress(UserProgress progress);
 
     @Query("SELECT * FROM user_progress WHERE trackId = :trackId")
     UserProgress getProgressForTrack(long trackId);
 
-    @Query("SELECT * FROM user_progress WHERE trackId = :trackId")
-    LiveData<List<UserProgress>> getProgressForTrackLive(long trackId);
+    @Query("SELECT * FROM user_progress WHERE trackId = :trackId AND status IN (:status)")
+    UserProgress getProgressForTrackAndStatus(long trackId, ProgressStatus... status);
 
-    @Query("SELECT * FROM user_progress WHERE status = 'active' OR status = 'paused' ORDER BY status DESC, stepsWalked DESC")
-    LiveData<List<UserProgress>> getProgressesLive();
+    @Query("SELECT * FROM user_progress WHERE status IN (:status)")
+    UserProgress getProgressForStatus(ProgressStatus... status);
+
+    @Query("Update user_progress SET status = 'paused' WHERE status = 'active'")
+    void pauseActiveTrack();
+
+    @Query("Update user_progress SET status = :status WHERE trackId = :trackId")
+    void updateStatus(long trackId, ProgressStatus status);
 
     @Query("UPDATE user_progress SET stepsWalked = :steps WHERE trackId = :trackId")
     void updateSteps(int trackId, int steps);
 
     @Transaction
-    @Query("SELECT * FROM user_progress WHERE status IN ('paused', 'active') ORDER BY status DESC, stepsWalked DESC")
-    List<UserProgressWithTrack> getActiveOrPausedProgress();
-    @Transaction
-    @Query("SELECT * FROM user_progress WHERE status IN ('paused', 'active') ORDER BY status DESC, stepsWalked DESC")
-    LiveData<List<UserProgressWithTrack>> getActiveOrPausedProgressLive();
-
-    @Transaction
-    @Query("SELECT * FROM user_progress WHERE status IN ('paused', 'active')")
-    LiveData<List<UserProgressWithTrackAndMilestones>> getActiveOrPausedProgressWithMilestones();
+    @Query("SELECT * FROM user_progress WHERE status IN (:status) ORDER BY status ASC, stepsWalked DESC")
+    LiveData<List<UserProgressWithTrackAndMilestones>> getProgressWithTrackAndMilestonesForStatus(ProgressStatus... status);
 }

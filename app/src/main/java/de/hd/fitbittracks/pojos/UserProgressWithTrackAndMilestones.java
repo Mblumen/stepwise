@@ -3,10 +3,13 @@ package de.hd.fitbittracks.pojos;
 import androidx.room.Embedded;
 import androidx.room.Relation;
 
+import java.util.Objects;
+
 import de.hd.fitbittracks.entities.Track;
 import de.hd.fitbittracks.entities.UserProgress;
+import de.hd.fitbittracks.enums.ListItemType;
 
-public class UserProgressWithTrackAndMilestones {
+public class UserProgressWithTrackAndMilestones implements ListItem{
     @Embedded
     public UserProgress userProgress;
 
@@ -16,4 +19,23 @@ public class UserProgressWithTrackAndMilestones {
             entityColumn = "id"
     )
     public TrackWithMilestones trackWithMilestones;
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserProgressWithTrackAndMilestones that)) return false;
+
+        return Objects.equals(userProgress, that.userProgress);
+    }
+
+    @Override
+    public long getId() {
+        return userProgress.id;
+    }
+
+    @Override
+    public ListItemType getType() {
+        return ListItemType.USER_PROGRESS;
+    }
 }

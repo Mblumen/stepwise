@@ -6,10 +6,13 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Transaction;
 
 import java.util.List;
 
 import de.hd.fitbittracks.entities.Track;
+import de.hd.fitbittracks.pojos.TrackWithMilestones;
+import de.hd.fitbittracks.pojos.UserProgressWithTrackAndMilestones;
 
 @Dao
 public interface TrackDao {
@@ -31,4 +34,8 @@ public interface TrackDao {
 
     @Delete
     void deleteTrack(Track track);
+
+    @Transaction
+    @Query("SELECT * FROM tracks")
+    LiveData<List<TrackWithMilestones>> getAllTracksWithMilestones();
 }

@@ -29,4 +29,6 @@
     <string name="integer_count">%1$d</string>
     <string name="integer_count_of">%1$d/%2$d</string>
     <string name="milestone_completed">Milestone completed</string>
+    <string name="button_select_track">Select This Track</string>
+    <string name="toast_icon_desc">This image represents the status of a custom toast message</string>
 </resources>

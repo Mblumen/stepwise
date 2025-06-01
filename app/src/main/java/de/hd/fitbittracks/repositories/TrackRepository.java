@@ -10,29 +10,30 @@ import java.util.Map;
 import java.util.Objects;
 
 import de.hd.fitbittracks.daos.MilestoneDao;
+import de.hd.fitbittracks.daos.TrackDao;
 import de.hd.fitbittracks.entities.Milestone;
+import de.hd.fitbittracks.entities.Track;
+import de.hd.fitbittracks.pojos.TrackWithMilestones;
 
-public class TrackRepository {
-
+public class TrackRepository extends BaseRepository {
     private final MilestoneDao milestoneDao;
 
     public TrackRepository(MilestoneDao milestoneDao) {
         this.milestoneDao = milestoneDao;
     }
-
     public LiveData<Map<Long, List<Milestone>>> getAllMilestonesByTrack() {
         return Transformations.map(
-                milestoneDao.getAllMilestones(),
-                milestones -> {
-                    Map<Long, List<Milestone>> grouped = new HashMap<>();
-                    for (Milestone m : milestones) {
-                        if (!grouped.containsKey(m.trackId)) {
-                            grouped.put(m.trackId, new ArrayList<>());
-                        }
-                        Objects.requireNonNull(grouped.get(m.trackId)).add(m);
+            milestoneDao.getAllMilestones(),
+            milestones -> {
+                Map<Long, List<Milestone>> grouped = new HashMap<>();
+                for (Milestone m : milestones) {
+                    if (!grouped.containsKey(m.trackId)) {
+                        grouped.put(m.trackId, new ArrayList<>());
                     }
-                    return grouped;
+                    Objects.requireNonNull(grouped.get(m.trackId)).add(m);
                 }
+                return grouped;
+            }
         );
     }
 }

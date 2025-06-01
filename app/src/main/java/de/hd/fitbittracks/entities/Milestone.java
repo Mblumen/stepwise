@@ -6,6 +6,8 @@ import androidx.room.ForeignKey;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import java.util.Objects;
+
 @Entity(
         tableName = "milestones",
         foreignKeys = @ForeignKey(
@@ -33,4 +35,18 @@ public class Milestone {
     public String description;
 
     public String image; // optional
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Milestone that)) return false;
+
+        if (id != that.id) return false;
+        if (trackId != that.trackId) return false;
+        if (stepOffset != that.stepOffset) return false;
+        if (stepCount != that.stepCount) return false;
+        if (!title.equals(that.title)) return false;
+        if (!description.equals(that.description)) return false;
+        return Objects.equals(image, that.image);
+    }
 }

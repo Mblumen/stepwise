@@ -26,4 +26,15 @@ public class UserProgress {
     public int stepsWalked;
 
     public ProgressStatus status;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserProgress that)) return false;
+
+        if (id != that.id) return false;
+        if (trackId != that.trackId) return false;
+        if (stepsWalked != that.stepsWalked) return false;
+        return status == that.status;
+    }
 }

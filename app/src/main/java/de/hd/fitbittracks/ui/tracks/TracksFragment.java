@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -29,6 +30,10 @@ import de.hd.fitbittracks.databinding.MilestoneBinding;
 import de.hd.fitbittracks.entities.Milestone;
 import de.hd.fitbittracks.entities.Track;
 import de.hd.fitbittracks.enums.AppImage;
+import de.hd.fitbittracks.enums.ResultStatus;
+import de.hd.fitbittracks.pojos.MethodResult;
+import de.hd.fitbittracks.pojos.TrackWithMilestones;
+import de.hd.fitbittracks.ui.BaseFragment;
 
 /**
  * Fragment that demonstrates a responsive layout pattern where the format of the content
@@ -36,12 +41,17 @@ import de.hd.fitbittracks.enums.AppImage;
  * the [RecyclerView] using LinearLayoutManager in a small screen
  * and shows items using GridLayoutManager in a large screen.
  */
-public class TracksFragment extends Fragment {
+public class TracksFragment extends BaseFragment {
+
+    public TracksFragment() {
+        super();
+    }
 
     private FragmentTracksBinding binding;
     private TracksViewModel viewModel;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        super.onCreateView(inflater, container, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(TracksViewModel.class);
 
         binding = FragmentTracksBinding.inflate(inflater, container, false);
@@ -51,6 +61,10 @@ public class TracksFragment extends Fragment {
         TracksAdapter adapter = new TracksAdapter(requireContext());
         recyclerView.setAdapter(adapter);
         viewModel.getAllTracks().observe(getViewLifecycleOwner(), adapter::submitList);
+        viewModel.observedResult.observe(getViewLifecycleOwner(), event -> {
+            MethodResult result = event.getContentIfNotHandled();
+            if(result != null) showCustomToast(requireContext(), result.message, result.status);
+        });
         // Assuming you have a way to get all milestones mapped by trackId
         adapter.setRecyclerView(recyclerView);
         return root;
@@ -75,7 +89,7 @@ public class TracksFragment extends Fragment {
 
                 @Override
                 public boolean areContentsTheSame(@NonNull Milestone oldItem, @NonNull Milestone newItem) {
-                    return oldItem.title.equals(newItem.title);
+                    return oldItem.equals(newItem);
                 }
             });
             this.context = context;
@@ -115,7 +129,8 @@ public class TracksFragment extends Fragment {
         }
     }
 
-    public class TracksAdapter extends ListAdapter<Track, TracksAdapter.TrackViewHolder> {
+    public class TracksAdapter extends ListAdapter<TrackWithMilestones, TracksAdapter.TrackViewHolder> {
+
         private int expandedPosition = -1;
         private final Context context;
 
@@ -124,13 +139,13 @@ public class TracksFragment extends Fragment {
         protected TracksAdapter(Context context) {
             super(new DiffUtil.ItemCallback<>() {
                 @Override
-                public boolean areItemsTheSame(@NonNull Track oldItem, @NonNull Track newItem) {
-                    return oldItem.id == newItem.id;
+                public boolean areItemsTheSame(@NonNull TrackWithMilestones oldItem, @NonNull TrackWithMilestones newItem) {
+                    return oldItem.track.id == newItem.track.id;
                 }
 
                 @Override
-                public boolean areContentsTheSame(@NonNull Track oldItem, @NonNull Track newItem) {
-                    return oldItem.name.equals(newItem.name);
+                public boolean areContentsTheSame(@NonNull TrackWithMilestones oldItem, @NonNull TrackWithMilestones newItem) {
+                    return oldItem.equals(newItem);
                 }
             });
             this.context = context;
@@ -150,10 +165,12 @@ public class TracksFragment extends Fragment {
         @Override
         public void onBindViewHolder(@NonNull TrackViewHolder holder, int position) {
 
-            Track track = getItem(position);
+            TrackWithMilestones trackWithMilestones = getItem(position);
+            Track track = trackWithMilestones.track; // Extract the Track entity from the TrackWithMilestones
             boolean isExpanded = position == expandedPosition;
             holder.baseTitle.setText(track.name);
             holder.baseSteps.setText(context.getString(R.string.integer_count, track.totalSteps));
+            holder.baseMilestonesCount.setText(context.getString(R.string.integer_count, trackWithMilestones.milestones.size()));
             holder.baseImageView.setImageResource(AppImage.getResIdFor(track.image));
 
             holder.detailsTitle.setText(track.name);
@@ -167,7 +184,7 @@ public class TracksFragment extends Fragment {
 
             if(isExpanded) {
                 holder.selectButton.setOnClickListener(v -> {;
-                    viewModel.selectTrack(track);
+                    viewModel.selectTrack(track.id);
                 });
                 MilestoneAdapter milestoneAdapter = new MilestoneAdapter(context);
                 holder.milestoneRecycler.setLayoutManager(new LinearLayoutManager(holder.itemView.getContext()));
@@ -205,6 +222,7 @@ public class TracksFragment extends Fragment {
             private final ImageView baseImageView;
             private final TextView baseTitle;
             private final TextView baseSteps;
+            private final TextView baseMilestonesCount;
             private final CardView expandedLayout;
             private final ImageView detailsImageView;
             private final TextView detailsTitle;
@@ -221,6 +239,7 @@ public class TracksFragment extends Fragment {
                 baseImageView = sharedBinding.itemBaseImage;
                 baseTitle = sharedBinding.itemBaseTitle;
                 baseSteps = sharedBinding.itemBaseSteps;
+                baseMilestonesCount = sharedBinding.itemBaseMilestones;
                 expandedLayout = binding.trackItemDetails;
 
                 DetailsListItemSharedBinding detailsSharedBinding = binding.sharedDetailsItem;

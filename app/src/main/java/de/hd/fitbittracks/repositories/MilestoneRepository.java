@@ -14,7 +14,7 @@ import de.hd.fitbittracks.daos.MilestoneDao;
 import de.hd.fitbittracks.entities.Milestone;
 import de.hd.fitbittracks.pojos.MilestoneWithStatus;
 
-public class MilestoneRepository {
+public class MilestoneRepository extends BaseRepository {
     private final MilestoneDao milestoneDao;
 
     public MilestoneRepository(MilestoneDao milestoneDao) {
@@ -23,13 +23,13 @@ public class MilestoneRepository {
 
     public LiveData<List<MilestoneWithStatus>> getAllMilestonesByTrack(long trackId, int stepsWalked) {
         return Transformations.map(
-                milestoneDao.getMilestonesForTrackLive(trackId),
-                milestones -> milestones.stream().map(milestone -> {
-                    MilestoneWithStatus milestoneWithStatus = new MilestoneWithStatus();
-                    milestoneWithStatus.milestone = milestone;
-                    milestoneWithStatus.isCompleted = stepsWalked >= milestone.stepOffset;
-                    return milestoneWithStatus;
-                }).collect(Collectors.toList())
+            milestoneDao.getMilestonesForTrackLive(trackId),
+            milestones -> milestones.stream().map(milestone -> {
+                MilestoneWithStatus milestoneWithStatus = new MilestoneWithStatus();
+                milestoneWithStatus.milestone = milestone;
+                milestoneWithStatus.isCompleted = stepsWalked >= milestone.stepOffset;
+                return milestoneWithStatus;
+            }).collect(Collectors.toList())
         );
     }
 }

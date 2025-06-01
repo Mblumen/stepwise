@@ -9,7 +9,9 @@
     <color name="white">#FFFFFFFF</color>
     <color name="dark_gray">#FF333333</color>
     <color name="light_gray">#FFEEEEEE</color>
-    <color name="success_green">#FF4CAF50</color>
+    <color name="success_green">#CC4CAF50</color>
+    <color name="error_red">#CCF44336</color>
+    <color name="warning_yellow">#CCFFC107</color>
     <color name="selected_item_bg">#FFa9d4fc</color>
     <color name="selected_item_highlight">#FF063f75</color>
 </resources>

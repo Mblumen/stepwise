@@ -64,7 +64,7 @@ public abstract class AppDatabase extends RoomDatabase {
         progress.trackId = trackId;
         progress.status = ProgressStatus.ACTIVE;
         progress.stepsWalked = 5141;
-        db.userProgressDao().upsertProgress(progress);
+        db.userProgressDao().insertUserProgress(progress);
 
         // Insert a second track with no progress
         long trackId2 = insertMockTrack(db, "Paris to Berlin", "Paris", "Berlin", 60000, "paris");
@@ -73,7 +73,7 @@ public abstract class AppDatabase extends RoomDatabase {
         progress2.trackId = trackId2;
         progress2.status = ProgressStatus.PAUSED;
         progress2.stepsWalked = 1542;
-        db.userProgressDao().upsertProgress(progress2);
+        db.userProgressDao().insertUserProgress(progress2);
 
         // Insert a third track with no progress
         long trackId3 = insertMockTrack(db, "Berlin to Munich", "Berlin", "Munich", 30000, "berlin");
@@ -81,7 +81,7 @@ public abstract class AppDatabase extends RoomDatabase {
         progress3.trackId = trackId3;
         progress3.status = ProgressStatus.PAUSED;
         progress3.stepsWalked = 25425;
-        db.userProgressDao().upsertProgress(progress3);
+        db.userProgressDao().insertUserProgress(progress3);
 
         // Insert a fourth track with no progress
         long trackId4 = insertMockTrack(db, "Munich to Zurich", "Munich", "Zurich", 40000, "munich");
@@ -89,7 +89,7 @@ public abstract class AppDatabase extends RoomDatabase {
         progress4.trackId = trackId4;
         progress4.status = ProgressStatus.COMPLETED;
         progress4.stepsWalked = 40000; // Assume the user completed this track
-        db.userProgressDao().upsertProgress(progress4);
+        db.userProgressDao().insertUserProgress(progress4);
     }
 
     private static long insertMockTrack(AppDatabase db, String name, String startLocation, String endLocation, int totalSteps, String image) {

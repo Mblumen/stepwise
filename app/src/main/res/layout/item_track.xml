@@ -39,7 +39,9 @@
                 android:textSize="@dimen/font_size_small"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                tools:text="Select This Track" />
+                android:layout_marginLeft="@dimen/button_margin"
+                android:layout_marginRight="@dimen/button_margin"
+                android:text="@string/button_select_track" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/track_item_details_milestones"
