@@ -2,19 +2,18 @@ package de.hd.fitbittracks.stepcounter;
 
 import android.Manifest;
 import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
@@ -23,10 +22,17 @@ import androidx.core.app.NotificationManagerCompat;
 
 import java.util.concurrent.Executors;
 
+import de.hd.fitbittracks.MainActivity;
 import de.hd.fitbittracks.R;
 import de.hd.fitbittracks.database.AppDatabase;
+import de.hd.fitbittracks.entities.Milestone;
+import de.hd.fitbittracks.entities.UserProgress;
+import de.hd.fitbittracks.entities.UserProgressMilestoneStatus;
+import de.hd.fitbittracks.enums.AppImage;
 import de.hd.fitbittracks.enums.ResultStatus;
-import de.hd.fitbittracks.pojos.MethodResult;
+import de.hd.fitbittracks.pojos.MethodResultWithData;
+import de.hd.fitbittracks.pojos.Pair;
+import de.hd.fitbittracks.pojos.UserProgressWithTrackAndMilestones;
 import de.hd.fitbittracks.repositories.UserProgressRepository;
 
 public class StepCounterService extends Service implements SensorEventListener {
@@ -36,10 +42,11 @@ public class StepCounterService extends Service implements SensorEventListener {
     private int lastUpdate = -1;
     private UserProgressRepository userProgressRepository;
 
+
     @Override
     public void onCreate() {
         super.onCreate();
-        AppDatabase db = AppDatabase.getInstance(getApplicationContext());
+        AppDatabase db = AppDatabase.getInstance(this);
         userProgressRepository = new UserProgressRepository(db.userProgressDao(), db.trackDao());
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -81,22 +88,34 @@ public class StepCounterService extends Service implements SensorEventListener {
         int stepsWalked = totalSteps - lastUpdate;
         if(stepsWalked > 5) {
             Executors.newSingleThreadExecutor().execute(() -> {
-                MethodResult result = userProgressRepository.updateStepsWalked(stepsWalked);
+                MethodResultWithData<Pair<UserProgress, Milestone>> result = userProgressRepository.updateStepsWalked(stepsWalked);
                 if(result != null && result.status == ResultStatus.SUCCESS) {
                     Log.d("StepCounterService", "Steps updated: " + stepsWalked);
-                    sendGoalNotification(result.message);
+                    sendGoalNotification(result.message, result.data);
                 }
             });
             lastUpdate = totalSteps;
         }
     }
 
-    private void sendGoalNotification(String message) {
+    private void sendGoalNotification(String message, Pair<UserProgress, Milestone> pair) {
+        if(pair == null) {
+            Log.e("StepCounterService", "No milestone data available for notification.");
+            return;
+        }
+        UserProgress userProgress = pair.first;
+        Milestone milestone = pair.second;
+        PendingIntent pendingIntent = createMessageIntent(message, pair);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "step_channel")
                 .setSmallIcon(R.drawable.steps)
                 .setContentTitle("🎉 Goal Reached!")
                 .setContentText(message)
-                .setPriority(NotificationCompat.PRIORITY_HIGH);
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pendingIntent)
+                .setStyle(new NotificationCompat.BigPictureStyle()
+                        .bigPicture(BitmapFactory.decodeResource(getResources(), AppImage.getResIdFor(milestone.image)))
+                        .bigLargeIcon(null)) // optional
+                .setAutoCancel(true);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -109,6 +128,22 @@ public class StepCounterService extends Service implements SensorEventListener {
         }
         NotificationManagerCompat.from(this).notify(2, builder.build());
 
+    }
+
+    private PendingIntent createMessageIntent(String message, Pair<UserProgress, Milestone> pair) {
+        Log.d("StepCounterService", "Creating intent for message: " + message);
+        Log.d("StepCounterService", "UserProgress ID: " + pair.first.id + ", Milestone ID: " + pair.second.id);
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("navigate_to", "progress_fragment");
+        intent.putExtra("progress_id", pair.first.id);
+        intent.putExtra("milestone_id", pair.second.id);
+        // unique per milestone
+        return PendingIntent.getActivity(
+                this,
+                (int) pair.second.id, // unique per milestone
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
     }
 
     @Override public void onAccuracyChanged(Sensor sensor, int accuracy) {}

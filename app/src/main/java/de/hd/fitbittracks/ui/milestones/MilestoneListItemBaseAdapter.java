@@ -14,23 +14,27 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import de.hd.fitbittracks.R;
-import de.hd.fitbittracks.databinding.MilestoneSharedBinding;
 import de.hd.fitbittracks.databinding.MilestoneWithStatusBinding;
 import de.hd.fitbittracks.entities.Milestone;
 import de.hd.fitbittracks.enums.AppImage;
 import de.hd.fitbittracks.interfaces.MapsItemClickedListener;
 import de.hd.fitbittracks.pojos.MapsItem;
 
-public abstract class MilestoneBaseAdapter<T extends MilestoneItem> extends ListAdapter<T, MilestoneBaseAdapter.MilestoneBaseViewHolder> {
+public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> extends ListAdapter<T, MilestoneListItemBaseAdapter.MilestoneBaseViewHolder> {
     protected static final int TYPE_DEFAULT = 0;
     private final Context context;
 
     protected final MapsItemClickedListener mapsItemClickedListener;
 
-    public MilestoneBaseAdapter(Context context, @NonNull DiffUtil.ItemCallback<T> diffCallback, MapsItemClickedListener mapsItemClickedListener) {
+    public interface OnMilestoneClickListener {
+        void onItemClick(Milestone milestone);
+    }
+    private final OnMilestoneClickListener listener;
+    public MilestoneListItemBaseAdapter(Context context, @NonNull DiffUtil.ItemCallback<T> diffCallback, MapsItemClickedListener mapsItemClickedListener, OnMilestoneClickListener listener) {
         super(diffCallback);
         this.context = context;
         this.mapsItemClickedListener = mapsItemClickedListener;
+        this.listener = listener;
     }
 
     public void openMap(MapsItem mapsItem) {
@@ -65,6 +69,11 @@ public abstract class MilestoneBaseAdapter<T extends MilestoneItem> extends List
         } else {
             holder.mapsButton.setVisibility(View.GONE);
         }
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemClick(milestone);
+            }
+        });
         onBindExtendedViewHolder(holder, milestoneItem);
     }
 

@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.Menu;
 import android.widget.Toast;
@@ -112,6 +113,14 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = navHostFragment.getNavController();
 
         BottomNavigationView bottomNavigationView = binding.appBarMain.contentMain.bottomNavView;
+        bottomNavigationView.setOnItemReselectedListener(item -> {
+            if(item.getItemId() == R.id.nav_tracks_progress) {
+                navController.popBackStack(R.id.nav_tracks_progress, false);
+            }
+            if(item.getItemId() == R.id.nav_tracks) {
+                navController.popBackStack(R.id.nav_tracks, false);
+            }
+        });
 
         mAppBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.nav_tracks_progress, R.id.nav_tracks)
@@ -120,6 +129,8 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(bottomNavigationView, navController);
 
         checkAndRequestPermissions();
+        // Handle the intent and navigate to a specific fragment
+        handleNavigationIntent(getIntent());
     }
 
     @Override
@@ -144,5 +155,34 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent); // important if you want getIntent() to return latest
+        handleNavigationIntent(intent);
+    }
+
+    private void handleNavigationIntent(Intent intent) {
+        if (intent == null) return;
+
+        String destination = intent.getStringExtra("navigate_to");
+        if ("progress_fragment".equals(destination)) {
+            long milestoneId = intent.getLongExtra("milestone_id", -1);
+            long progressId = intent.getLongExtra("progress_id", -1);
+            Log.d("MainActivity", "Navigating to progress_fragment with milestone_id: " + milestoneId + ", progress_id: " + progressId);
+
+            // Use Navigation Component to navigate
+            NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_content_main);
+            assert navHostFragment != null;
+            NavController navController = navHostFragment.getNavController();
+
+            Bundle args = new Bundle();
+            args.putLong("milestone_id", milestoneId);
+            args.putLong("progress_id", progressId);
+
+            navController.navigate(R.id.nav_tracks_progress, args);
+        }
     }
 }

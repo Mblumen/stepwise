@@ -5,7 +5,9 @@
     <dimen name="font_size_header">20sp</dimen>
     <dimen name="container_margin">5dp</dimen>
     <dimen name="image_margin">5dp</dimen>
+    <dimen name="image_margin_large">12dp</dimen>
     <dimen name="image_size">100dp</dimen>
+    <dimen name="image_size_large">200dp</dimen>
     <dimen name="list_item_spacing">2dp</dimen>
     <dimen name="text_spacing">8dp</dimen>
     <dimen name="icon_size_small">14dp</dimen>

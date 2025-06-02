@@ -12,7 +12,7 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="200dp">
+        android:layout_height="@dimen/image_size_large">
 
         <ImageView
             android:id="@+id/image"
@@ -26,8 +26,8 @@
             android:id="@+id/title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#AA000000"
-            android:padding="12dp"
+            android:background="@color/transparent_black"
+            android:padding="@dimen/card_description_padding"
             android:textColor="@color/white"
             android:textSize="@dimen/font_size_header"
             android:textStyle="bold"

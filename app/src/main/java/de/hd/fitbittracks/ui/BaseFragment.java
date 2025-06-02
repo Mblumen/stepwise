@@ -15,6 +15,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 
 import de.hd.fitbittracks.R;
 import de.hd.fitbittracks.enums.ResultStatus;
@@ -26,12 +28,14 @@ public abstract class BaseFragment extends Fragment implements MapsItemClickedLi
 
     protected ViewGroup container;
     protected Context context;
+    protected NavController navController;
 
     public BaseFragment() {
     }
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, android.os.Bundle savedInstanceState) {
         this.container = container;
         this.context = requireContext();
+        navController = NavHostFragment.findNavController(this);
         return null;
     }
     public void showCustomToast(String message, ResultStatus status) {

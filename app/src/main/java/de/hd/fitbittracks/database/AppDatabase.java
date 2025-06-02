@@ -64,7 +64,7 @@ public abstract class AppDatabase extends RoomDatabase {
         UserProgress progress = new UserProgress();
         progress.trackId = trackId;
         progress.status = ProgressStatus.ACTIVE;
-        progress.stepsWalked = 2990;
+        progress.stepsWalked = 2995;
         db.userProgressDao().insertUserProgress(progress);
 
         // Insert a second track with no progress

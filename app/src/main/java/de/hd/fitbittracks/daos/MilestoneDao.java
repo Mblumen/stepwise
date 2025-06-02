@@ -19,6 +19,9 @@ public interface MilestoneDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertMilestone(Milestone milestone);
 
+    @Query("SELECT * FROM milestones WHERE id = :milestoneId")
+    LiveData<Milestone> getMilestoneById(long milestoneId);
+
     @Query("SELECT * FROM milestones ORDER BY trackId")
     LiveData<List<Milestone>> getAllMilestones();
     @Query("SELECT * FROM milestones WHERE trackId = :trackId ORDER BY stepOffset ASC")
