@@ -61,7 +61,15 @@
             android:paddingBottom="@dimen/text_spacing"
             app:drawableStartCompat="@drawable/flag"
             tools:text="Paris"/>
-
+        <TextView
+            android:id="@+id/distance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:drawableStartCompat="@drawable/distance"
+            android:textColor="@color/dark_gray"
+            android:textSize="@dimen/font_size_small"
+            android:paddingBottom="@dimen/text_spacing"
+            tools:text="9.3 km"/>
         <TextView
             android:id="@+id/steps"
             android:layout_width="wrap_content"

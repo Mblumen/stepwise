@@ -41,7 +41,7 @@ public interface UserProgressDao {
 
     @Transaction
     @Query("SELECT * FROM user_progress WHERE status IN (:status) ORDER BY status ASC, stepsWalked DESC")
-    LiveData<List<UserProgressWithTrackAndMilestones>> getProgressWithTrackAndMilestonesForStatus(ProgressStatus... status);
+    LiveData<List<UserProgressWithTrackAndMilestones>> getProgressWithTrackAndMilestonesForStatus(List<ProgressStatus> status);
 
     @Query("SELECT * FROM user_progress WHERE status = 'active'")
     UserProgress getActiveUserProgress();

@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import de.hd.fitbittracks.R;
@@ -19,10 +18,10 @@ import de.hd.fitbittracks.entities.Milestone;
 import de.hd.fitbittracks.enums.AppImage;
 import de.hd.fitbittracks.interfaces.MapsItemClickedListener;
 import de.hd.fitbittracks.pojos.MapsItem;
+import de.hd.fitbittracks.ui.BaseAdapter;
 
-public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> extends ListAdapter<T, MilestoneListItemBaseAdapter.MilestoneBaseViewHolder> {
+public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> extends BaseAdapter<T, MilestoneListItemBaseAdapter.MilestoneBaseViewHolder> {
     protected static final int TYPE_DEFAULT = 0;
-    private final Context context;
 
     protected final MapsItemClickedListener mapsItemClickedListener;
 
@@ -30,11 +29,11 @@ public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> exte
         void onItemClick(Milestone milestone);
     }
     private final OnMilestoneClickListener listener;
-    public MilestoneListItemBaseAdapter(Context context, @NonNull DiffUtil.ItemCallback<T> diffCallback, MapsItemClickedListener mapsItemClickedListener, OnMilestoneClickListener listener) {
+    public MilestoneListItemBaseAdapter(@NonNull DiffUtil.ItemCallback<T> diffCallback, MapsItemClickedListener mapsItemClickedListener, OnMilestoneClickListener listener, float stepLength) {
         super(diffCallback);
-        this.context = context;
         this.mapsItemClickedListener = mapsItemClickedListener;
         this.listener = listener;
+        this.stepLength = stepLength;
     }
 
     public void openMap(MapsItem mapsItem) {
@@ -58,7 +57,6 @@ public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> exte
         T milestoneItem = getItem(position);
         Milestone milestone = milestoneItem.getMilestone();
         holder.title.setText(milestone.title);
-        holder.steps.setText(context.getString(R.string.integer_count, milestone.stepOffset));
         holder.description.setText(milestone.description);
         holder.milestoneImage.setImageResource(AppImage.getResIdFor(milestone.image));
 
@@ -80,18 +78,20 @@ public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> exte
     protected abstract<E extends MilestoneBaseViewHolder> void onBindExtendedViewHolder(E holder, T item);
 
     public static class MilestoneBaseViewHolder extends RecyclerView.ViewHolder {
-        TextView title;
-        TextView steps;
-        TextView description;
-        ImageView milestoneImage;
+        public TextView title;
+        public TextView steps;
+        public TextView distance;
+        public TextView description;
+        public ImageView milestoneImage;
 
-        ImageButton mapsButton; // If you want to add an image button for actions
+        public ImageButton mapsButton; // If you want to add an image button for actions
 
         public MilestoneBaseViewHolder(MilestoneWithStatusBinding binding) {
             super(binding.getRoot());
             milestoneImage = binding.milestoneImage;
             title = binding.milestoneTitle;
             steps = binding.milestoneSteps;
+            distance = binding.milestoneDistance;
             description = binding.milestoneDescription;
             mapsButton = binding.milestoneMapButton;
         }

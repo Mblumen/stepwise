@@ -28,10 +28,20 @@
     <string name="track_distance_icon_description">Represents the icon for the distance of a track</string>
     <string name="integer_count">%1$d</string>
     <string name="integer_count_of">%1$d/%2$d</string>
+    <string name="milestone_progress">%1$s/%2$s</string>
     <string name="milestone_completed">Milestone completed</string>
     <string name="button_select_track">Select This Track</string>
     <string name="toast_icon_desc">This image represents the status of a custom toast message</string>
     <string name="show_on_map">Show on Map</string>
     <string name="detail_image_description">This image provides additional details about the item</string>
     <string name="milestone">Milestone</string>
+    <string name="step_length_in_meters">Step Length (in meters)</string>
+    <string name="save_settings">Save Settings</string>
+    <string name="distance_with_steps">%1$dm (%2$d steps)</string>
+    <string name="more_images">More Images</string>
+    <string name="swipe">← swipe →</string>
+    <string name="milestone_image">Milestone Image</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="show_completed_tracks">Show completed tracks</string>
+    <string name="save">save</string>
 </resources>

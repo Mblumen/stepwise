@@ -16,19 +16,24 @@ import de.hd.fitbittracks.daos.MilestoneDao;
 import de.hd.fitbittracks.database.AppDatabase;
 import de.hd.fitbittracks.entities.Milestone;
 import de.hd.fitbittracks.entities.Track;
+import de.hd.fitbittracks.entities.UserSettings;
 import de.hd.fitbittracks.pojos.Event;
 import de.hd.fitbittracks.pojos.MethodResult;
 import de.hd.fitbittracks.pojos.TrackWithMilestones;
 import de.hd.fitbittracks.repositories.TrackRepository;
 import de.hd.fitbittracks.repositories.UserProgressRepository;
+import de.hd.fitbittracks.repositories.UserSettingsRepository;
+import de.hd.fitbittracks.ui.BaseViewModel;
 
-public class TracksViewModel extends AndroidViewModel {
+public class TracksViewModel extends BaseViewModel {
 
     private final MilestoneDao milestoneDao;
     private final LiveData<List<TrackWithMilestones>> allTracks;
     private final TrackRepository repository;
     private final UserProgressRepository userProgressRepository;
     private long trackId;
+
+
 
     private final MutableLiveData<Event<MethodResult>> _methodResult = new MutableLiveData<>();
     public LiveData<Event<MethodResult>> observedResult = _methodResult;
@@ -38,7 +43,7 @@ public class TracksViewModel extends AndroidViewModel {
         AppDatabase db = AppDatabase.getInstance(application);
         allTracks = db.trackDao().getAllTracksWithMilestones();
         repository = new TrackRepository(db.milestoneDao());
-        userProgressRepository = new UserProgressRepository(db.userProgressDao(), db.trackDao());
+        userProgressRepository = new UserProgressRepository(db.userProgressDao(), db.trackDao(), db.userSettingsDao());
         milestoneDao = db.milestoneDao();
     }
 

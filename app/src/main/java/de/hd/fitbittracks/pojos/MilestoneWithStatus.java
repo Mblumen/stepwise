@@ -7,6 +7,9 @@ public class MilestoneWithStatus implements MilestoneItem {
     public Milestone milestone;
     public boolean isCompleted;
 
+    public float distanceWalked;
+    public int stepsWalked;
+
     @Override
     public Milestone getMilestone() {
         return milestone;

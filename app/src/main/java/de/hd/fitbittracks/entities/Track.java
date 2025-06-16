@@ -22,6 +22,7 @@ public class Track {
 
     public String image; // optional
 
+    public int totalDistance; // approximate total distance in meters
     public int totalSteps; // approximate total steps to complete
 
     @Override

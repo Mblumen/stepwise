@@ -26,7 +26,7 @@
 
         <ImageView
             android:id="@+id/progress_item_base_image"
-            android:layout_width="@dimen/image_size"
+            android:layout_width="@dimen/image_size_medium"
             android:layout_height="@dimen/image_size"
             android:contentDescription="@string/image_view_item_transform_content_description"
             android:layout_margin="5dp"
@@ -43,25 +43,36 @@
                 android:id="@+id/progress_item_base_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:textSize="@dimen/font_size_small"
                 android:textStyle="bold"
                 android:textColor="@color/dark_gray"
                 tools:text="Barcelona" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="start">
+                <TextView
+                    android:id="@+id/progress_item_base_distance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:drawableStartCompat="@drawable/distance"
+                    android:textColor="@color/dark_gray"
+                    android:textSize="@dimen/font_size_small"
+                    tools:text="9.3 km"/>
+            </LinearLayout>
             <TextView
                 android:id="@+id/progress_item_base_steps"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:textSize="@dimen/font_size_small"
                 android:textColor="@color/dark_gray"
                 app:drawableStartCompat="@drawable/steps"
-                tools:text="2000/5000" />
+                tools:text="5,000" />
             <TextView
                 android:id="@+id/progress_item_base_milestones"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:textSize="@dimen/font_size_small"
                 android:textColor="@color/dark_gray"
                 app:drawableStartCompat="@drawable/map"

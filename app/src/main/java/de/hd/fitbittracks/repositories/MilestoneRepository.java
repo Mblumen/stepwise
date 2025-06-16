@@ -21,13 +21,15 @@ public class MilestoneRepository extends BaseRepository {
         this.milestoneDao = milestoneDao;
     }
 
-    public LiveData<List<MilestoneWithStatus>> getAllMilestonesByTrack(long trackId, int stepsWalked) {
+    public LiveData<List<MilestoneWithStatus>> getAllMilestonesByTrack(long trackId, float distanceWalked, int stepsWalked) {
         return Transformations.map(
             milestoneDao.getMilestonesForTrackLive(trackId),
             milestones -> milestones.stream().map(milestone -> {
                 MilestoneWithStatus milestoneWithStatus = new MilestoneWithStatus();
                 milestoneWithStatus.milestone = milestone;
-                milestoneWithStatus.isCompleted = stepsWalked >= milestone.stepOffset;
+                milestoneWithStatus.isCompleted = distanceWalked >= milestone.distanceOffset;
+                milestoneWithStatus.distanceWalked = distanceWalked > milestone.distanceOffset ? milestone.distanceOffset : distanceWalked;
+                milestoneWithStatus.stepsWalked = stepsWalked;
                 return milestoneWithStatus;
             }).collect(Collectors.toList())
         );

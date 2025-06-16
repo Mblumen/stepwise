@@ -20,6 +20,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
+
 import de.hd.fitbittracks.R;
 import de.hd.fitbittracks.databinding.BasicListItemSharedBinding;
 import de.hd.fitbittracks.databinding.DetailsListItemSharedBinding;
@@ -31,6 +35,7 @@ import de.hd.fitbittracks.enums.AppImage;
 import de.hd.fitbittracks.interfaces.MapsItemClickedListener;
 import de.hd.fitbittracks.pojos.MethodResult;
 import de.hd.fitbittracks.pojos.TrackWithMilestones;
+import de.hd.fitbittracks.ui.BaseAdapter;
 import de.hd.fitbittracks.ui.BaseFragment;
 import de.hd.fitbittracks.ui.milestones.MilestoneFragment;
 import de.hd.fitbittracks.ui.milestones.MilestoneListItemBaseAdapter;
@@ -65,6 +70,11 @@ public class TracksFragment extends BaseFragment {
             MethodResult result = event.getContentIfNotHandled();
             if(result != null) showCustomToast(result.message, result.status);
         });
+        viewModel.getSettings().observe(getViewLifecycleOwner(), settings -> {
+            if(settings != null) {
+                adapter.setStepLength(settings.stepLengthInMeters);
+            }
+        });
         // Assuming you have a way to get all milestones mapped by trackId
         adapter.setRecyclerView(recyclerView);
         return root;
@@ -84,8 +94,8 @@ public class TracksFragment extends BaseFragment {
 
     public static class MilestoneListItemAdapter extends MilestoneListItemBaseAdapter<Milestone> {
 
-        public MilestoneListItemAdapter(Context context, MapsItemClickedListener mapsItemClickedListener, OnMilestoneClickListener onMilestoneClickListener) {
-            super(context, new DiffUtil.ItemCallback<>() {
+        public MilestoneListItemAdapter(MapsItemClickedListener mapsItemClickedListener, OnMilestoneClickListener onMilestoneClickListener, float stepLength) {
+            super(new DiffUtil.ItemCallback<>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull Milestone oldItem, @NonNull Milestone newItem) {
                     return oldItem.id == newItem.id;
@@ -95,16 +105,19 @@ public class TracksFragment extends BaseFragment {
                 public boolean areContentsTheSame(@NonNull Milestone oldItem, @NonNull Milestone newItem) {
                     return oldItem.equals(newItem);
                 }
-            }, mapsItemClickedListener, onMilestoneClickListener);
+            }, mapsItemClickedListener, onMilestoneClickListener, stepLength);
         }
 
         @Override
         protected void onBindExtendedViewHolder(MilestoneBaseViewHolder holder, Milestone item) {
-            // No additional binding needed for this adapter
+            String formattedSteps = formatNumber((int) (item.distanceOffset/stepLength));
+            holder.steps.setText(formattedSteps);
+            String formattedDistance = formatDistance(item.distanceOffset);
+            holder.distance.setText(formattedDistance);
         }
     }
 
-    public class TracksAdapter extends ListAdapter<TrackWithMilestones, TracksAdapter.TrackViewHolder> {
+    public class TracksAdapter extends BaseAdapter<TrackWithMilestones, TracksAdapter.TrackViewHolder> {
 
         private int expandedPosition = -1;
         private final Context context;
@@ -114,7 +127,6 @@ public class TracksFragment extends BaseFragment {
         private final MapsItemClickedListener mapsItemClickedListener;
 
         private final MilestoneListItemBaseAdapter.OnMilestoneClickListener onMilestoneClickListener;
-
         protected TracksAdapter(Context context, MapsItemClickedListener mapsItemClickedListener, MilestoneListItemBaseAdapter.OnMilestoneClickListener onMilestoneClickListener) {
             super(new DiffUtil.ItemCallback<>() {
                 @Override
@@ -150,7 +162,11 @@ public class TracksFragment extends BaseFragment {
             Track track = trackWithMilestones.track; // Extract the Track entity from the TrackWithMilestones
             boolean isExpanded = position == expandedPosition;
             holder.baseTitle.setText(track.name);
-            holder.baseSteps.setText(context.getString(R.string.integer_count, track.totalSteps));
+            String formattedSteps = formatNumber((int) (track.totalDistance/stepLength));
+            holder.baseSteps.setText(formattedSteps);
+
+            String formattedDistance = formatDistance(track.totalDistance);
+            holder.baseDistance.setText(formattedDistance);
             holder.baseMilestonesCount.setText(context.getString(R.string.integer_count, trackWithMilestones.milestones.size()));
             holder.baseImageView.setImageResource(AppImage.getResIdFor(track.image));
 
@@ -158,7 +174,8 @@ public class TracksFragment extends BaseFragment {
             holder.detailsImageView.setImageResource(AppImage.getResIdFor(track.image));
             holder.detailsStart.setText(track.startLocation);
             holder.detailsEnd.setText(track.endLocation);
-            holder.detailsSteps.setText(context.getString(R.string.integer_count, track.totalSteps));
+            holder.detailsSteps.setText(formattedSteps);
+            holder.detailsDistance.setText(formattedDistance);
 
             holder.baseLayout.setVisibility(isExpanded ? View.GONE : View.VISIBLE);
             holder.expandedLayout.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
@@ -167,7 +184,7 @@ public class TracksFragment extends BaseFragment {
                 holder.selectButton.setOnClickListener(v -> {;
                     viewModel.selectTrack(track.id);
                 });
-                MilestoneListItemAdapter milestoneAdapter = new MilestoneListItemAdapter(context, mapsItemClickedListener, onMilestoneClickListener);
+                MilestoneListItemAdapter milestoneAdapter = new MilestoneListItemAdapter(mapsItemClickedListener, onMilestoneClickListener, stepLength);
                 holder.milestoneRecycler.setLayoutManager(new LinearLayoutManager(holder.itemView.getContext()));
                 holder.milestoneRecycler.setAdapter(milestoneAdapter);
                 viewModel.setTrackId(track.id);
@@ -203,6 +220,7 @@ public class TracksFragment extends BaseFragment {
             private final ImageView baseImageView;
             private final TextView baseTitle;
             private final TextView baseSteps;
+            private final TextView baseDistance;
             private final TextView baseMilestonesCount;
             private final CardView expandedLayout;
             private final ImageView detailsImageView;
@@ -210,6 +228,7 @@ public class TracksFragment extends BaseFragment {
             private final TextView detailsStart;
             private final TextView detailsEnd;
             private final TextView detailsSteps;
+            private final TextView detailsDistance;
             private final RecyclerView milestoneRecycler;
             private final Button selectButton;
 
@@ -220,6 +239,7 @@ public class TracksFragment extends BaseFragment {
                 baseImageView = sharedBinding.itemBaseImage;
                 baseTitle = sharedBinding.itemBaseTitle;
                 baseSteps = sharedBinding.itemBaseSteps;
+                baseDistance = sharedBinding.itemBaseDistance;
                 baseMilestonesCount = sharedBinding.itemBaseMilestones;
                 expandedLayout = binding.trackItemDetails;
 
@@ -229,6 +249,7 @@ public class TracksFragment extends BaseFragment {
                 detailsStart = detailsSharedBinding.start;
                 detailsEnd = detailsSharedBinding.end;
                 detailsSteps = detailsSharedBinding.steps;
+                detailsDistance = detailsSharedBinding.distance;
 
                 milestoneRecycler = binding.trackItemDetailsMilestones;
                 selectButton = binding.trackItemDetailsSelectButton;

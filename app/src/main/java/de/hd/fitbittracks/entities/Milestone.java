@@ -1,13 +1,16 @@
 package de.hd.fitbittracks.entities;
 
 import androidx.annotation.NonNull;
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import java.util.List;
 import java.util.Objects;
 
+import de.hd.fitbittracks.pojos.MilestoneImage;
 import de.hd.fitbittracks.ui.milestones.MilestoneItem;
 
 @Entity(
@@ -28,18 +31,20 @@ public class Milestone implements MilestoneItem {
 
     public int stepOffset; // Steps after which this milestone is reached
 
-    public int stepCount;
-
+    public int distanceOffset; // Optional, for location-based milestones
     @NonNull
-    public String title;
-
+    public String title = "";
     @NonNull
-    public String description;
+    public String description = "";
     public String mapsUrl; // optional, for location-based milestones
     public double latitude; // optional, for location-based milestones
     public double longitude; // optional, for location-based milestones
 
     public String image; // optional
+
+    @ColumnInfo(name = "extra_images")
+    public List<MilestoneImage> extraImages;
+
 
     @Override
     public boolean equals(Object o) {
@@ -49,7 +54,6 @@ public class Milestone implements MilestoneItem {
         if (id != that.id) return false;
         if (trackId != that.trackId) return false;
         if (stepOffset != that.stepOffset) return false;
-        if (stepCount != that.stepCount) return false;
         if (!title.equals(that.title)) return false;
         if (!description.equals(that.description)) return false;
         return Objects.equals(image, that.image);

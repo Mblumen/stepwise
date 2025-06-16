@@ -18,6 +18,7 @@ import com.google.android.material.navigation.NavigationView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
@@ -95,10 +96,16 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
         deleteDatabase("fitbit_tracks_db");
         AppDatabase db = AppDatabase.getInstance(this);
+        db.userSettingsDao().getSettingsLive().observe(this, userSettings -> {
+            if(userSettings != null) {
+                AppCompatDelegate.setDefaultNightMode(userSettings.useDarkMode ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO
+                );
+            }
+        });
+
+        super.onCreate(savedInstanceState);
 
         ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -112,6 +119,21 @@ public class MainActivity extends AppCompatActivity {
         assert navHostFragment != null;
         NavController navController = navHostFragment.getNavController();
 
+        BottomNavigationView bottomNavigationView = getBottomNavigationView(binding, navController);
+
+        mAppBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.nav_tracks_progress, R.id.nav_tracks, R.id.nav_settings)
+                .build();
+        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
+        NavigationUI.setupWithNavController(bottomNavigationView, navController);
+
+        checkAndRequestPermissions();
+        // Handle the intent and navigate to a specific fragment
+        handleNavigationIntent(getIntent());
+    }
+
+    @NonNull
+    private static BottomNavigationView getBottomNavigationView(ActivityMainBinding binding, NavController navController) {
         BottomNavigationView bottomNavigationView = binding.appBarMain.contentMain.bottomNavView;
         bottomNavigationView.setOnItemReselectedListener(item -> {
             if(item.getItemId() == R.id.nav_tracks_progress) {
@@ -120,17 +142,11 @@ public class MainActivity extends AppCompatActivity {
             if(item.getItemId() == R.id.nav_tracks) {
                 navController.popBackStack(R.id.nav_tracks, false);
             }
+            if(item.getItemId() == R.id.nav_settings) {
+                navController.popBackStack(R.id.nav_settings, false);
+            }
         });
-
-        mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_tracks_progress, R.id.nav_tracks)
-                .build();
-        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
-        NavigationUI.setupWithNavController(bottomNavigationView, navController);
-
-        checkAndRequestPermissions();
-        // Handle the intent and navigate to a specific fragment
-        handleNavigationIntent(getIntent());
+        return bottomNavigationView;
     }
 
     @Override

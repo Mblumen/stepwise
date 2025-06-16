@@ -22,8 +22,8 @@ public class UserProgress {
     public long id;
 
     public long trackId;
-
     public int stepsWalked;
+    public float distanceWalked; // in meters
 
     public ProgressStatus status;
 

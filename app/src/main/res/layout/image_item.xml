@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/milestone_image_card"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="@dimen/card_radius"
+    app:cardElevation="@dimen/card_elevation"
+    app:cardBackgroundColor="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/milestone_image"
+            android:layout_width="@dimen/image_size_large"
+            android:layout_height="@dimen/image_size_large"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/milestone_image"
+            android:transitionName="carouselImage"
+            android:background="@drawable/rounded_image_background"
+            tools:src="@drawable/berlin" />
+
+        <TextView
+            android:id="@+id/milestone_image_description"
+            android:layout_width="@dimen/image_size_large"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/dark_gray"
+            android:textSize="@dimen/font_size_small"
+            android:textAlignment="center"
+            android:fontFamily="sans-serif-medium"
+            tools:text="Checkpoint Charlie, Berlin, blablablabla das ist länger"/>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

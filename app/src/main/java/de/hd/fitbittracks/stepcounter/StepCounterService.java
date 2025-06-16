@@ -47,7 +47,7 @@ public class StepCounterService extends Service implements SensorEventListener {
     public void onCreate() {
         super.onCreate();
         AppDatabase db = AppDatabase.getInstance(this);
-        userProgressRepository = new UserProgressRepository(db.userProgressDao(), db.trackDao());
+        userProgressRepository = new UserProgressRepository(db.userProgressDao(), db.trackDao(), db.userSettingsDao());
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);

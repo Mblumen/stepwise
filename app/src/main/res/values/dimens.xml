@@ -7,6 +7,7 @@
     <dimen name="image_margin">5dp</dimen>
     <dimen name="image_margin_large">12dp</dimen>
     <dimen name="image_size">100dp</dimen>
+    <dimen name="image_size_medium">150dp</dimen>
     <dimen name="image_size_large">200dp</dimen>
     <dimen name="list_item_spacing">2dp</dimen>
     <dimen name="text_spacing">8dp</dimen>
@@ -20,4 +21,7 @@
     <dimen name="fragment_horizontal_margin">16dp</dimen>
     <dimen name="button_margin">10dp</dimen>
     <dimen name="toast_padding">12dp</dimen>
+    <dimen name="milestone_description_padding">16dp</dimen>
+    <dimen name="padding_small">4dp</dimen>
+    <dimen name="blur_view_size">32dp</dimen>
 </resources>

@@ -51,17 +51,39 @@
                         android:textStyle="bold"
                         tools:text="Milestone Name" />
                     <TextView
+                        android:id="@+id/distance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="@dimen/card_description_padding"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/font_size_small"
+                        android:textStyle="bold"
+                        app:drawableStartCompat="@drawable/distance"
+                        app:drawableTint="@color/white"
+                        android:layout_gravity="center"
+                        tools:text="5000" />
+                    <TextView
                         android:id="@+id/step_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:padding="16dp"
+                        android:padding="@dimen/card_description_padding"
                         android:textColor="@color/white"
                         android:textSize="@dimen/font_size_small"
                         android:textStyle="bold"
                         app:drawableStartCompat="@drawable/steps"
                         app:drawableTint="@color/white"
                         android:layout_gravity="center"
-                        tools:text="5" />
+                        tools:text="6000" />
+                    <ImageButton
+                        android:id="@+id/milestone_map_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/show_on_map"
+                        android:src="@drawable/map"
+                        android:padding="@dimen/card_description_padding"
+                        android:layout_gravity="center"
+                        app:tint="@color/white" />
                 </LinearLayout>
 
             </FrameLayout>
@@ -71,32 +93,40 @@
                 android:id="@+id/description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp"
+                android:padding="@dimen/milestone_description_padding"
                 android:textColor="@color/black"
                 android:textSize="@dimen/font_size_small"
                 tools:text="This is a milestone description providing more detailed information." />
 
-            <!-- Additional detail images -->
-            <ImageView
-                android:id="@+id/detail_image_1"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/image_size_large"
-                android:layout_margin="@dimen/image_margin_large"
-                android:scaleType="centerCrop"
-                android:contentDescription="@string/detail_image_description"
-                tools:src="@drawable/barcelona" />
-
-            <ImageView
-                android:id="@+id/detail_image_2"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/image_size_large"
-                android:layout_margin="@dimen/image_margin_large"
-                android:scaleType="centerCrop"
-                android:contentDescription="@string/detail_image_description"
-                tools:src="@drawable/barcelona" />
+                android:layout_height="wrap_content">
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/image_gallery"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/container_margin"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    android:layout_marginHorizontal="@dimen/container_margin"
+                    android:scrollbars="horizontal"
+                    tools:listitem="@layout/image_item" />
+                <View
+                    android:layout_width="@dimen/blur_view_size"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="start"
+                    android:background="@drawable/fade_left"
+                    android:clickable="false" />
+                <View
+                    android:layout_width="@dimen/blur_view_size"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"
+                    android:background="@drawable/fade_right"
+                    android:clickable="false" />
+            </FrameLayout>
         </LinearLayout>
     </ScrollView>
-    <com.google.android.material.button.MaterialButton
+    <!--<com.google.android.material.button.MaterialButton
         android:id="@+id/button_view_on_map"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -110,5 +140,5 @@
         app:iconGravity="textStart"
         app:iconTint="@color/white"
         android:backgroundTint="@color/dark_gray"
-        android:textColor="@color/white" />
+        android:textColor="@color/white" />-->
 </androidx.constraintlayout.widget.ConstraintLayout>
