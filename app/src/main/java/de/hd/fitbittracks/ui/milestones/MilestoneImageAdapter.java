@@ -29,7 +29,6 @@ import de.hd.fitbittracks.ui.layouthelper.CarouselLayoutManager;
 public class MilestoneImageAdapter extends BaseAdapter<MilestoneImage, MilestoneImageAdapter.ImageViewHolder> {
 
     private int focusedPosition = RecyclerView.NO_POSITION;
-    private RecyclerView recyclerView;
     private CarouselLayoutManager layoutManager; // Assuming you have a custom layout manager
 
     public interface OnItemClickListener {
@@ -120,11 +119,6 @@ public class MilestoneImageAdapter extends BaseAdapter<MilestoneImage, Milestone
         List<?> currentList = getCurrentList();
         return currentList.isEmpty() ? 0 : adapterPosition % currentList.size();
     }
-
-    public void setRecyclerView (RecyclerView recyclerView) {
-        this.recyclerView = recyclerView;
-    }
-
     public void setLayoutManager(CarouselLayoutManager layoutManager) {
         this.layoutManager = layoutManager;
     }

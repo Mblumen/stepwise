@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/achievement_card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/container_margin"
+    card_view:cardCornerRadius="@dimen/card_radius"
+    card_view:cardElevation="@dimen/card_elevation">
+
+    <RelativeLayout
+        android:id="@+id/achievement_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/padding_medium"
+        android:background="@drawable/border_bronze"
+        tools:alpha="1">
+
+        <!-- Icon -->
+        <ImageView
+            android:id="@+id/achievement_icon"
+            android:layout_width="@dimen/achievement_icon_size"
+            android:layout_height="@dimen/achievement_icon_size"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:scaleType="centerCrop"
+            app:tint="@color/dark_gray"
+            tools:src="@drawable/steps"
+            android:contentDescription="@string/achievement_icon" />
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/achievement_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/achievement_icon"
+            android:layout_marginStart="12dp"
+            android:textSize="@dimen/font_size_normal"
+            android:textStyle="bold"
+            android:textColor="@color/dark_gray"
+            tools:text="Achievement Title"/>
+
+        <!-- Description -->
+        <TextView
+            android:id="@+id/achievement_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/achievement_title"
+            android:layout_alignStart="@id/achievement_title"
+            android:textSize="@dimen/font_size_small"
+            android:textColor="@color/dark_gray"
+            tools:text="Achievement description goes here"/>
+
+        <!-- Progress Bar (only shown if not unlocked) -->
+        <ProgressBar
+            android:id="@+id/achievement_progress"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:layout_below="@id/achievement_description"
+            android:layout_alignStart="@id/achievement_title"
+            android:layout_marginTop="@dimen/progress_bar_height"
+            android:max="100"
+            android:visibility="visible"
+            android:progressTint="@color/dark_gray"
+            tools:progress="50"/>
+
+        <!-- Lock Icon (optional visual indicator for locked achievements) -->
+        <ImageView
+            android:id="@+id/lock_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignTop="@id/achievement_title"
+            android:visibility="gone"
+            android:contentDescription="@string/locked_icon"
+            android:src="@drawable/lock"
+            tools:visibility="visible"/>
+
+    </RelativeLayout>
+</com.google.android.material.card.MaterialCardView>

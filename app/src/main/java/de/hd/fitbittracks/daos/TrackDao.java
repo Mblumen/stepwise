@@ -36,7 +36,7 @@ public interface TrackDao {
     void deleteTrack(Track track);
 
     @Transaction
-    @Query("SELECT * FROM tracks ORDER BY totalDistance ASC")
+    @Query("SELECT * FROM tracks")
     LiveData<List<TrackWithMilestones>> getAllTracksWithMilestones();
 
     @Transaction

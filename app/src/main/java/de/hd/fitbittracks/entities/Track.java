@@ -16,14 +16,10 @@ public class Track {
 
     @NonNull
     public String startLocation;
-
     @NonNull
     public String endLocation;
 
     public String image; // optional
-
-    public int totalDistance; // approximate total distance in meters
-    public int totalSteps; // approximate total steps to complete
 
     @Override
     public boolean equals(Object o) {
@@ -31,7 +27,6 @@ public class Track {
         if (!(o instanceof Track that)) return false;
 
         if (id != that.id) return false;
-        if (totalSteps != that.totalSteps) return false;
         if (!name.equals(that.name)) return false;
         if (!startLocation.equals(that.startLocation)) return false;
         if (!endLocation.equals(that.endLocation)) return false;

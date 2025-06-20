@@ -3,7 +3,6 @@ package de.hd.fitbittracks.ui.tracks;
 import android.animation.LayoutTransition;
 import android.content.Context;
 import android.os.Bundle;
-import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,12 +16,7 @@ import androidx.cardview.widget.CardView;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
-
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.Locale;
 
 import de.hd.fitbittracks.R;
 import de.hd.fitbittracks.databinding.BasicListItemSharedBinding;
@@ -37,7 +31,6 @@ import de.hd.fitbittracks.pojos.MethodResult;
 import de.hd.fitbittracks.pojos.TrackWithMilestones;
 import de.hd.fitbittracks.ui.BaseAdapter;
 import de.hd.fitbittracks.ui.BaseFragment;
-import de.hd.fitbittracks.ui.milestones.MilestoneFragment;
 import de.hd.fitbittracks.ui.milestones.MilestoneListItemBaseAdapter;
 
 /**
@@ -94,8 +87,8 @@ public class TracksFragment extends BaseFragment {
 
     public static class MilestoneListItemAdapter extends MilestoneListItemBaseAdapter<Milestone> {
 
-        public MilestoneListItemAdapter(MapsItemClickedListener mapsItemClickedListener, OnMilestoneClickListener onMilestoneClickListener, float stepLength) {
-            super(new DiffUtil.ItemCallback<>() {
+        public MilestoneListItemAdapter(Context context, MapsItemClickedListener mapsItemClickedListener, OnMilestoneClickListener onMilestoneClickListener, float stepLength) {
+            super(context, new DiffUtil.ItemCallback<>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull Milestone oldItem, @NonNull Milestone newItem) {
                     return oldItem.id == newItem.id;
@@ -114,6 +107,16 @@ public class TracksFragment extends BaseFragment {
             holder.steps.setText(formattedSteps);
             String formattedDistance = formatDistance(item.distanceOffset);
             holder.distance.setText(formattedDistance);
+
+            if(item.unlocked) {
+                holder.milestoneLocked.setVisibility(View.GONE);
+                holder.milestoneUnlocked.setVisibility(View.VISIBLE);
+            } else {
+                holder.milestoneLocked.setVisibility(View.VISIBLE);
+                holder.milestoneUnlocked.setVisibility(View.GONE);
+                int stepsLeft = (int) Math.floor(item.distanceOffset / stepLength + 0.5f);
+                holder.milestoneLocked.setText(context.getString(R.string.unlock_by_walking_distance, formatDistance(item.distanceOffset), stepsLeft));
+            }
         }
     }
 
@@ -160,12 +163,13 @@ public class TracksFragment extends BaseFragment {
 
             TrackWithMilestones trackWithMilestones = getItem(position);
             Track track = trackWithMilestones.track; // Extract the Track entity from the TrackWithMilestones
+            int totalDistance = trackWithMilestones.milestones.get(trackWithMilestones.milestones.size() - 1).distanceOffset;
             boolean isExpanded = position == expandedPosition;
             holder.baseTitle.setText(track.name);
-            String formattedSteps = formatNumber((int) (track.totalDistance/stepLength));
+            String formattedSteps = formatNumber((int) (totalDistance/stepLength));
             holder.baseSteps.setText(formattedSteps);
 
-            String formattedDistance = formatDistance(track.totalDistance);
+            String formattedDistance = formatDistance(totalDistance);
             holder.baseDistance.setText(formattedDistance);
             holder.baseMilestonesCount.setText(context.getString(R.string.integer_count, trackWithMilestones.milestones.size()));
             holder.baseImageView.setImageResource(AppImage.getResIdFor(track.image));
@@ -184,7 +188,7 @@ public class TracksFragment extends BaseFragment {
                 holder.selectButton.setOnClickListener(v -> {;
                     viewModel.selectTrack(track.id);
                 });
-                MilestoneListItemAdapter milestoneAdapter = new MilestoneListItemAdapter(mapsItemClickedListener, onMilestoneClickListener, stepLength);
+                MilestoneListItemAdapter milestoneAdapter = new MilestoneListItemAdapter(context, mapsItemClickedListener, onMilestoneClickListener, stepLength);
                 holder.milestoneRecycler.setLayoutManager(new LinearLayoutManager(holder.itemView.getContext()));
                 holder.milestoneRecycler.setAdapter(milestoneAdapter);
                 viewModel.setTrackId(track.id);

@@ -7,13 +7,13 @@
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:padding="@dimen/text_spacing"
-    android:background="@color/dark_gray">
+    android:background="?attr/colorPrimary">
 
     <View
         android:layout_width="0dp"
         android:layout_height="1dp"
         android:layout_weight="1"
-        android:background="@color/light_gray" />
+        android:background="?attr/colorOnPrimary" />
 
     <TextView
         android:id="@+id/separator_text"
@@ -21,7 +21,7 @@
         android:layout_height="wrap_content"
         android:paddingStart="@dimen/text_spacing"
         android:paddingEnd="@dimen/text_spacing"
-        android:textColor="@color/light_gray"
+        android:textColor="?attr/colorOnPrimary"
         android:textStyle="bold"
         android:textSize="@dimen/font_size_small"
         tools:text="Active Tracks" />
@@ -30,5 +30,5 @@
         android:layout_width="0dp"
         android:layout_height="1dp"
         android:layout_weight="1"
-        android:background="@color/light_gray" />
+        android:background="?attr/colorOnPrimary" />
 </LinearLayout>

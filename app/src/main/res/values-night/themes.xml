@@ -3,10 +3,10 @@
     <style name="Theme.FitbitTracks" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/dark_gray</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
-        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorPrimaryVariant">@color/light_gray</item>
+        <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondary">@color/light_gray</item>
         <item name="colorSecondaryVariant">@color/teal_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
@@ -15,6 +15,13 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <!-- Customize your theme here. -->
+    </style>
+
+    <style name="Widget.FitbitTracks.BottomNavigationView" parent="ThemeOverlay.Material3.Toolbar.Surface">
+        <item name="backgroundTint">@color/dark_gray</item>
+        <item name="itemIconTint">@drawable/bottom_nav_item_selector_night</item>
+        <item name="itemTextColor">@drawable/bottom_nav_item_selector_night</item>
+        <item name="labelVisibilityMode">labeled</item>
     </style>
 
 </resources>

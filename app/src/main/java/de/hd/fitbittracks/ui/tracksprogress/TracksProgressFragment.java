@@ -18,7 +18,7 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.List;
+import com.google.android.material.button.MaterialButton;
 
 import de.hd.fitbittracks.R;
 import de.hd.fitbittracks.databinding.DetailsListItemSharedBinding;
@@ -32,11 +32,13 @@ import de.hd.fitbittracks.enums.ListItemType;
 import de.hd.fitbittracks.enums.ProgressStatus;
 import de.hd.fitbittracks.interfaces.MapsItemClickedListener;
 import de.hd.fitbittracks.pojos.ListItem;
+import de.hd.fitbittracks.pojos.MethodResult;
 import de.hd.fitbittracks.pojos.MilestoneWithStatus;
 import de.hd.fitbittracks.pojos.Separator;
 import de.hd.fitbittracks.pojos.UserProgressWithTrackAndMilestones;
 import de.hd.fitbittracks.ui.BaseAdapter;
 import de.hd.fitbittracks.ui.BaseFragment;
+import de.hd.fitbittracks.ui.MainSharedViewModel;
 import de.hd.fitbittracks.ui.milestones.MilestoneListItemBaseAdapter;
 
 /**
@@ -58,16 +60,28 @@ public class TracksProgressFragment extends BaseFragment {
         View root = binding.getRoot();
 
         RecyclerView recyclerView = binding.progressList;
-        //int firstActivePosition = viewModel.getActiveProgressPosition();
-        long progressId = TracksProgressFragmentArgs.fromBundle(getArguments()).getProgressId();
-        long milestoneId = TracksProgressFragmentArgs.fromBundle(getArguments()).getMilestoneId();
-        Log.e("TracksProgressFragment", "Progress ID: " + progressId + ", Milestone ID: " + milestoneId);
-        ProgressAdapter adapter = new ProgressAdapter(context, this, progressId, milestoneId, this::openMilestone);
+
+        ProgressAdapter adapter = new ProgressAdapter(context, this, this::openMilestone);
         recyclerView.setAdapter(adapter);
         viewModel.getAllProgress().observe(getViewLifecycleOwner(), adapter::submitList);
         viewModel.getSettings().observe(getViewLifecycleOwner(), settings -> {
             if(settings != null) {
                 adapter.setStepLength(settings.stepLengthInMeters);
+            }
+        });
+        viewModel.observedResult.observe(getViewLifecycleOwner(), event -> {
+            MethodResult result = event.getContentIfNotHandled();
+            if(result != null) showCustomToast(result.message, result.status);
+        });
+        MainSharedViewModel sharedViewModel = new ViewModelProvider(requireActivity()).get(MainSharedViewModel.class);
+        sharedViewModel.openTrackFinishedEvent.observe(getViewLifecycleOwner(), data -> {
+            if (data != null) {
+               viewModel.finishTrack(data);
+            }
+        });
+        sharedViewModel.openTrackWithProgressEvent.observe(getViewLifecycleOwner(), data -> {
+            if (data != null) {
+                adapter.setProgressId(data);
             }
         });
         // Assuming you have a way to get all milestones mapped by trackId
@@ -89,8 +103,8 @@ public class TracksProgressFragment extends BaseFragment {
 
     public static class MilestoneListItemAdapter extends MilestoneListItemBaseAdapter<MilestoneWithStatus> {
 
-        public MilestoneListItemAdapter(MapsItemClickedListener mapsItemClickedListener, OnMilestoneClickListener onMilestoneClickListener, float stepLength) {
-            super(new DiffUtil.ItemCallback<>() {
+        public MilestoneListItemAdapter(Context context, MapsItemClickedListener mapsItemClickedListener, OnMilestoneClickListener onMilestoneClickListener, float stepLength) {
+            super(context, new DiffUtil.ItemCallback<>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull MilestoneWithStatus oldItem, @NonNull MilestoneWithStatus newItem) {
                     return oldItem.milestone.id == newItem.milestone.id;
@@ -116,25 +130,36 @@ public class TracksProgressFragment extends BaseFragment {
             String formattedDistance = formatDistanceProgress(item.distanceWalked, item.milestone.distanceOffset);
             holder.distance.setText(formattedDistance);
             if(item.milestone.distanceOffset - item.distanceWalked > 0) {
-                String formattedSteps = formatSteps(item.stepsWalked, Math.round((item.milestone.distanceOffset - item.distanceWalked) / stepLength + 0.5f));
+                String formattedSteps = formatSteps(item.stepsWalked, (int) Math.floor((item.milestone.distanceOffset - item.distanceWalked) / stepLength + 0.5f));
                 holder.steps.setText(formattedSteps);
             }
             else {
-                holder.steps.setVisibility(View.GONE);
+                if(item.stepsWalked >= 0) holder.steps.setText(context.getString(R.string.integer_count, item.stepsWalked));
+                else holder.steps.setVisibility(View.GONE);
             }
             if(item.isCompleted) {
+                progressViewHolder.milestoneLocked.setVisibility(View.GONE);
+                progressViewHolder.milestoneUnlocked.setVisibility(View.VISIBLE);
                 progressViewHolder.milestoneStatusBadge.setVisibility(View.VISIBLE);
             } else {
+                progressViewHolder.milestoneLocked.setVisibility(View.VISIBLE);
+                progressViewHolder.milestoneUnlocked.setVisibility(View.GONE);
                 progressViewHolder.milestoneStatusBadge.setVisibility(View.GONE);
+                float distanceLeft = item.milestone.distanceOffset - item.distanceWalked;
+                int stepsLeft = (int) Math.floor(distanceLeft / stepLength + 0.5f);
+                progressViewHolder.milestoneLocked.setText(context.getString(R.string.unlock_by_walking_distance, formatDistance(distanceLeft), stepsLeft));
             }
         }
 
         public static class MilestoneProgressViewHolder extends MilestoneBaseViewHolder {
             ImageView milestoneStatusBadge;
 
+
             public MilestoneProgressViewHolder(MilestoneWithStatusBinding binding) {
                 super(binding);
                 milestoneStatusBadge = binding.milestoneStatusBadge;
+                milestoneLocked = binding.milestoneLocked;
+                milestoneUnlocked = binding.milestoneUnlocked;
             }
         }
     }
@@ -147,12 +172,11 @@ public class TracksProgressFragment extends BaseFragment {
 
         private final MapsItemClickedListener mapsItemClickedListener;
 
-        private long progressId;
-        private long milestoneId;
+        private long progressId = RecyclerView.NO_POSITION;
 
         private final MilestoneListItemBaseAdapter.OnMilestoneClickListener onMilestoneClickListener;
 
-        protected ProgressAdapter(Context context, MapsItemClickedListener mapsItemClickedListener, long progressId, long milestoneId, MilestoneListItemBaseAdapter.OnMilestoneClickListener onMilestoneClickListener) {
+        protected ProgressAdapter(Context context, MapsItemClickedListener mapsItemClickedListener, MilestoneListItemBaseAdapter.OnMilestoneClickListener onMilestoneClickListener) {
             super(new DiffUtil.ItemCallback<>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull ListItem oldItem, @NonNull ListItem newItem) {
@@ -167,8 +191,6 @@ public class TracksProgressFragment extends BaseFragment {
             });
             this.context = context;
             this.mapsItemClickedListener = mapsItemClickedListener;
-            this.progressId = progressId;
-            this.milestoneId = milestoneId;
             this.onMilestoneClickListener = onMilestoneClickListener;
         }
 
@@ -176,6 +198,18 @@ public class TracksProgressFragment extends BaseFragment {
         public int getItemViewType(int position) {
             ListItem item = getItem(position);
             return item.getType().key;
+        }
+
+        public void setProgressId(long progressId) {
+            this.progressId = progressId;
+            if(progressId > 0) {
+                for(int i = 0; i < getItemCount(); i++) {
+                    if(getItem(i).getId() == progressId) {
+                        notifyItemChanged(i);
+                        break;
+                    }
+                }
+            }
         }
 
         @NonNull
@@ -217,18 +251,21 @@ public class TracksProgressFragment extends BaseFragment {
             boolean isExpanded = position == expandedPosition;
             holder.baseTitle.setText(userProgressWithTrackAndMilestones.trackWithMilestones.track.name);
             holder.baseImageView.setImageResource(AppImage.getResIdFor(userProgressWithTrackAndMilestones.trackWithMilestones.track.image));
-            String formattedDistance = formatDistanceProgress(userProgressWithTrackAndMilestones.userProgress.distanceWalked, userProgressWithTrackAndMilestones.trackWithMilestones.track.totalDistance);
-            holder.baseDistance.setText(formattedDistance);
-            String formattedSteps = formatSteps(userProgressWithTrackAndMilestones.userProgress.stepsWalked, Math.round((userProgressWithTrackAndMilestones.trackWithMilestones.track.totalDistance - userProgressWithTrackAndMilestones.userProgress.distanceWalked)/ stepLength + 0.5f));
-            holder.baseSteps.setText(formattedSteps);
-            holder.baseMilestoneCount.setText(context.getString(R.string.integer_count, userProgressWithTrackAndMilestones.trackWithMilestones.milestones.size()));
+            if(!userProgressWithTrackAndMilestones.trackWithMilestones.milestones.isEmpty()) {
+                int totalDistance = userProgressWithTrackAndMilestones.trackWithMilestones.milestones.get(userProgressWithTrackAndMilestones.trackWithMilestones.milestones.size() - 1).distanceOffset;
+                String formattedDistance = formatDistanceProgress(userProgressWithTrackAndMilestones.userProgress.distanceWalked, totalDistance);
+                holder.baseDistance.setText(formattedDistance);
+                String formattedSteps = formatSteps(userProgressWithTrackAndMilestones.userProgress.stepsWalked, (int) Math.floor((totalDistance - userProgressWithTrackAndMilestones.userProgress.distanceWalked)/ stepLength + 0.5f));
+                holder.baseSteps.setText(formattedSteps);
+                holder.detailsDistance.setText(formattedDistance);
+                holder.detailsSteps.setText(formattedSteps);
+            }
 
+            holder.baseMilestoneCount.setText(context.getString(R.string.integer_count, userProgressWithTrackAndMilestones.trackWithMilestones.milestones.size()));
             holder.detailsTitle.setText(userProgressWithTrackAndMilestones.trackWithMilestones.track.name);
             holder.detailsImageView.setImageResource(AppImage.getResIdFor(userProgressWithTrackAndMilestones.trackWithMilestones.track.image));
             holder.detailsStart.setText(userProgressWithTrackAndMilestones.trackWithMilestones.track.startLocation);
             holder.detailsEnd.setText(userProgressWithTrackAndMilestones.trackWithMilestones.track.endLocation);
-            holder.detailsDistance.setText(formattedDistance);
-            holder.detailsSteps.setText(formattedSteps);
 
             holder.baseLayout.setVisibility(isExpanded ? View.GONE : View.VISIBLE);
             holder.expandedLayout.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
@@ -236,13 +273,36 @@ public class TracksProgressFragment extends BaseFragment {
             holder.itemSelectedAccent.setVisibility(userProgressWithTrackAndMilestones.userProgress.status == ProgressStatus.ACTIVE ? View.VISIBLE : View.GONE);
 
             if(isExpanded) {
-                MilestoneListItemAdapter milestoneAdapter = new MilestoneListItemAdapter(mapsItemClickedListener, onMilestoneClickListener, stepLength);
+                MilestoneListItemAdapter milestoneAdapter = new MilestoneListItemAdapter(context, mapsItemClickedListener, onMilestoneClickListener, stepLength);
                 holder.milestoneRecycler.setLayoutManager(new LinearLayoutManager(holder.itemView.getContext()));
                 holder.milestoneRecycler.setAdapter(milestoneAdapter);
+                viewModel.setProgressId(userProgressWithTrackAndMilestones.userProgress.id);
                 viewModel.setTrack(userProgressWithTrackAndMilestones.trackWithMilestones.track);
                 viewModel.setDistanceWalked(userProgressWithTrackAndMilestones.userProgress.distanceWalked);
                 viewModel.setStepsWalked(userProgressWithTrackAndMilestones.userProgress.stepsWalked);
                 viewModel.getAllMilestones().observe(getViewLifecycleOwner(), milestoneAdapter::submitList);
+
+                if(userProgressWithTrackAndMilestones.trackWithMilestones.milestones.isEmpty()) {
+                    holder.actionButton.setVisibility(View.GONE);
+                } else if(userProgressWithTrackAndMilestones.userProgress.distanceWalked >= userProgressWithTrackAndMilestones.trackWithMilestones.milestones.get(userProgressWithTrackAndMilestones.trackWithMilestones.milestones.size() - 1).distanceOffset
+                        && userProgressWithTrackAndMilestones.userProgress.status != ProgressStatus.COMPLETED) {
+                    holder.actionButton.setText(R.string.finish_progress);
+                    holder.actionButton.setOnClickListener(v -> {
+                        viewModel.finishTrack(userProgressWithTrackAndMilestones.userProgress.id);
+                    });
+                } else if(userProgressWithTrackAndMilestones.userProgress.status == ProgressStatus.ACTIVE) {
+                    holder.actionButton.setText(R.string.pause_progress);
+                    holder.actionButton.setOnClickListener(v -> {
+                        viewModel.pauseTrackProgress(userProgressWithTrackAndMilestones.userProgress.id);
+                    });
+                } else if(userProgressWithTrackAndMilestones.userProgress.status == ProgressStatus.PAUSED) {
+                    holder.actionButton.setText(R.string.resume_progress);
+                    holder.actionButton.setOnClickListener(v -> {
+                        viewModel.resumeTrackProgress(userProgressWithTrackAndMilestones.userProgress.id);
+                    });
+                } else {
+                    holder.actionButton.setVisibility(View.GONE);
+                }
             }
 
             holder.itemView.setOnClickListener(v -> {
@@ -262,11 +322,6 @@ public class TracksProgressFragment extends BaseFragment {
                     });
                 }
             });
-        }
-
-        private void expand(int position) {
-            Log.e("expand", "Expanding position: " + position);
-            expandedPosition = position;
         }
 
         public void setRecyclerView(RecyclerView recyclerView) {
@@ -305,6 +360,7 @@ public class TracksProgressFragment extends BaseFragment {
             private final TextView detailsSteps;
             private final TextView detailsDistance;
             private final RecyclerView milestoneRecycler;
+            private final MaterialButton actionButton;
 
             public ProgressViewHolder(ItemProgressBinding binding) {
                 super(binding.getRoot());
@@ -328,6 +384,7 @@ public class TracksProgressFragment extends BaseFragment {
                 detailsDistance = detailsSharedBinding.distance;
 
                 milestoneRecycler = binding.progressDetailsMilestones;
+                actionButton = binding.actionButton;
             }
         }
     }

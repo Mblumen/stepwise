@@ -9,6 +9,7 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 
+import de.hd.fitbittracks.enums.AchievementType;
 import de.hd.fitbittracks.enums.ProgressStatus;
 import de.hd.fitbittracks.pojos.MilestoneImage;
 
@@ -35,4 +36,13 @@ public class Converters {
     public static String toJson(List<MilestoneImage> list) {
         return gson.toJson(list);
     }
-}
+
+    @TypeConverter
+    public static String fromAchievementType(AchievementType type) {
+        return type == null ? null : type.name();
+    }
+
+    @TypeConverter
+    public static AchievementType toAchievementType(String type) {
+        return type == null ? null : AchievementType.valueOf(type);
+    }}

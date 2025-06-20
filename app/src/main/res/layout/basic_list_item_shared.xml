@@ -65,7 +65,7 @@
             android:layout_height="wrap_content"
             android:textSize="@dimen/font_size_small"
             android:textColor="@color/dark_gray"
-            app:drawableStartCompat="@drawable/map"
+            app:drawableStartCompat="@drawable/location"
             tools:text="3" />
     </LinearLayout>
 

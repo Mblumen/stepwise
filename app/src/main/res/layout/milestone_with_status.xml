@@ -15,6 +15,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"/>
     <LinearLayout
+        android:id="@+id/milestone_unlocked"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -117,4 +118,18 @@
                 tools:text="Diese ist länger als sie in die Zeile passt, mal schauen, was passiert"/>
         </LinearLayout>
     </LinearLayout>
+    <TextView
+        android:id="@+id/milestone_locked"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/dark_gray"
+        android:textSize="@dimen/font_size_small"
+        android:textStyle="italic"
+        android:layout_gravity="center"
+        android:padding="@dimen/padding_medium"
+        android:visibility="gone"
+        app:drawableTopCompat="@drawable/lock"
+        app:drawableTint="@color/dark_gray"
+        tools:visibility="visible"
+        tools:text="@string/unlock_by_walking_distance" />
 </LinearLayout>

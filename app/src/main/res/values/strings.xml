@@ -44,4 +44,24 @@
     <string name="dark_mode">Dark Mode</string>
     <string name="show_completed_tracks">Show completed tracks</string>
     <string name="save">save</string>
+    <string name="view_milestone">View Milestone</string>
+    <string name="view_progress">View Progress</string>
+    <string name="milestone_reached">Milestone reached 🎉</string>
+    <string name="milestone_locked_icon">Milestone locked icon</string>
+    <string name="unlock_by_walking_distance">Unlock by walking %1$s (%2$d steps)</string>
+    <string name="finish_track">Finish Track</string>
+    <string name="track_completed">Track Completed 🎉</string>
+    <string name="tap_to_finish_your_journey">Tap to finish your journey.</string>
+    <string name="finish_progress">Finish Track</string>
+    <string name="pause_progress">Pause Track</string>
+    <string name="resume_progress">Resume Track</string>
+    <string name="achievement_icon">Achievement Icon</string>
+    <string name="locked_icon">Locked Icon</string>
+    <string name="achievements">Achievements</string>
+    <string name="achievement_unlocked">Achievement Unlocked!</string>
+    <string name="glow_effect">Glow effect</string>
+    <string name="track_image">Track image</string>
+    <string name="flag_icon">Flag Icon</string>
+    <string name="home_icon">Home Icon</string>
+    <string name="steps_icon">Steps Icon</string>
 </resources>

@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -23,17 +24,19 @@ import de.hd.fitbittracks.ui.BaseAdapter;
 public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> extends BaseAdapter<T, MilestoneListItemBaseAdapter.MilestoneBaseViewHolder> {
     protected static final int TYPE_DEFAULT = 0;
 
+    protected Context context;
     protected final MapsItemClickedListener mapsItemClickedListener;
 
     public interface OnMilestoneClickListener {
         void onItemClick(Milestone milestone);
     }
     private final OnMilestoneClickListener listener;
-    public MilestoneListItemBaseAdapter(@NonNull DiffUtil.ItemCallback<T> diffCallback, MapsItemClickedListener mapsItemClickedListener, OnMilestoneClickListener listener, float stepLength) {
+    public MilestoneListItemBaseAdapter(Context context, @NonNull DiffUtil.ItemCallback<T> diffCallback, MapsItemClickedListener mapsItemClickedListener, OnMilestoneClickListener listener, float stepLength) {
         super(diffCallback);
         this.mapsItemClickedListener = mapsItemClickedListener;
         this.listener = listener;
         this.stepLength = stepLength;
+        this.context = context;
     }
 
     public void openMap(MapsItem mapsItem) {
@@ -83,8 +86,9 @@ public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> exte
         public TextView distance;
         public TextView description;
         public ImageView milestoneImage;
-
         public ImageButton mapsButton; // If you want to add an image button for actions
+        public TextView milestoneLocked;
+        public LinearLayout milestoneUnlocked;
 
         public MilestoneBaseViewHolder(MilestoneWithStatusBinding binding) {
             super(binding.getRoot());
@@ -94,6 +98,8 @@ public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> exte
             distance = binding.milestoneDistance;
             description = binding.milestoneDescription;
             mapsButton = binding.milestoneMapButton;
+            milestoneLocked = binding.milestoneLocked;
+            milestoneUnlocked = binding.milestoneUnlocked;
         }
     }
 }

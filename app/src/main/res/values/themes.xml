@@ -2,9 +2,9 @@
     <!-- Base application theme. -->
     <style name="Theme.FitbitTracks" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/dark_gray</item>
+        <item name="colorPrimary">@color/white</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
-        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnPrimary">@color/dark_gray</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/teal_200</item>
         <item name="colorSecondaryVariant">@color/teal_700</item>
@@ -21,15 +21,19 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>-->
+    <style name="CustomToolbarStyle" parent="Widget.Material3.Toolbar">
+        <item name="titleCentered">true</item>
+        <item name="titleTextAppearance">@style/TextAppearance.Material3.TitleLarge</item>
+    </style>
 
-    <style name="Theme.FitbitTracks.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="Theme.FitbitTracks.AppBarOverlay" parent="ThemeOverlay.Material3.Toolbar.Surface" />
 
-    <style name="Theme.FitbitTracks.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="Theme.FitbitTracks.PopupOverlay" parent="ThemeOverlay.Material3.Light" />
 
-    <style name="Widget.FitbitTracks.BottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView.Colored">
-        <item name="backgroundTint">@color/dark_gray</item>
-        <item name="itemIconTint">@drawable/bottom_nav_item_selector</item>
-        <item name="itemTextColor">@drawable/bottom_nav_item_selector</item>
+    <style name="Widget.FitbitTracks.BottomNavigationView" parent="ThemeOverlay.Material3.Toolbar.Surface">
+        <item name="backgroundTint">@color/white</item>
+        <item name="itemIconTint">@drawable/bottom_nav_item_selector_light</item>
+        <item name="itemTextColor">@drawable/bottom_nav_item_selector_light</item>
         <item name="labelVisibilityMode">labeled</item>
     </style>
 

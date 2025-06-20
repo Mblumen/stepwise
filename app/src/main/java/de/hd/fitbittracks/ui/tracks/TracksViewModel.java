@@ -1,28 +1,22 @@
 package de.hd.fitbittracks.ui.tracks;
 
 import android.app.Application;
-import android.content.Context;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
 import java.util.List;
-import java.util.Map;
 
 import de.hd.fitbittracks.daos.MilestoneDao;
 import de.hd.fitbittracks.database.AppDatabase;
 import de.hd.fitbittracks.entities.Milestone;
-import de.hd.fitbittracks.entities.Track;
-import de.hd.fitbittracks.entities.UserSettings;
-import de.hd.fitbittracks.pojos.Event;
+import de.hd.fitbittracks.pojos.events.Event;
 import de.hd.fitbittracks.pojos.MethodResult;
 import de.hd.fitbittracks.pojos.TrackWithMilestones;
 import de.hd.fitbittracks.repositories.TrackRepository;
 import de.hd.fitbittracks.repositories.UserProgressRepository;
-import de.hd.fitbittracks.repositories.UserSettingsRepository;
 import de.hd.fitbittracks.ui.BaseViewModel;
 
 public class TracksViewModel extends BaseViewModel {
@@ -41,9 +35,10 @@ public class TracksViewModel extends BaseViewModel {
     public TracksViewModel(@NonNull Application application) {
         super(application);
         AppDatabase db = AppDatabase.getInstance(application);
-        allTracks = db.trackDao().getAllTracksWithMilestones();
-        repository = new TrackRepository(db.milestoneDao());
-        userProgressRepository = new UserProgressRepository(db.userProgressDao(), db.trackDao(), db.userSettingsDao());
+        TrackRepository trackRepository = new TrackRepository(db.trackDao(), db.milestoneDao());
+        allTracks = trackRepository.getSortedTracksWithMilestones();
+        repository = new TrackRepository(db.trackDao(), db.milestoneDao());
+        userProgressRepository = new UserProgressRepository(db);
         milestoneDao = db.milestoneDao();
     }
 

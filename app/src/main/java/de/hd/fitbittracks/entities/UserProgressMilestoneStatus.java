@@ -12,10 +12,12 @@ public class UserProgressMilestoneStatus {
     public long progressId;
     public long milestoneId;
     public boolean notified; // optional if only store notified rows
+    public int stepsWalked;
 
-    public UserProgressMilestoneStatus(long progressId, long milestoneId, boolean notified) {
+    public UserProgressMilestoneStatus(long progressId, long milestoneId, boolean notified, int stepsWalked) {
         this.progressId = progressId;
         this.milestoneId = milestoneId;
         this.notified = notified;
+        this.stepsWalked = stepsWalked;
     }
 }

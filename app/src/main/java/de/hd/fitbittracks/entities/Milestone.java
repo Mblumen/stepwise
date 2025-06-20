@@ -29,8 +29,6 @@ public class Milestone implements MilestoneItem {
 
     public long trackId;
 
-    public int stepOffset; // Steps after which this milestone is reached
-
     public int distanceOffset; // Optional, for location-based milestones
     @NonNull
     public String title = "";
@@ -41,6 +39,7 @@ public class Milestone implements MilestoneItem {
     public double longitude; // optional, for location-based milestones
 
     public String image; // optional
+    public boolean unlocked = false; // default is locked
 
     @ColumnInfo(name = "extra_images")
     public List<MilestoneImage> extraImages;
@@ -53,7 +52,6 @@ public class Milestone implements MilestoneItem {
 
         if (id != that.id) return false;
         if (trackId != that.trackId) return false;
-        if (stepOffset != that.stepOffset) return false;
         if (!title.equals(that.title)) return false;
         if (!description.equals(that.description)) return false;
         return Objects.equals(image, that.image);

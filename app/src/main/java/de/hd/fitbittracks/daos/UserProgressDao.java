@@ -19,10 +19,14 @@ import de.hd.fitbittracks.pojos.UserProgressWithTrackAndMilestones;
 public interface UserProgressDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertUserProgress(UserProgress progress);
+    long insertUserProgress(UserProgress progress);
 
     @Query("SELECT * FROM user_progress WHERE trackId = :trackId")
     UserProgress getProgressForTrack(long trackId);
+
+    //get by id
+    @Query("SELECT * FROM user_progress WHERE id = :id")
+    UserProgress getProgressById(long id);
 
     @Query("SELECT * FROM user_progress WHERE trackId = :trackId AND status IN (:status)")
     UserProgress getProgressForTrackAndStatus(long trackId, ProgressStatus... status);
@@ -51,6 +55,13 @@ public interface UserProgressDao {
 
     @Query("SELECT * FROM user_progress_milestone_status")
     List<UserProgressMilestoneStatus>getNotifiedMilestones();
+
+    //get UserProgressMilestoneStatus for a specific progressId and milestoneId
+    @Query("SELECT * FROM user_progress_milestone_status WHERE progressId = :progressId AND milestoneId = :milestoneId")
+    UserProgressMilestoneStatus getMilestoneStatusForProgress(long progressId, long milestoneId);
+
+    @Query("SELECT * FROM user_progress_milestone_status WHERE progressId = :progressId")
+    LiveData<List<UserProgressMilestoneStatus>> getMilestoneStatusesForProgress(long progressId);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void markMilestoneNotified(UserProgressMilestoneStatus status);

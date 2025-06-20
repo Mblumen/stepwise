@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/notification_achievement_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <!-- Achievement Icon -->
+    <ImageView
+        android:id="@+id/notification_achievement_icon"
+        android:layout_width="@dimen/icon_size_large"
+        android:layout_height="@dimen/icon_size_large"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:contentDescription="@string/achievement_icon"
+        android:scaleType="centerCrop"
+        android:src="@drawable/trophy"
+        tools:tint="@color/silver" />
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/notification_achievement_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/notification_achievement_icon"
+        android:layout_marginStart="@dimen/icon_text_margin_start"
+        android:layout_alignTop="@id/notification_achievement_icon"
+        android:textColor="@color/notification_text_color"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:text="@string/achievement_unlocked" />
+
+    <!-- Short Description -->
+    <TextView
+        android:id="@+id/notification_achievement_desc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/notification_achievement_icon"
+        android:layout_marginStart="@dimen/icon_text_margin_start"
+        android:layout_below="@id/notification_achievement_title"
+        android:textColor="@color/notification_text_color"
+        android:textSize="12sp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        tools:text="You've walked 100 km!" />
+</RelativeLayout>

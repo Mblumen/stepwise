@@ -1,19 +1,13 @@
 package de.hd.fitbittracks.ui.milestones;
 
-import static androidx.recyclerview.widget.LinearSmoothScroller.SNAP_TO_START;
-
-import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.LinearSmoothScroller;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SnapHelper;
@@ -30,7 +24,6 @@ import de.hd.fitbittracks.pojos.MapsItem;
 import de.hd.fitbittracks.ui.BaseFragment;
 import de.hd.fitbittracks.ui.layouthelper.CarouselLayoutManager;
 import de.hd.fitbittracks.ui.layouthelper.CenterSnapHelper;
-import de.hd.fitbittracks.ui.layouthelper.LowSensitivitySnapHelper;
 import de.hd.fitbittracks.ui.layouthelper.OverlapDecoration;
 
 public class MilestoneFragment extends BaseFragment {
@@ -44,59 +37,58 @@ public class MilestoneFragment extends BaseFragment {
         MilestoneViewModel viewModel = new ViewModelProvider(this).get(MilestoneViewModel.class);
         MilestoneBinding binding = MilestoneBinding.inflate(inflater, container, false);
         holder = new MilestoneHolder(binding);
-        MilestoneFragmentArgs args = MilestoneFragmentArgs.fromBundle(getArguments());
-        long milestoneId = args.getMilestoneId();
+        long milestoneId = MilestoneFragmentArgs.fromBundle(getArguments()).getMilestoneId();
         viewModel.getMilestoneById(milestoneId).observe(getViewLifecycleOwner(), milestone -> {
-                if (milestone != null) {
-                    holder.bind(milestone, this);
-                    if(milestone.extraImages.isEmpty()) return;
-                    RecyclerView recyclerView = holder.binding.imageGallery;
-                    MilestoneImageAdapter imageAdapter = new MilestoneImageAdapter();
-                    recyclerView.setAdapter(imageAdapter);
-                    recyclerView.addItemDecoration(new OverlapDecoration(120));
+            if (milestone != null) {
+                holder.bind(milestone, this);
+                if(milestone.extraImages.isEmpty()) return;
+                RecyclerView recyclerView = holder.binding.imageGallery;
+                MilestoneImageAdapter imageAdapter = new MilestoneImageAdapter();
+                recyclerView.setAdapter(imageAdapter);
+                recyclerView.addItemDecoration(new OverlapDecoration(120));
 
-                    //LinearLayoutManager layoutManager = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false);
-                    layoutManager = new CarouselLayoutManager(requireContext());
-                    recyclerView.setLayoutManager(layoutManager);
-                    imageAdapter.setLayoutManager(layoutManager);
-                    imageAdapter.setRecyclerView(recyclerView);
-                    imageAdapter.setOnItemClickListener(this::scrollToCenter);
-                    // Snap to center
-                    SnapHelper snapHelper = new CenterSnapHelper(0);
-                    snapHelper.attachToRecyclerView(recyclerView);
+                //LinearLayoutManager layoutManager = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false);
+                layoutManager = new CarouselLayoutManager(requireContext());
+                recyclerView.setLayoutManager(layoutManager);
+                imageAdapter.setLayoutManager(layoutManager);
+                imageAdapter.setRecyclerView(recyclerView);
+                imageAdapter.setOnItemClickListener(this::scrollToCenter);
+                // Snap to center
+                SnapHelper snapHelper = new CenterSnapHelper(0);
+                snapHelper.attachToRecyclerView(recyclerView);
 
-                    imageAdapter.submitList(milestone.extraImages);
-                    int startPosition = Integer.MAX_VALUE / 2;
-                    int offset = startPosition % milestone.extraImages.size();
-                    recyclerView.scrollToPosition(startPosition - offset);
-                    recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-                        @Override
-                        public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                            if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                                recyclerView.post(() -> {
-                                    View snapView = snapHelper.findSnapView(layoutManager);
-                                    if (snapView != null) {
-                                        int position = recyclerView.getChildAdapterPosition(snapView);
-                                        if (position != RecyclerView.NO_POSITION) {
-                                            focusedPosition = position;
-                                            imageAdapter.setFocusedPosition(position);
-                                        }
+                imageAdapter.submitList(milestone.extraImages);
+                int startPosition = Integer.MAX_VALUE / 2;
+                int offset = startPosition % milestone.extraImages.size();
+                recyclerView.scrollToPosition(startPosition - offset);
+                recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                    @Override
+                    public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                        if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                            recyclerView.post(() -> {
+                                View snapView = snapHelper.findSnapView(layoutManager);
+                                if (snapView != null) {
+                                    int position = recyclerView.getChildAdapterPosition(snapView);
+                                    if (position != RecyclerView.NO_POSITION) {
+                                        focusedPosition = position;
+                                        imageAdapter.setFocusedPosition(position);
                                     }
-                                });
-                            }
+                                }
+                            });
                         }
-                    });
-                    recyclerView.post(() -> {
-                        View snappedView = snapHelper.findSnapView(layoutManager);
-                        if (snappedView != null) {
-                            int snapDistance[] = snapHelper.calculateDistanceToFinalSnap(layoutManager, snappedView);
-                            if (snapDistance != null) {
-                                recyclerView.smoothScrollBy(snapDistance[0], snapDistance[1]);
-                            }
+                    }
+                });
+                recyclerView.post(() -> {
+                    View snappedView = snapHelper.findSnapView(layoutManager);
+                    if (snappedView != null) {
+                        int snapDistance[] = snapHelper.calculateDistanceToFinalSnap(layoutManager, snappedView);
+                        if (snapDistance != null) {
+                            recyclerView.smoothScrollBy(snapDistance[0], snapDistance[1]);
                         }
-                    });
-                }
-            });
+                    }
+                });
+            }
+        });
         viewModel.getSettings().observe(getViewLifecycleOwner(), settings -> {
             if(settings != null) {
                 holder.updateStepCount(settings.stepLengthInMeters);

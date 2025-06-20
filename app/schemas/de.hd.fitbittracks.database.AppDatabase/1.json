@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "9e2ceb770d03ae8d47d2473d60b1141d",
+    "identityHash": "a3334dddcf24924b50000a65f8fedadd",
     "entities": [
       {
         "tableName": "tracks",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `startLocation` TEXT NOT NULL, `endLocation` TEXT NOT NULL, `image` TEXT, `totalDistance` INTEGER NOT NULL, `totalSteps` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `startLocation` TEXT NOT NULL, `endLocation` TEXT NOT NULL, `image` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -36,18 +36,6 @@
             "fieldPath": "image",
             "columnName": "image",
             "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "totalDistance",
-            "columnName": "totalDistance",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "totalSteps",
-            "columnName": "totalSteps",
-            "affinity": "INTEGER",
-            "notNull": true
           }
         ],
         "primaryKey": {
@@ -59,7 +47,7 @@
       },
       {
         "tableName": "milestones",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `trackId` INTEGER NOT NULL, `stepOffset` INTEGER NOT NULL, `distanceOffset` INTEGER NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `mapsUrl` TEXT, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `image` TEXT, `extra_images` TEXT, FOREIGN KEY(`trackId`) REFERENCES `tracks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `trackId` INTEGER NOT NULL, `distanceOffset` INTEGER NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `mapsUrl` TEXT, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `image` TEXT, `unlocked` INTEGER NOT NULL, `extra_images` TEXT, FOREIGN KEY(`trackId`) REFERENCES `tracks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -70,12 +58,6 @@
           {
             "fieldPath": "trackId",
             "columnName": "trackId",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "stepOffset",
-            "columnName": "stepOffset",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -118,6 +100,12 @@
             "fieldPath": "image",
             "columnName": "image",
             "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "unlocked",
+            "columnName": "unlocked",
+            "affinity": "INTEGER",
+            "notNull": true
           },
           {
             "fieldPath": "extraImages",
@@ -223,7 +211,7 @@
       },
       {
         "tableName": "user_progress_milestone_status",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`progressId` INTEGER NOT NULL, `milestoneId` INTEGER NOT NULL, `notified` INTEGER NOT NULL, PRIMARY KEY(`progressId`, `milestoneId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`progressId` INTEGER NOT NULL, `milestoneId` INTEGER NOT NULL, `notified` INTEGER NOT NULL, `stepsWalked` INTEGER NOT NULL, PRIMARY KEY(`progressId`, `milestoneId`))",
         "fields": [
           {
             "fieldPath": "progressId",
@@ -240,6 +228,12 @@
           {
             "fieldPath": "notified",
             "columnName": "notified",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stepsWalked",
+            "columnName": "stepsWalked",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -287,11 +281,88 @@
             "id"
           ]
         }
+      },
+      {
+        "tableName": "achievements",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `key` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `icon` TEXT NOT NULL, `type` TEXT NOT NULL, `difficulty` TEXT NOT NULL, `targetValue` REAL NOT NULL, `progressValue` REAL NOT NULL, `unlocked` INTEGER NOT NULL, `dateUnlocked` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "key",
+            "columnName": "key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "icon",
+            "columnName": "icon",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "difficulty",
+            "columnName": "difficulty",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetValue",
+            "columnName": "targetValue",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "progressValue",
+            "columnName": "progressValue",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unlocked",
+            "columnName": "unlocked",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateUnlocked",
+            "columnName": "dateUnlocked",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9e2ceb770d03ae8d47d2473d60b1141d')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a3334dddcf24924b50000a65f8fedadd')"
     ]
   }
 }

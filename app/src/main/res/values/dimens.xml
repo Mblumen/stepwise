@@ -6,6 +6,7 @@
     <dimen name="container_margin">5dp</dimen>
     <dimen name="image_margin">5dp</dimen>
     <dimen name="image_margin_large">12dp</dimen>
+    <dimen name="achievement_icon_size">64dp</dimen>
     <dimen name="image_size">100dp</dimen>
     <dimen name="image_size_medium">150dp</dimen>
     <dimen name="image_size_large">200dp</dimen>
@@ -14,6 +15,8 @@
     <dimen name="icon_size_small">14dp</dimen>
     <dimen name="icon_size">20dp</dimen>
     <dimen name="icon_size_big">24dp</dimen>
+    <dimen name="icon_size_large">48dp</dimen>
+    <dimen name="icon_size_very_large">64dp</dimen>
     <dimen name="icon_text_margin_start">5dp</dimen>
     <dimen name="card_elevation">4dp</dimen>
     <dimen name="card_radius">8dp</dimen>
@@ -23,5 +26,11 @@
     <dimen name="toast_padding">12dp</dimen>
     <dimen name="milestone_description_padding">16dp</dimen>
     <dimen name="padding_small">4dp</dimen>
+    <dimen name="padding_medium">8dp</dimen>
+    <dimen name="padding_large">12dp</dimen>
     <dimen name="blur_view_size">32dp</dimen>
+    <dimen name="border_radius">8dp</dimen>
+    <dimen name="progress_bar_height">8dp</dimen>
+    <dimen name="border_width">8dp</dimen>
+    <dimen name="collapsed_notification_height">64dp</dimen>
 </resources>

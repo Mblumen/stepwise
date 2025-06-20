@@ -10,14 +10,6 @@
         android:name="de.hd.fitbittracks.ui.tracksprogress.TracksProgressFragment"
         android:label="@string/menu_tracks_progress"
         tools:layout="@layout/fragment_tracks_progress">
-        <argument
-            android:name="milestone_id"
-            app:argType="long"
-            android:defaultValue="-1L"/>
-        <argument
-            android:name="progress_id"
-            app:argType="long"
-            android:defaultValue="-1L"/>
     </fragment>
 
     <fragment
@@ -38,6 +30,13 @@
         tools:layout="@layout/milestone">
         <argument
             android:name="milestone_id"
-            app:argType="long" />
+            app:argType="long"
+            android:defaultValue="-1L"/>
+    </fragment>
+    <fragment
+        android:id="@+id/nav_achievements"
+        android:name="de.hd.fitbittracks.ui.achievements.AchievementsFragment"
+        android:label="@string/achievements"
+        tools:layout="@layout/fragment_achievements">
     </fragment>
 </navigation>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/dialog_root"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@color/dark_gray">
+
+    <!-- Konfetti Layer -->
+    <nl.dionsegijn.konfetti.xml.KonfettiView
+        android:id="@+id/konfettiView"
+        android:layout_width="wrap_content"
+        android:layout_height="300dp" />
+
+    <!-- Dialog Content -->
+    <LinearLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="@dimen/padding_large">
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center">
+
+            <ImageView
+                android:layout_width="@dimen/image_size"
+                android:layout_height="@dimen/image_size"
+                android:src="@drawable/glow_circle"
+                android:scaleType="centerInside"
+                android:alpha="0.3"
+                android:contentDescription="@string/glow_effect"
+                android:layout_gravity="center"/>
+
+            <ImageView
+                android:id="@+id/icon"
+                android:layout_width="@dimen/image_size"
+                android:layout_height="@dimen/image_size"
+                android:src="@drawable/trophy"
+                android:contentDescription="@string/achievement_icon"
+                tools:tint="@color/bronze"
+                android:layout_gravity="center"/>
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/achievement_unlocked"
+            android:textSize="@dimen/font_size_header"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:layout_marginBottom="@dimen/container_margin" />
+
+        <TextView
+            android:id="@+id/description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/font_size_normal"
+            android:textColor="@color/white"
+            android:gravity="center"
+            tools:text="You've walked 100 km!"/>
+    </LinearLayout>
+
+</FrameLayout>

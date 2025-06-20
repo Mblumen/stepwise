@@ -17,16 +17,20 @@ public interface MilestoneDao {
     void insertMilestones(List<Milestone> milestones);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertMilestone(Milestone milestone);
+    long insertMilestone(Milestone milestone);
 
     @Query("SELECT * FROM milestones WHERE id = :milestoneId")
     LiveData<Milestone> getMilestoneById(long milestoneId);
 
     @Query("SELECT * FROM milestones ORDER BY trackId")
     LiveData<List<Milestone>> getAllMilestones();
-    @Query("SELECT * FROM milestones WHERE trackId = :trackId ORDER BY stepOffset ASC")
+    @Query("SELECT * FROM milestones WHERE trackId = :trackId ORDER BY distanceOffset ASC")
     List<Milestone> getMilestonesForTrack(long trackId);
 
-    @Query("SELECT * FROM milestones WHERE trackId = :trackId ORDER BY stepOffset ASC")
+    @Query("SELECT * FROM milestones WHERE trackId = :trackId ORDER BY distanceOffset ASC")
     LiveData<List<Milestone>> getMilestonesForTrackLive(long trackId);
+
+    //unlock milestone by id
+    @Query("UPDATE milestones SET unlocked = 1 WHERE id = :milestoneId")
+    void unlockMilestone(long milestoneId);
 }

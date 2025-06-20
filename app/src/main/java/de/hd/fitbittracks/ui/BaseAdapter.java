@@ -13,6 +13,7 @@ public abstract class BaseAdapter<T, H extends RecyclerView.ViewHolder> extends 
     protected final NumberFormat numberFormat = NumberFormat.getInstance(Locale.getDefault());
     protected final DecimalFormat df = new DecimalFormat("#,##0.0");
     protected float stepLength = 1f;
+    protected RecyclerView recyclerView;
     protected BaseAdapter(@NonNull DiffUtil.ItemCallback<T> diffCallback) {
         super(diffCallback);
     }
@@ -37,4 +38,9 @@ public abstract class BaseAdapter<T, H extends RecyclerView.ViewHolder> extends 
     protected String formatSteps(int steps, int stepsRemaining) {
         return numberFormat.format(steps) + " (" + numberFormat.format(stepsRemaining) + ")";
     }
+
+    public void setRecyclerView (RecyclerView recyclerView) {
+        this.recyclerView = recyclerView;
+    }
+
 }
