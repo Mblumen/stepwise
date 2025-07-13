@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 
 import de.hd.fitbittracks.entities.Milestone;
+import de.hd.fitbittracks.entities.MilestoneWithTotalDistance;
 import de.hd.fitbittracks.entities.Track;
 
 public class TrackWithMilestones {
@@ -17,7 +18,7 @@ public class TrackWithMilestones {
             parentColumn = "id",
             entityColumn = "trackId"
     )
-    public List<Milestone> milestones;
+    public List<MilestoneWithTotalDistance> milestones;
 
     @Override
     public boolean equals(Object o) {

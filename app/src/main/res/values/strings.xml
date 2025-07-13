@@ -30,7 +30,8 @@
     <string name="integer_count_of">%1$d/%2$d</string>
     <string name="milestone_progress">%1$s/%2$s</string>
     <string name="milestone_completed">Milestone completed</string>
-    <string name="button_select_track">Select This Track</string>
+    <string name="button_select_track">Start</string>
+    <string name="button_select_challenge_track">Start Challenge</string>
     <string name="toast_icon_desc">This image represents the status of a custom toast message</string>
     <string name="show_on_map">Show on Map</string>
     <string name="detail_image_description">This image provides additional details about the item</string>
@@ -64,4 +65,19 @@
     <string name="flag_icon">Flag Icon</string>
     <string name="home_icon">Home Icon</string>
     <string name="steps_icon">Steps Icon</string>
+    <string name="collapse_arrow">Collapse Arrow</string>
+
+    <string name="label_start">Start: %1$s</string>
+    <string name="label_end">End: %1$s</string>
+    <string name="label_distance">Distance: %1$s</string>
+    <string name="label_steps">Steps: %1$s</string>
+    <string name="label_milestones">Milestones: %1$s</string>
+    <string name="label_total_time">Total Time: %1$s</string>
+    <string name="label_paused_time">Paused Time: %1$s</string>
+    <string name="label_actual_time">Actual Time: %1$s</string>
+    <string name="all">All</string>
+    <string name="unlocked">Unlocked</string>
+    <string name="locked">Locked</string>
+    <string name="record_icon">Record Icon</string>
+    <string name="rotate_icon">Rotate Icon</string>
 </resources>

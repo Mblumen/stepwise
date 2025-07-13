@@ -77,6 +77,47 @@
             android:textColor="@color/dark_gray"
             android:textSize="@dimen/font_size_small"
             app:drawableStartCompat="@drawable/steps"
+            android:paddingBottom="@dimen/text_spacing"
             tools:text="12,345"/>
+        <TextView
+            android:id="@+id/milestones"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/font_size_small"
+            android:textColor="@color/dark_gray"
+            app:drawableStartCompat="@drawable/location"
+            android:paddingBottom="@dimen/text_spacing"
+            tools:text="Milestones: 3" />
+        <TextView
+            android:id="@+id/total_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/dark_gray"
+            android:textSize="@dimen/font_size_small"
+            app:drawableStartCompat="@drawable/timer"
+            android:paddingBottom="@dimen/text_spacing"
+            android:visibility="gone"
+            tools:text="Total time: 1h 34m"/>
+
+        <TextView
+            android:id="@+id/paused_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/dark_gray"
+            android:textSize="@dimen/font_size_small"
+            app:drawableStartCompat="@drawable/timer_pause"
+            android:paddingBottom="@dimen/text_spacing"
+            android:visibility="gone"
+            tools:text="Paused: 15m"/>
+
+        <TextView
+            android:id="@+id/active_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/dark_gray"
+            android:textSize="@dimen/font_size_small"
+            app:drawableStartCompat="@drawable/play_circle_"
+            android:visibility="gone"
+            tools:text="Active time: 1h 19m"/>
     </LinearLayout>
 </LinearLayout>

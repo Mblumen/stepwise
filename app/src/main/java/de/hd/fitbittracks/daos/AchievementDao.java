@@ -15,7 +15,7 @@ import de.hd.fitbittracks.enums.AchievementType;
 @Dao
 public interface AchievementDao {
 
-    @Query("SELECT * FROM achievements")
+    @Query("SELECT * FROM achievements ORDER BY type ASC, difficulty ASC")
     LiveData<List<Achievement>> getAll();
 
     @Query("SELECT * FROM achievements WHERE unlocked = 0")
@@ -33,8 +33,8 @@ public interface AchievementDao {
     @Update
     void update(Achievement achievement);
 
-    @Query("SELECT * FROM achievements WHERE type = :type")
-    List<Achievement> getAchievementsByType(AchievementType type);
+    @Query("SELECT * FROM achievements WHERE type IN (:types)")
+    List<Achievement> getAchievementsByType(List<AchievementType> types);
 
     @Query("SELECT * FROM achievements WHERE id = :id LIMIT 1")
     LiveData<Achievement> getById(long id);

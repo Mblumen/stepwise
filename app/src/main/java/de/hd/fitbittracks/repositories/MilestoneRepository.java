@@ -11,35 +11,27 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 import de.hd.fitbittracks.daos.MilestoneDao;
 import de.hd.fitbittracks.daos.UserProgressDao;
+import de.hd.fitbittracks.database.AppDatabase;
 import de.hd.fitbittracks.entities.Milestone;
+import de.hd.fitbittracks.entities.MilestoneWithTotalDistance;
 import de.hd.fitbittracks.entities.UserProgressMilestoneStatus;
 import de.hd.fitbittracks.enums.ProgressStatus;
 import de.hd.fitbittracks.pojos.MilestoneWithStatus;
 
+@Singleton
 public class MilestoneRepository extends BaseRepository {
     private final MilestoneDao milestoneDao;
     private final UserProgressDao userProgressDao;
 
-    public MilestoneRepository(MilestoneDao milestoneDao, UserProgressDao userProgressDao) {
-        this.milestoneDao = milestoneDao;
-        this.userProgressDao = userProgressDao;
-    }
-
-    public LiveData<List<MilestoneWithStatus>> getAllMilestonesByTrack(long trackId, float distanceWalked, int stepsWalked, long progressId) {
-        return Transformations.map(
-                milestoneDao.getMilestonesForTrackLive(trackId),
-                milestones -> milestones.stream().map(milestone -> {
-                    UserProgressMilestoneStatus milestoneStatusForProgress = userProgressDao.getMilestoneStatusForProgress(progressId, milestone.id);
-                    MilestoneWithStatus milestoneWithStatus = new MilestoneWithStatus();
-                    milestoneWithStatus.milestone = milestone;
-                    milestoneWithStatus.isCompleted = distanceWalked >= milestone.distanceOffset;
-                    milestoneWithStatus.distanceWalked = distanceWalked > milestone.distanceOffset ? milestone.distanceOffset : distanceWalked;
-                    milestoneWithStatus.stepsWalked = milestoneStatusForProgress != null && distanceWalked > milestone.distanceOffset ? milestoneStatusForProgress.stepsWalked : stepsWalked;
-                    return milestoneWithStatus;
-                }).collect(Collectors.toList())
-        );
+    @Inject
+    public MilestoneRepository(AppDatabase db) {
+        this.milestoneDao = db.milestoneDao();
+        this.userProgressDao = db.userProgressDao();
     }
 
     public LiveData<List<MilestoneWithStatus>> getMilestonesWithStatus(
@@ -47,7 +39,7 @@ public class MilestoneRepository extends BaseRepository {
 
         MediatorLiveData<List<MilestoneWithStatus>> result = new MediatorLiveData<>();
 
-        LiveData<List<Milestone>> milestonesLive = milestoneDao.getMilestonesForTrackLive(trackId);
+        LiveData<List<MilestoneWithTotalDistance>> milestonesLive = milestoneDao.getMilestonesForTrackLive(trackId);
         LiveData<List<UserProgressMilestoneStatus>> progressStatusesLive = userProgressDao.getMilestoneStatusesForProgress(progressId);
 
         result.addSource(milestonesLive, milestones -> {
@@ -58,7 +50,7 @@ public class MilestoneRepository extends BaseRepository {
         });
 
         result.addSource(progressStatusesLive, statuses -> {
-            List<Milestone> cachedMilestones = milestonesLive.getValue();
+            List<MilestoneWithTotalDistance> cachedMilestones = milestonesLive.getValue();
             if (cachedMilestones != null) {
                 result.setValue(combine(cachedMilestones, statuses, distanceWalked, stepsWalked));
             }
@@ -67,7 +59,7 @@ public class MilestoneRepository extends BaseRepository {
         return result;
     }
 
-    private List<MilestoneWithStatus> combine(List<Milestone> milestones,
+    private List<MilestoneWithStatus> combine(List<MilestoneWithTotalDistance> milestones,
                                               List<UserProgressMilestoneStatus> statuses,
                                               float distanceWalked,
                                               int stepsWalked) {
@@ -78,14 +70,14 @@ public class MilestoneRepository extends BaseRepository {
         }
 
         List<MilestoneWithStatus> result = new ArrayList<>();
-        for (Milestone milestone : milestones) {
+        for (MilestoneWithTotalDistance milestone : milestones) {
             MilestoneWithStatus mws = new MilestoneWithStatus();
             mws.milestone = milestone;
-            mws.isCompleted = distanceWalked >= milestone.distanceOffset;
-            mws.distanceWalked = Math.min(distanceWalked, milestone.distanceOffset);
+            mws.isCompleted = distanceWalked >= milestone.totalDistance;
+            mws.distanceWalked = Math.min(distanceWalked, milestone.totalDistance);
             UserProgressMilestoneStatus status = statusMap.get(milestone.id);
-            mws.stepsWalked = (status != null && distanceWalked > milestone.distanceOffset)
-                    ? status.stepsWalked : (distanceWalked > milestone.distanceOffset ? -1 : stepsWalked);
+            mws.stepsWalked = (status != null && distanceWalked > milestone.totalDistance)
+                    ? status.stepsWalked : (distanceWalked > milestone.totalDistance ? -1 : stepsWalked);
             result.add(mws);
         }
 

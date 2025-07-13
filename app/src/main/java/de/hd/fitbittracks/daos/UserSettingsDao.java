@@ -21,4 +21,7 @@ public interface UserSettingsDao {
 
     @Query("SELECT showCompletedTracks FROM user_settings WHERE id = 1")
     LiveData<Boolean> getShowCompletedTracks();
+
+    @Query("SELECT stepLengthInMeters FROM user_settings WHERE id = 1")
+    LiveData<Float> getStepLength();
 }

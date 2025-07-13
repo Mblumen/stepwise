@@ -29,22 +29,29 @@ import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 import de.hd.fitbittracks.MainActivity;
 import de.hd.fitbittracks.R;
 import de.hd.fitbittracks.database.AppDatabase;
 import de.hd.fitbittracks.entities.Achievement;
 import de.hd.fitbittracks.entities.Milestone;
+import de.hd.fitbittracks.entities.MilestoneWithTotalDistance;
 import de.hd.fitbittracks.entities.Track;
 import de.hd.fitbittracks.entities.UserProgress;
 import de.hd.fitbittracks.enums.AppImage;
 import de.hd.fitbittracks.repositories.UserProgressRepository;
 
+
+@AndroidEntryPoint
 public class StepCounterService extends Service implements SensorEventListener {
 
     private SensorManager sensorManager;
     private Sensor stepSensor;
     private int lastUpdate = -1;
-    private UserProgressRepository userProgressRepository;
+    @Inject
+    UserProgressRepository userProgressRepository;
     private static final String CHANNEL_ID = "step_channel";
     protected final NumberFormat numberFormat = NumberFormat.getInstance(Locale.getDefault());
     protected final DecimalFormat df = new DecimalFormat("#,##0.0");
@@ -54,12 +61,17 @@ public class StepCounterService extends Service implements SensorEventListener {
     public void onCreate() {
         super.onCreate();
         AppDatabase db = AppDatabase.getInstance(this);
-        userProgressRepository = new UserProgressRepository(db);
         userProgressRepository.getMilestoneProgressEvents().observeForever(event -> {
             sendGoalNotification(event.getContentIfNotHandled());
         });
         userProgressRepository.getAchievementEvents().observeForever(event -> {
-            sendAchievementNotification(event.getContentIfNotHandled());
+            Achievement e = event.getContentIfNotHandled();
+            if (e != null) {
+                Log.i("StepCounterService", "Achievement event received: " + e);
+                sendAchievementNotification(e);
+            }
+            //Log.i("StepCounterService", "Achievement event received: " + event.getContentIfNotHandled());
+            //sendAchievementNotification(event.getContentIfNotHandled());
         });
         userProgressRepository.getTrackWithProgressEvents().observeForever(event -> {
             sendTrackFinishedNotification(event.getContentIfNotHandled());
@@ -110,13 +122,13 @@ public class StepCounterService extends Service implements SensorEventListener {
         }
     }
 
-    private void sendGoalNotification(Pair<Milestone, UserProgress> pair) {
+    private void sendGoalNotification(Pair<MilestoneWithTotalDistance, UserProgress> pair) {
         if(pair == null) {
             Log.e("StepCounterService", "No milestone data available for notification.");
             return;
         }
         UserProgress userProgress = pair.second;
-        Milestone milestone = pair.first;
+        MilestoneWithTotalDistance milestone = pair.first;
         RemoteViews collapsedView = getCollapsedGoalView(milestone);
         RemoteViews expandedView = getExpandedGoalView(userProgress, milestone);
 
@@ -179,7 +191,7 @@ public class StepCounterService extends Service implements SensorEventListener {
         NotificationManagerCompat.from(this).notify(3, builder.build());
     }
 
-    private RemoteViews getCollapsedGoalView(Milestone milestone) {
+    private RemoteViews getCollapsedGoalView(MilestoneWithTotalDistance milestone) {
         RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.notification_collapsed);
         int textColor = ContextCompat.getColor(this, R.color.notification_text_color);
         contentView.setTextColor(R.id.action_milestone, textColor);
@@ -192,7 +204,7 @@ public class StepCounterService extends Service implements SensorEventListener {
         return contentView;
     }
 
-    private RemoteViews getExpandedGoalView(UserProgress userProgress, Milestone milestone) {
+    private RemoteViews getExpandedGoalView(UserProgress userProgress, MilestoneWithTotalDistance milestone) {
         RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.notification_expanded);
         int textColor = ContextCompat.getColor(this, R.color.notification_text_color);
         contentView.setTextColor(R.id.action_milestone, textColor);
@@ -256,7 +268,7 @@ public class StepCounterService extends Service implements SensorEventListener {
         return contentView;
     }
 
-    private PendingIntent createMilestoneIntent(Milestone milestone) {
+    private PendingIntent createMilestoneIntent(MilestoneWithTotalDistance milestone) {
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("milestone_id", milestone.id);
         intent.putExtra("navigate_to", "milestone_fragment");

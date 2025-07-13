@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_front"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/container_margin"
+        app:elevation="@dimen/card_elevation"
+        app:cardCornerRadius="@dimen/card_radius"
+        android:backgroundTint="?attr/colorPrimary">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/padding_large"
+            android:gravity="center_horizontal">
+
+            <ImageView
+                android:id="@+id/record_icon"
+                android:layout_width="@dimen/icon_size_large"
+                android:layout_height="@dimen/icon_size_large"
+                app:tint="?attr/colorOnPrimary"
+                android:contentDescription="@string/record_icon"
+                android:layout_marginBottom="@dimen/container_margin"
+                tools:src="@drawable/steps"/>
+            <TextView
+                android:id="@+id/record_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="@dimen/font_size_small"
+                tools:text="Most Steps"/>
+
+            <!-- Value + Unit -->
+            <TextView
+                android:id="@+id/record_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/font_size_small"
+                android:textColor="?attr/colorOnPrimary"
+                tools:text="12,345 steps"/>
+
+            <!-- Timestamp -->
+            <TextView
+                android:id="@+id/record_timestamp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/font_size_tiny"
+                android:textColor="?attr/colorOnPrimary"
+                tools:text="May 14, 2025"/>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+    <!-- Back Side -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_back"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/container_margin"
+        app:elevation="@dimen/card_elevation"
+        app:cardCornerRadius="@dimen/card_radius"
+        android:visibility="gone"
+        android:backgroundTint="?attr/colorPrimary">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/padding_large"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/record_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/font_size_small"
+                android:textColor="?attr/colorOnPrimary"
+                tools:text="Dies ist ein Test"/>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+    <ImageView
+        android:id="@+id/flip_hint"
+        android:layout_width="@dimen/icon_size"
+        android:layout_height="@dimen/icon_size"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="@dimen/container_margin"
+        android:src="@drawable/cached"
+        app:tint="?attr/colorOnPrimary"
+        android:contentDescription="@string/rotate_icon"
+        android:alpha="0.5"
+        />
+</FrameLayout>

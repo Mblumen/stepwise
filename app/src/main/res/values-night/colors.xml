@@ -2,4 +2,5 @@
 <resources>
     <color name="notification_background">#FF333333</color>
     <color name="notification_text_color">#FFFFFFFF</color>
+    <color name="selected_menu_item">#FFa9d4fc</color>
 </resources>

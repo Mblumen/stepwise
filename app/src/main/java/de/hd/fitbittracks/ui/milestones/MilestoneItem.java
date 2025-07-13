@@ -1,9 +1,9 @@
 package de.hd.fitbittracks.ui.milestones;
 
-import de.hd.fitbittracks.entities.Milestone;
+import de.hd.fitbittracks.entities.MilestoneWithTotalDistance;
 
 public interface MilestoneItem {
-    Milestone getMilestone();
+    MilestoneWithTotalDistance getMilestone();
 
     boolean equals(Object o);
 }

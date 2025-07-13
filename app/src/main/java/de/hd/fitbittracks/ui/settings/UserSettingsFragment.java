@@ -92,28 +92,9 @@ public class UserSettingsFragment extends BaseFragment {
         holder.darkModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> userSettingsViewModel.updateUseDarkMode(isChecked));
         holder.showCompletedTracksSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> userSettingsViewModel.updateShowCompletedTracks(isChecked));
 
-        userSettingsViewModel.settings.observe(getViewLifecycleOwner(), settings -> {
+        userSettingsViewModel.getSettings().observe(getViewLifecycleOwner(), settings -> {
             holder.bind(settings);
         });
-
-        /*holder.saveButton.setOnClickListener(v -> {
-            if (lastFocusedEditText != null) {
-                lastFocusedEditText.clearFocus();
-            }
-            hideKeyboard(v);
-
-            float length = Float.parseFloat(holder.stepLengthInput.getText().toString());
-            boolean isDarkMode = holder.darkModeSwitch.isChecked();
-            boolean showCompleted = holder.showCompletedTracksSwitch.isChecked();
-
-            UserSettings updated = new UserSettings();
-            updated.stepLengthInMeters = length;
-            updated.showCompletedTracks = showCompleted;
-            updated.useDarkMode = isDarkMode;
-            userSettingsViewModel.saveSettings(updated);
-
-            showCustomToast("Settings saved successfully", ResultStatus.SUCCESS);
-        });*/
         return root;
     }
 
@@ -137,8 +118,6 @@ public class UserSettingsFragment extends BaseFragment {
 
         public void bind(UserSettings settings) {
             if (settings == null) return;
-            // Update the UI elements with the settings values
-            // only if they changed
             String newText = String.valueOf(settings.stepLengthInMeters);
             if (!stepLengthInput.getText().toString().equals(newText)) {
                 stepLengthInput.setText(newText);

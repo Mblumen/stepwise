@@ -10,6 +10,10 @@ import androidx.room.Transaction;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import de.hd.fitbittracks.daos.AchievementDao;
 import de.hd.fitbittracks.daos.MilestoneDao;
@@ -19,6 +23,7 @@ import de.hd.fitbittracks.daos.UserSettingsDao;
 import de.hd.fitbittracks.database.AppDatabase;
 import de.hd.fitbittracks.entities.Achievement;
 import de.hd.fitbittracks.entities.Milestone;
+import de.hd.fitbittracks.entities.MilestoneWithTotalDistance;
 import de.hd.fitbittracks.entities.UserProgress;
 import de.hd.fitbittracks.entities.UserProgressMilestoneStatus;
 import de.hd.fitbittracks.enums.AchievementType;
@@ -33,6 +38,7 @@ import de.hd.fitbittracks.pojos.events.AchievementEvent;
 import de.hd.fitbittracks.pojos.events.MilestoneWithProgressEvent;
 import de.hd.fitbittracks.pojos.events.TrackWithProgressEvent;
 
+@Singleton
 public class UserProgressRepository extends BaseRepository{
     private final UserProgressDao userProgressDao;
     private final TrackDao trackDao;
@@ -43,6 +49,7 @@ public class UserProgressRepository extends BaseRepository{
     private final MutableLiveData<AchievementEvent> achievementEvents = new MutableLiveData<>();
     private final MutableLiveData<TrackWithProgressEvent> trackWithProgressEvents = new MutableLiveData<>();
 
+    @Inject
     public UserProgressRepository(AppDatabase appDatabase) {
         this.userProgressDao = appDatabase.userProgressDao();
         this.trackDao = appDatabase.trackDao();
@@ -87,11 +94,11 @@ public class UserProgressRepository extends BaseRepository{
                         }
                     }
                     if (!active.isEmpty()) {
-                        result.add(new Separator("Current Tracks"));
+                        result.add(new Separator<>("Current Tracks", ProgressStatus.ACTIVE, ProgressStatus.class));
                         result.addAll(active);
                     }
                     if (!completed.isEmpty()) {
-                        result.add(new Separator("Completed Tracks"));
+                        result.add(new Separator<>("Completed Tracks", ProgressStatus.COMPLETED, ProgressStatus.class));
                         result.addAll(completed);
                     }
                     return result;
@@ -117,22 +124,23 @@ public class UserProgressRepository extends BaseRepository{
                     return;
                 }
                 // If the existing progress is for a different track, pause it
-                userProgressDao.pauseActiveTrack();
-                // Now check if there is a progress for the given track
-                UserProgress trackProgress = userProgressDao.getProgressForTrackAndStatus(trackId, ProgressStatus.ACTIVE, ProgressStatus.PAUSED);
-                if (trackProgress != null) {
-                    // If there is already a progress for the track, update its status to active
-                    trackProgress.status = ProgressStatus.ACTIVE;
-                    userProgressDao.insertUserProgress(trackProgress);
-                    result.postValue(new MethodResult(ResultStatus.SUCCESS, "Track status updated to active."));
-                    return;
-                }
+                pauseTrackProgress(existingProgress.id);
+
+            }
+            // Now check if there is a progress for the given track
+            UserProgress trackProgress = userProgressDao.getProgressForTrackAndStatus(trackId, ProgressStatus.PAUSED);
+            if (trackProgress != null) {
+                // If there is already a progress for the track, update its status to active
+                resumeTrackProgress(trackProgress.id);
+                result.postValue(new MethodResult(ResultStatus.SUCCESS, "Track status updated to active."));
+                return;
             }
             // Create a new UserProgress entry for the track
             UserProgress newProgress = new UserProgress();
             newProgress.trackId = trackId;
             newProgress.stepsWalked = 0; // Initialize steps walked to 0
             newProgress.status = ProgressStatus.ACTIVE; // Set status to active
+            newProgress.startedAt = System.currentTimeMillis(); // Set the start time
             // Insert the new UserProgress entry into the database
             userProgressDao.insertUserProgress(newProgress);
             // Post a success result
@@ -157,21 +165,22 @@ public class UserProgressRepository extends BaseRepository{
             userProgressDao.insertUserProgress(progress);
 
             //update achievements
-            List<Achievement> achievementsByType = achievementDao.getAchievementsByType(AchievementType.DISTANCE);
-            updateDistanceAchievements(achievementsByType, distanceWalked);
+            List<Achievement> achievementsByType = achievementDao.getAchievementsByType(List.of(AchievementType.DISTANCE, AchievementType.STEPS));
+            updateAchievements(achievementsByType.stream().filter(achievement -> achievement.type.equals(AchievementType.DISTANCE)).collect(Collectors.toList()), distanceWalked);
+            updateAchievements(achievementsByType.stream().filter(achievement -> achievement.type.equals(AchievementType.STEPS)).collect(Collectors.toList()), stepsWalked);
 
             TrackWithMilestones trackWithMilestonesById = trackDao.getTrackWithMilestonesById(progress.trackId);
             List<Long> notifiedMilestones = userProgressDao.getNotifiedMilestonesForProgress(progress.id);
-            List<Milestone> milestones = trackWithMilestonesById.milestones;
-            for (Milestone m : milestones) {
-                if (totalDistance >= m.distanceOffset && !notifiedMilestones.contains(m.id)) {
+            List<MilestoneWithTotalDistance> milestones = trackWithMilestonesById.milestones;
+            for (MilestoneWithTotalDistance m : milestones) {
+                if (totalDistance >= m.totalDistance && !notifiedMilestones.contains(m.id)) {
                     UserProgressMilestoneStatus userProgressMilestoneStatus = new UserProgressMilestoneStatus(progress.id, m.id, true, totalSteps);
                     userProgressDao.markMilestoneNotified(userProgressMilestoneStatus);
                     milestoneDao.unlockMilestone(m.id);
                     //check if it was the last milestone (highest distance offset)
                     boolean isLastMilestone = true;
-                    for (Milestone other : milestones) {
-                        if (other.distanceOffset > m.distanceOffset) {
+                    for (MilestoneWithTotalDistance other : milestones) {
+                        if (other.totalDistance > m.totalDistance) {
                             isLastMilestone = false;
                             break;
                         }
@@ -186,33 +195,15 @@ public class UserProgressRepository extends BaseRepository{
         }
 
     }
-
-    private void updateDistanceAchievements(List<Achievement> achievements, float distanceWalked) {
-        for (Achievement achievement : achievements) {
-            if (achievement.unlocked) continue; // Skip already unlocked achievements
-            achievement.progressValue += distanceWalked;
-            if(achievement.progressValue > achievement.targetValue) {
-                // If the progress exceeds the target value, set it to the target value
-                achievement.progressValue = achievement.targetValue;
-            }
-            if (achievement.progressValue >= achievement.targetValue) {
-                achievement.unlocked = true;
-                achievement.dateUnlocked = System.currentTimeMillis();
-                // Post the achievement event
-                achievementEvents.postValue(new AchievementEvent(achievement, "Achievement unlocked: " + achievement.title));
-            }
-            achievementDao.update(achievement);
-        }
-    }
-
     public LiveData<MethodResult> pauseTrackProgress(long progressId) {
         // This method is used to pause the progress for a specific track.
         // It updates the status of the user progress to 'paused' for the given track ID.
         MutableLiveData<MethodResult> result = new MutableLiveData<>();
         executor.execute(() -> {
             UserProgress progress = userProgressDao.getProgressById(progressId);
-            if (progress != null) {
+            if (progress != null && progress.status == ProgressStatus.ACTIVE) {
                 progress.status = ProgressStatus.PAUSED;
+                progress.pausedAt = System.currentTimeMillis();
                 userProgressDao.insertUserProgress(progress);
                 result.postValue(new MethodResult(ResultStatus.SUCCESS, "Track progress paused successfully."));
             } else {
@@ -229,13 +220,17 @@ public class UserProgressRepository extends BaseRepository{
         executor.execute(() -> {
             UserProgress activeProgress = userProgressDao.getActiveUserProgress();
             UserProgress progress = userProgressDao.getProgressById(progressId);
-            if (activeProgress != null && activeProgress.id != progressId) {
+            if (activeProgress != null && progress != null && activeProgress.id != progressId) {
                 // If there is already an active progress, pause it
-                activeProgress.status = ProgressStatus.PAUSED;
-                userProgressDao.insertUserProgress(activeProgress);
+                pauseTrackProgress(activeProgress.id);
             }
             if (progress != null) {
                 progress.status = ProgressStatus.ACTIVE;
+                if (progress.pausedAt != null) {
+                    long pauseDuration = System.currentTimeMillis() - progress.pausedAt;
+                    progress.totalPausedTime = (progress.totalPausedTime == null ? 0 : progress.totalPausedTime) + pauseDuration;
+                    progress.pausedAt = null;
+                }
                 userProgressDao.insertUserProgress(progress);
                 result.postValue(new MethodResult(ResultStatus.SUCCESS, "Track progress resumed successfully."));
             } else {
@@ -245,6 +240,7 @@ public class UserProgressRepository extends BaseRepository{
         return result;
     }
 
+    @Transaction
     public LiveData<MethodResult> finishProgress(long progressId) {
         // This method is used to finish the progress for a specific track.
         // It updates the status of the user progress to 'completed' for the given track ID.
@@ -258,12 +254,37 @@ public class UserProgressRepository extends BaseRepository{
                 }
                 progress.status = ProgressStatus.COMPLETED;
                 userProgressDao.insertUserProgress(progress);
+
+                //update achievements
+                List<Achievement> achievementsByType = achievementDao.getAchievementsByType(List.of(AchievementType.TRACKS_COMPLETED));
+                updateAchievements(achievementsByType, 1.0f); // Increment by 1 for completed tracks
+
                 result.postValue(new MethodResult(ResultStatus.SUCCESS, "Track progress finished successfully."));
             } else {
                 result.postValue(new MethodResult(ResultStatus.ERROR, "Track progress not found."));
             }
         });
         return result;
+    }
+
+    private void updateAchievements(List<Achievement> achievements, float updateValue) {
+        for (Achievement achievement : achievements) {
+            if (achievement.unlocked) continue; // Skip already unlocked achievements
+            achievement.progressValue += updateValue;
+            if(achievement.progressValue > achievement.targetValue) {
+                // If the progress exceeds the target value, set it to the target value
+                achievement.progressValue = achievement.targetValue;
+            }
+            if (achievement.progressValue >= achievement.targetValue) {
+                achievement.unlocked = true;
+                achievement.dateUnlocked = System.currentTimeMillis();
+                // Post the achievement event
+                Log.d("UserProgressRepository", "Achievement unlocked: " + achievement.title);
+                achievementEvents.postValue(new AchievementEvent(achievement, "Achievement unlocked: " + achievement.title));
+                //AchievementEventBus.INSTANCE.postEvent(new AchievementEvent(achievement, "Achievement unlocked"));
+            }
+            achievementDao.update(achievement);
+        }
     }
 
 }

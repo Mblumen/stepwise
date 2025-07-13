@@ -20,6 +20,7 @@ public class Track {
     public String endLocation;
 
     public String image; // optional
+    public long challengeDuration; // in seconds, optional
 
     @Override
     public boolean equals(Object o) {

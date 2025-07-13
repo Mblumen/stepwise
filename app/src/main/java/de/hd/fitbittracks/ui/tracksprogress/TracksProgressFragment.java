@@ -1,45 +1,31 @@
 package de.hd.fitbittracks.ui.tracksprogress;
 
-import android.animation.LayoutTransition;
-import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.button.MaterialButton;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import de.hd.fitbittracks.R;
-import de.hd.fitbittracks.databinding.DetailsListItemSharedBinding;
 import de.hd.fitbittracks.databinding.FragmentTracksProgressBinding;
-import de.hd.fitbittracks.databinding.ItemProgressBinding;
-import de.hd.fitbittracks.databinding.ListSeparatorBinding;
-import de.hd.fitbittracks.databinding.MilestoneWithStatusBinding;
 import de.hd.fitbittracks.entities.Milestone;
-import de.hd.fitbittracks.enums.AppImage;
+import de.hd.fitbittracks.entities.MilestoneWithTotalDistance;
 import de.hd.fitbittracks.enums.ListItemType;
 import de.hd.fitbittracks.enums.ProgressStatus;
-import de.hd.fitbittracks.interfaces.MapsItemClickedListener;
 import de.hd.fitbittracks.pojos.ListItem;
 import de.hd.fitbittracks.pojos.MethodResult;
-import de.hd.fitbittracks.pojos.MilestoneWithStatus;
 import de.hd.fitbittracks.pojos.Separator;
 import de.hd.fitbittracks.pojos.UserProgressWithTrackAndMilestones;
-import de.hd.fitbittracks.ui.BaseAdapter;
 import de.hd.fitbittracks.ui.BaseFragment;
 import de.hd.fitbittracks.ui.MainSharedViewModel;
-import de.hd.fitbittracks.ui.milestones.MilestoneListItemBaseAdapter;
 
 /**
  * Fragment that demonstrates a responsive layout pattern where the format of the content
@@ -52,6 +38,15 @@ public class TracksProgressFragment extends BaseFragment {
     private FragmentTracksProgressBinding binding;
     private TracksProgressViewModel viewModel;
 
+    private TracksProgressAdapter adapter;
+
+    private final Set<ProgressStatus> expandedTypes = new HashSet<>(List.of(
+            ProgressStatus.ACTIVE,
+            ProgressStatus.PAUSED
+    ));
+
+    List<ListItem> previousList = new ArrayList<>();
+
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(TracksProgressViewModel.class);
@@ -61,12 +56,16 @@ public class TracksProgressFragment extends BaseFragment {
 
         RecyclerView recyclerView = binding.progressList;
 
-        ProgressAdapter adapter = new ProgressAdapter(context, this, this::openMilestone);
+        adapter = new TracksProgressAdapter(context,  viewModel, getViewLifecycleOwner(), this, this::openMilestone, this::onSectionToggled);
         recyclerView.setAdapter(adapter);
-        viewModel.getAllProgress().observe(getViewLifecycleOwner(), adapter::submitList);
-        viewModel.getSettings().observe(getViewLifecycleOwner(), settings -> {
-            if(settings != null) {
-                adapter.setStepLength(settings.stepLengthInMeters);
+        viewModel.getAllProgress().observe(getViewLifecycleOwner(), newList -> {
+            previousList.clear();
+            previousList.addAll(newList);
+            updateUIWithFilteredList(newList);
+        });
+        viewModel.getStepLength().observe(getViewLifecycleOwner(), stepLength -> {
+            if(stepLength != null) {
+                adapter.setStepLength(stepLength);
             }
         });
         viewModel.observedResult.observe(getViewLifecycleOwner(), event -> {
@@ -89,7 +88,51 @@ public class TracksProgressFragment extends BaseFragment {
         return root;
     }
 
-    public void openMilestone(Milestone milestone) {
+    private void onSectionToggled(ProgressStatus status) {
+        if(status == null) return;
+        if(status.equals(ProgressStatus.ACTIVE)) {
+            if (expandedTypes.contains(ProgressStatus.PAUSED)) {
+                expandedTypes.remove(ProgressStatus.PAUSED);
+            } else {
+                expandedTypes.add(ProgressStatus.PAUSED);
+            }
+        }
+        if (expandedTypes.contains(status)) {
+            expandedTypes.remove(status);
+        } else {
+            expandedTypes.add(status);
+        }
+
+        updateUIWithFilteredList(previousList != null ? previousList : new ArrayList<>());
+    }
+
+    private void updateUIWithFilteredList(List<ListItem> allItems) {
+        if(adapter == null) return;
+        List<ListItem> filteredItems = new ArrayList<>();
+        Separator<ProgressStatus> currentSeparator = null;
+        for (ListItem item : allItems) {
+            if (item.getType() == ListItemType.SEPARATOR) {
+                currentSeparator = (Separator<ProgressStatus>) item;
+            } else if (item.getType() == ListItemType.ELEMENT) {
+                UserProgressWithTrackAndMilestones userProgressWithTrackAndMilestones = (UserProgressWithTrackAndMilestones) item;
+                if(currentSeparator != null) {
+                    Separator<ProgressStatus> newSeparator = new Separator<>(
+                            currentSeparator.title,
+                            currentSeparator.data,
+                            currentSeparator.getGenericType()
+                    );
+                    newSeparator.isExpanded = expandedTypes.contains(userProgressWithTrackAndMilestones.userProgress.status);
+                    filteredItems.add(newSeparator);
+                    currentSeparator = null; // Reset after adding
+                }
+                if(expandedTypes.contains(userProgressWithTrackAndMilestones.userProgress.status)) filteredItems.add(userProgressWithTrackAndMilestones);
+            }
+        }
+        // Update RecyclerView adapter
+        adapter.submitList(filteredItems);
+    }
+
+    public void openMilestone(MilestoneWithTotalDistance milestone) {
         Bundle args = new Bundle();
         args.putLong("milestone_id", milestone.id);
         navController.navigate(R.id.nav_milestone, args);
@@ -100,294 +143,5 @@ public class TracksProgressFragment extends BaseFragment {
         super.onDestroyView();
         binding = null;
     }
-
-    public static class MilestoneListItemAdapter extends MilestoneListItemBaseAdapter<MilestoneWithStatus> {
-
-        public MilestoneListItemAdapter(Context context, MapsItemClickedListener mapsItemClickedListener, OnMilestoneClickListener onMilestoneClickListener, float stepLength) {
-            super(context, new DiffUtil.ItemCallback<>() {
-                @Override
-                public boolean areItemsTheSame(@NonNull MilestoneWithStatus oldItem, @NonNull MilestoneWithStatus newItem) {
-                    return oldItem.milestone.id == newItem.milestone.id;
-                }
-
-                @Override
-                public boolean areContentsTheSame(@NonNull MilestoneWithStatus oldItem, @NonNull MilestoneWithStatus newItem) {
-                    return oldItem.equals(newItem);
-                }
-            }, mapsItemClickedListener, onMilestoneClickListener, stepLength);
-        }
-
-        @NonNull
-        @Override
-        public MilestoneProgressViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            MilestoneWithStatusBinding binding = MilestoneWithStatusBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
-            return new MilestoneProgressViewHolder(binding);
-        }
-
-        @Override
-        protected void onBindExtendedViewHolder(MilestoneBaseViewHolder holder, MilestoneWithStatus item) {
-            MilestoneProgressViewHolder progressViewHolder = ((MilestoneProgressViewHolder) holder);
-            String formattedDistance = formatDistanceProgress(item.distanceWalked, item.milestone.distanceOffset);
-            holder.distance.setText(formattedDistance);
-            if(item.milestone.distanceOffset - item.distanceWalked > 0) {
-                String formattedSteps = formatSteps(item.stepsWalked, (int) Math.floor((item.milestone.distanceOffset - item.distanceWalked) / stepLength + 0.5f));
-                holder.steps.setText(formattedSteps);
-            }
-            else {
-                if(item.stepsWalked >= 0) holder.steps.setText(context.getString(R.string.integer_count, item.stepsWalked));
-                else holder.steps.setVisibility(View.GONE);
-            }
-            if(item.isCompleted) {
-                progressViewHolder.milestoneLocked.setVisibility(View.GONE);
-                progressViewHolder.milestoneUnlocked.setVisibility(View.VISIBLE);
-                progressViewHolder.milestoneStatusBadge.setVisibility(View.VISIBLE);
-            } else {
-                progressViewHolder.milestoneLocked.setVisibility(View.VISIBLE);
-                progressViewHolder.milestoneUnlocked.setVisibility(View.GONE);
-                progressViewHolder.milestoneStatusBadge.setVisibility(View.GONE);
-                float distanceLeft = item.milestone.distanceOffset - item.distanceWalked;
-                int stepsLeft = (int) Math.floor(distanceLeft / stepLength + 0.5f);
-                progressViewHolder.milestoneLocked.setText(context.getString(R.string.unlock_by_walking_distance, formatDistance(distanceLeft), stepsLeft));
-            }
-        }
-
-        public static class MilestoneProgressViewHolder extends MilestoneBaseViewHolder {
-            ImageView milestoneStatusBadge;
-
-
-            public MilestoneProgressViewHolder(MilestoneWithStatusBinding binding) {
-                super(binding);
-                milestoneStatusBadge = binding.milestoneStatusBadge;
-                milestoneLocked = binding.milestoneLocked;
-                milestoneUnlocked = binding.milestoneUnlocked;
-            }
-        }
-    }
-
-    public class ProgressAdapter extends BaseAdapter<ListItem, RecyclerView.ViewHolder> {
-        private int expandedPosition = RecyclerView.NO_POSITION;
-        private final Context context;
-
-        private RecyclerView recyclerView;
-
-        private final MapsItemClickedListener mapsItemClickedListener;
-
-        private long progressId = RecyclerView.NO_POSITION;
-
-        private final MilestoneListItemBaseAdapter.OnMilestoneClickListener onMilestoneClickListener;
-
-        protected ProgressAdapter(Context context, MapsItemClickedListener mapsItemClickedListener, MilestoneListItemBaseAdapter.OnMilestoneClickListener onMilestoneClickListener) {
-            super(new DiffUtil.ItemCallback<>() {
-                @Override
-                public boolean areItemsTheSame(@NonNull ListItem oldItem, @NonNull ListItem newItem) {
-                    return oldItem.getId() == newItem.getId() && oldItem.getType() == newItem.getType();
-                }
-
-                @Override
-                public boolean areContentsTheSame(@NonNull ListItem oldItem, @NonNull ListItem newItem) {
-                    if (oldItem.getType() != newItem.getType()) return false;
-                    return oldItem.equals(newItem);
-                }
-            });
-            this.context = context;
-            this.mapsItemClickedListener = mapsItemClickedListener;
-            this.onMilestoneClickListener = onMilestoneClickListener;
-        }
-
-        @Override
-        public int getItemViewType(int position) {
-            ListItem item = getItem(position);
-            return item.getType().key;
-        }
-
-        public void setProgressId(long progressId) {
-            this.progressId = progressId;
-            if(progressId > 0) {
-                for(int i = 0; i < getItemCount(); i++) {
-                    if(getItem(i).getId() == progressId) {
-                        notifyItemChanged(i);
-                        break;
-                    }
-                }
-            }
-        }
-
-        @NonNull
-        @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-           if(viewType == ListItemType.SEPARATOR.key) {
-                ListSeparatorBinding binding = ListSeparatorBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
-                return new ListSeparatorViewHolder(binding);
-            }
-            else {
-                ItemProgressBinding binding = ItemProgressBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
-                ProgressViewHolder holder = new ProgressViewHolder(binding);
-                LayoutTransition transition = new LayoutTransition();
-                transition.setDuration(2000); // Set your custom duration in ms
-                ((ViewGroup) holder.itemView).setLayoutTransition(transition);
-                return holder;
-            }
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder genericHolder, int position) {
-            if(getItemViewType(position) == ListItemType.SEPARATOR.key) {
-                ListSeparatorViewHolder separatorHolder = (ListSeparatorViewHolder) genericHolder;
-                Separator separator = (Separator) getItem(position);
-                if(separator != null) {
-                    separatorHolder.bind(separator);
-                }
-                return;
-            }
-
-            if(progressId > 0 && getItem(position).getId() == progressId) {
-                // Automatically expand the item if it matches the progressId
-                progressId = -1;
-                expandedPosition = genericHolder.getAbsoluteAdapterPosition();
-            }
-
-            ProgressViewHolder holder = (ProgressViewHolder) genericHolder;
-            UserProgressWithTrackAndMilestones userProgressWithTrackAndMilestones = (UserProgressWithTrackAndMilestones) getItem(position);
-            boolean isExpanded = position == expandedPosition;
-            holder.baseTitle.setText(userProgressWithTrackAndMilestones.trackWithMilestones.track.name);
-            holder.baseImageView.setImageResource(AppImage.getResIdFor(userProgressWithTrackAndMilestones.trackWithMilestones.track.image));
-            if(!userProgressWithTrackAndMilestones.trackWithMilestones.milestones.isEmpty()) {
-                int totalDistance = userProgressWithTrackAndMilestones.trackWithMilestones.milestones.get(userProgressWithTrackAndMilestones.trackWithMilestones.milestones.size() - 1).distanceOffset;
-                String formattedDistance = formatDistanceProgress(userProgressWithTrackAndMilestones.userProgress.distanceWalked, totalDistance);
-                holder.baseDistance.setText(formattedDistance);
-                String formattedSteps = formatSteps(userProgressWithTrackAndMilestones.userProgress.stepsWalked, (int) Math.floor((totalDistance - userProgressWithTrackAndMilestones.userProgress.distanceWalked)/ stepLength + 0.5f));
-                holder.baseSteps.setText(formattedSteps);
-                holder.detailsDistance.setText(formattedDistance);
-                holder.detailsSteps.setText(formattedSteps);
-            }
-
-            holder.baseMilestoneCount.setText(context.getString(R.string.integer_count, userProgressWithTrackAndMilestones.trackWithMilestones.milestones.size()));
-            holder.detailsTitle.setText(userProgressWithTrackAndMilestones.trackWithMilestones.track.name);
-            holder.detailsImageView.setImageResource(AppImage.getResIdFor(userProgressWithTrackAndMilestones.trackWithMilestones.track.image));
-            holder.detailsStart.setText(userProgressWithTrackAndMilestones.trackWithMilestones.track.startLocation);
-            holder.detailsEnd.setText(userProgressWithTrackAndMilestones.trackWithMilestones.track.endLocation);
-
-            holder.baseLayout.setVisibility(isExpanded ? View.GONE : View.VISIBLE);
-            holder.expandedLayout.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
-            holder.baseLayout.setSelected(userProgressWithTrackAndMilestones.userProgress.status == ProgressStatus.ACTIVE);
-            holder.itemSelectedAccent.setVisibility(userProgressWithTrackAndMilestones.userProgress.status == ProgressStatus.ACTIVE ? View.VISIBLE : View.GONE);
-
-            if(isExpanded) {
-                MilestoneListItemAdapter milestoneAdapter = new MilestoneListItemAdapter(context, mapsItemClickedListener, onMilestoneClickListener, stepLength);
-                holder.milestoneRecycler.setLayoutManager(new LinearLayoutManager(holder.itemView.getContext()));
-                holder.milestoneRecycler.setAdapter(milestoneAdapter);
-                viewModel.setProgressId(userProgressWithTrackAndMilestones.userProgress.id);
-                viewModel.setTrack(userProgressWithTrackAndMilestones.trackWithMilestones.track);
-                viewModel.setDistanceWalked(userProgressWithTrackAndMilestones.userProgress.distanceWalked);
-                viewModel.setStepsWalked(userProgressWithTrackAndMilestones.userProgress.stepsWalked);
-                viewModel.getAllMilestones().observe(getViewLifecycleOwner(), milestoneAdapter::submitList);
-
-                if(userProgressWithTrackAndMilestones.trackWithMilestones.milestones.isEmpty()) {
-                    holder.actionButton.setVisibility(View.GONE);
-                } else if(userProgressWithTrackAndMilestones.userProgress.distanceWalked >= userProgressWithTrackAndMilestones.trackWithMilestones.milestones.get(userProgressWithTrackAndMilestones.trackWithMilestones.milestones.size() - 1).distanceOffset
-                        && userProgressWithTrackAndMilestones.userProgress.status != ProgressStatus.COMPLETED) {
-                    holder.actionButton.setText(R.string.finish_progress);
-                    holder.actionButton.setOnClickListener(v -> {
-                        viewModel.finishTrack(userProgressWithTrackAndMilestones.userProgress.id);
-                    });
-                } else if(userProgressWithTrackAndMilestones.userProgress.status == ProgressStatus.ACTIVE) {
-                    holder.actionButton.setText(R.string.pause_progress);
-                    holder.actionButton.setOnClickListener(v -> {
-                        viewModel.pauseTrackProgress(userProgressWithTrackAndMilestones.userProgress.id);
-                    });
-                } else if(userProgressWithTrackAndMilestones.userProgress.status == ProgressStatus.PAUSED) {
-                    holder.actionButton.setText(R.string.resume_progress);
-                    holder.actionButton.setOnClickListener(v -> {
-                        viewModel.resumeTrackProgress(userProgressWithTrackAndMilestones.userProgress.id);
-                    });
-                } else {
-                    holder.actionButton.setVisibility(View.GONE);
-                }
-            }
-
-            holder.itemView.setOnClickListener(v -> {
-                int oldPos = expandedPosition;
-                expandedPosition = isExpanded ? -1 : position;
-                int currentAdapterPosition = holder.getAbsoluteAdapterPosition();
-
-                notifyItemChanged(oldPos);
-                notifyItemChanged(position);
-
-                if (!isExpanded && recyclerView != null) {
-                    recyclerView.post(() -> {
-                        LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-                        if (layoutManager != null) {
-                            layoutManager.scrollToPositionWithOffset(currentAdapterPosition, 0); // Align to top
-                        }
-                    });
-                }
-            });
-        }
-
-        public void setRecyclerView(RecyclerView recyclerView) {
-            this.recyclerView = recyclerView;
-        }
-
-        public static class ListSeparatorViewHolder extends RecyclerView.ViewHolder {
-            private final TextView separatorText;
-
-            public ListSeparatorViewHolder(ListSeparatorBinding binding) {
-                super(binding.getRoot());
-                separatorText = binding.separatorText;
-            }
-
-            public void bind(Separator separator) {
-                separatorText.setText(separator.title);
-            }
-        }
-        public static class ProgressViewHolder extends RecyclerView.ViewHolder {
-
-            private final LinearLayout baseLayout;
-            private final ImageView baseImageView;
-            private final TextView baseTitle;
-            private final TextView baseSteps;
-            private final TextView baseDistance;
-
-            private final TextView baseMilestoneCount;
-
-            private final View itemSelectedAccent;
-
-            private final CardView expandedLayout;
-            private final ImageView detailsImageView;
-            private final TextView detailsTitle;
-            private final TextView detailsStart;
-            private final TextView detailsEnd;
-            private final TextView detailsSteps;
-            private final TextView detailsDistance;
-            private final RecyclerView milestoneRecycler;
-            private final MaterialButton actionButton;
-
-            public ProgressViewHolder(ItemProgressBinding binding) {
-                super(binding.getRoot());
-                baseLayout = binding.progressItemBase;
-                baseImageView = binding.progressItemBaseImage;
-                baseTitle = binding.progressItemBaseTitle;
-                baseSteps = binding.progressItemBaseSteps;
-                baseDistance = binding.progressItemBaseDistance;
-                baseMilestoneCount = binding.progressItemBaseMilestones;
-                itemSelectedAccent = binding.itemSelectedAccent;
-
-                expandedLayout = binding.progressItemDetails;
-
-                DetailsListItemSharedBinding detailsSharedBinding = binding.sharedDetailsItem;
-
-                detailsImageView = detailsSharedBinding.image;
-                detailsTitle = detailsSharedBinding.title;
-                detailsStart = detailsSharedBinding.start;
-                detailsEnd = detailsSharedBinding.end;
-                detailsSteps = detailsSharedBinding.steps;
-                detailsDistance = detailsSharedBinding.distance;
-
-                milestoneRecycler = binding.progressDetailsMilestones;
-                actionButton = binding.actionButton;
-            }
-        }
-    }
-
 
 }

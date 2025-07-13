@@ -6,7 +6,7 @@
     android:id="@+id/achievement_card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="@dimen/container_margin"
+    android:layout_marginBottom="@dimen/container_margin"
     card_view:cardCornerRadius="@dimen/card_radius"
     card_view:cardElevation="@dimen/card_elevation">
 
@@ -70,14 +70,26 @@
         <!-- Lock Icon (optional visual indicator for locked achievements) -->
         <ImageView
             android:id="@+id/lock_icon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="@dimen/icon_size_big"
+            android:layout_height="@dimen/icon_size_big"
             android:layout_alignParentEnd="true"
             android:layout_alignTop="@id/achievement_title"
             android:visibility="gone"
             android:contentDescription="@string/locked_icon"
             android:src="@drawable/lock"
-            tools:visibility="visible"/>
+            tools:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/medal_text"
+            android:layout_width="@dimen/icon_size_big"
+            android:layout_height="@dimen/icon_size_big"
+            android:layout_alignParentEnd="true"
+            android:layout_alignTop="@id/achievement_title"
+            android:gravity="center|center_horizontal"
+            android:textSize="@dimen/font_size_normal"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:text="🥇"/>
 
     </RelativeLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -9,12 +9,15 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 
+import de.hd.fitbittracks.enums.AchievementDifficulty;
 import de.hd.fitbittracks.enums.AchievementType;
 import de.hd.fitbittracks.enums.ProgressStatus;
+import de.hd.fitbittracks.enums.RecordType;
 import de.hd.fitbittracks.pojos.MilestoneImage;
 
 public class Converters {
     private static final Gson gson = new Gson();
+
     @TypeConverter
     public static ProgressStatus fromString(String value) {
         return value == null ? ProgressStatus.UNDEFINED : ProgressStatus.getFromKey(value);
@@ -28,7 +31,8 @@ public class Converters {
     @TypeConverter
     public static List<MilestoneImage> fromJson(String value) {
         if (value == null) return Collections.emptyList();
-        Type listType = new TypeToken<List<MilestoneImage>>() {}.getType();
+        Type listType = new TypeToken<List<MilestoneImage>>() {
+        }.getType();
         return gson.fromJson(value, listType);
     }
 
@@ -38,11 +42,32 @@ public class Converters {
     }
 
     @TypeConverter
-    public static String fromAchievementType(AchievementType type) {
-        return type == null ? null : type.name();
+    public static AchievementDifficulty fromKey(int key) {
+        return AchievementDifficulty.getFromKey(key);
     }
 
     @TypeConverter
-    public static AchievementType toAchievementType(String type) {
-        return type == null ? null : AchievementType.valueOf(type);
-    }}
+    public static int toKey(AchievementDifficulty difficulty) {
+        return difficulty.getKey();
+    }
+
+    @TypeConverter
+    public static AchievementType fromOrder(int key) {
+        return AchievementType.fromOrder(key);
+    }
+
+    @TypeConverter
+    public static int toKey(AchievementType type) {
+        return type.order;
+    }
+
+    @TypeConverter
+    public static RecordType fromRecordKey(String key) {
+        return RecordType.fromString(key);
+    }
+
+    @TypeConverter
+    public static String fromRecord(RecordType type) {
+        return type.displayName;
+    }
+}

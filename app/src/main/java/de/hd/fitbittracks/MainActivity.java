@@ -33,11 +33,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 import java.util.List;
 
+import dagger.hilt.android.AndroidEntryPoint;
 import de.hd.fitbittracks.database.AppDatabase;
 import de.hd.fitbittracks.databinding.ActivityMainBinding;
 import de.hd.fitbittracks.stepcounter.StepCounterService;
 import de.hd.fitbittracks.ui.MainSharedViewModel;
 
+@AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
@@ -123,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView = getBottomNavigationView(binding, navController);
 
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_tracks_progress, R.id.nav_tracks, R.id.nav_settings, R.id.nav_achievements)
+                R.id.nav_tracks_progress, R.id.nav_tracks, R.id.nav_achievements, R.id.nav_settings)
                 .build();
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         //NavigationUI.setupWithNavController(bottomNavigationView, navController);

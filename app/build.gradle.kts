@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     id("androidx.navigation.safeargs")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -70,12 +71,17 @@ dependencies {
     // optional - Paging 3 Integration
     implementation("androidx.room:room-paging:$room_version")
 
-    implementation("androidx.room:room-gradle-plugin:$room_version")
-
+    implementation ("com.github.vipulasri:timelineview:1.2.2")
     implementation ("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
     implementation("com.google.android.gms:play-services-maps:19.2.0")
     implementation("com.google.android.material:material:1.11.0")
     implementation("com.google.code.gson:gson:2.7")
     implementation("nl.dionsegijn:konfetti-xml:2.0.2")
+    implementation("com.google.dagger:hilt-android:2.56.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+    annotationProcessor("com.google.dagger:hilt-android-compiler:2.56.2")
+    annotationProcessor("androidx.hilt:hilt-compiler:1.0.0")
+
+
 }

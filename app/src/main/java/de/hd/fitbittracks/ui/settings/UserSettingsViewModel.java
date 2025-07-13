@@ -7,17 +7,21 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.lifecycle.HiltViewModel;
 import de.hd.fitbittracks.entities.UserSettings;
 import de.hd.fitbittracks.repositories.UserSettingsRepository;
+import de.hd.fitbittracks.ui.BaseViewModel;
 
-public class UserSettingsViewModel extends AndroidViewModel {
+@HiltViewModel
+public class UserSettingsViewModel extends BaseViewModel {
+
     private final UserSettingsRepository repository;
-    public LiveData<UserSettings> settings;
-
-    public UserSettingsViewModel(@NonNull Application application) {
-        super(application);
-        repository = new UserSettingsRepository(application);
-        settings = repository.getSettings();
+    @Inject
+    public UserSettingsViewModel(@NonNull Application application, UserSettingsRepository userSettingsRepository) {
+        super(application, userSettingsRepository);
+        this.repository = userSettingsRepository;
     }
 
     public void saveSettings(UserSettings updatedSettings) {

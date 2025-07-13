@@ -1,7 +1,7 @@
 package de.hd.fitbittracks.enums;
 
 public enum ListItemType {
-    USER_PROGRESS(1),
+    ELEMENT(1),
     SEPARATOR(2),
     UNDEFINED(-1);
 

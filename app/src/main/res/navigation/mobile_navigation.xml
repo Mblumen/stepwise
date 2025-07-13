@@ -17,7 +17,12 @@
         android:name="de.hd.fitbittracks.ui.tracks.TracksFragment"
         android:label="@string/menu_tracks"
         tools:layout="@layout/fragment_tracks" />
-
+    <fragment
+        android:id="@+id/nav_achievements"
+        android:name="de.hd.fitbittracks.ui.achievements.AchievementsHostFragment"
+        android:label="@string/achievements"
+        tools:layout="@layout/fragment_achievements_container">
+    </fragment>
     <fragment
         android:id="@+id/nav_settings"
         android:name="de.hd.fitbittracks.ui.settings.UserSettingsFragment"
@@ -32,11 +37,5 @@
             android:name="milestone_id"
             app:argType="long"
             android:defaultValue="-1L"/>
-    </fragment>
-    <fragment
-        android:id="@+id/nav_achievements"
-        android:name="de.hd.fitbittracks.ui.achievements.AchievementsFragment"
-        android:label="@string/achievements"
-        tools:layout="@layout/fragment_achievements">
     </fragment>
 </navigation>

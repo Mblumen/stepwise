@@ -6,7 +6,7 @@
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="white">#FFFAF9F9</color>
     <color name="dark_gray">#FF333333</color>
     <color name="light_gray">#FFEEEEEE</color>
     <color name="transparent_black">#AA000000</color>
@@ -15,6 +15,7 @@
     <color name="warning_yellow">#CCFFC107</color>
     <color name="selected_item_bg">#FFa9d4fc</color>
     <color name="selected_item_highlight">#FF063f75</color>
+    <color name="selected_menu_item">#FF063f75</color>
     <color name="notification_background">#FFFFFFFF</color>
     <color name="notification_text_color">#FF333333</color>
     <color name="bronze">#FFCD7F32</color>

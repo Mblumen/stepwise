@@ -8,7 +8,10 @@ public enum AppImage {
     BERLIN("berlin", R.drawable.berlin),
     MUNICH("munich", R.drawable.munich),
     LOCK("lock", R.drawable.lock),
-    STEPS("steps", R.drawable.steps);
+    STEPS("steps", R.drawable.steps),
+    DISTANCE("distance", R.drawable.distance),
+    MAP("map", R.drawable.map),
+    TRACK("track", R.drawable.map);
 
     public final String key;
     public final int resId;

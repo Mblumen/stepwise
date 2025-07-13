@@ -3,7 +3,7 @@
     <style name="Theme.FitbitTracks" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/dark_gray</item>
-        <item name="colorPrimaryVariant">@color/light_gray</item>
+        <item name="colorPrimaryVariant">@color/dark_gray</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/light_gray</item>
@@ -18,10 +18,24 @@
     </style>
 
     <style name="Widget.FitbitTracks.BottomNavigationView" parent="ThemeOverlay.Material3.Toolbar.Surface">
-        <item name="backgroundTint">@color/dark_gray</item>
+        <item name="backgroundTint">?attr/colorPrimary</item>
         <item name="itemIconTint">@drawable/bottom_nav_item_selector_night</item>
         <item name="itemTextColor">@drawable/bottom_nav_item_selector_night</item>
         <item name="labelVisibilityMode">labeled</item>
     </style>
 
+    <style name="Widget.FitbitTracks.Chip.Choice" parent="Widget.MaterialComponents.Chip.Choice">
+        <item name="chipBackgroundColor">?attr/colorPrimary</item>
+        <item name="chipStrokeColor">@drawable/bottom_nav_item_selector_night</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="android:textColor">@drawable/bottom_nav_item_selector_night</item>
+        <item name="chipIconTint">@drawable/bottom_nav_item_selector_night</item>
+        <item name="rippleColor">?attr/colorOnPrimary</item>
+        <item name="android:textAppearance">@style/TextAppearance.FitbitTracks.Chip</item>
+    </style>
+
+    <style name="TextAppearance.FitbitTracks.Chip" parent="TextAppearance.MaterialComponents.Body2">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+    </style>
 </resources>

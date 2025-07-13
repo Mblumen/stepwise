@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <FrameLayout
+        android:layout_width="48dp"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <!-- Timeline line without default marker -->
+        <com.github.vipulasri.timelineview.TimelineView
+            android:id="@+id/timeline"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:markerSize="16sp"
+            app:marker="@drawable/transparent_circle"
+            app:lineWidth="2dp"
+            app:startLineColor="@color/dark_gray"
+            app:endLineColor="@color/dark_gray" />
+
+        <!-- Distance text centered vertically -->
+        <TextView
+            android:id="@+id/distance_text"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            tools:text="30.0km"
+            android:textSize="12sp"
+            android:textColor="@color/dark_gray" />
+    </FrameLayout>
+    <include
+        layout="@layout/milestone_with_status"
+        android:id="@+id/milestone"/>
+</LinearLayout>

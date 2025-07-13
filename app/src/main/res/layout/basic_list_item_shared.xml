@@ -35,21 +35,14 @@
             android:textStyle="bold"
             android:textColor="@color/dark_gray"
             tools:text="Barcelona" />
-        <LinearLayout
+        <TextView
+            android:id="@+id/item_base_distance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="start">
-
-            <TextView
-                android:id="@+id/item_base_distance"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:drawableStartCompat="@drawable/distance"
-                android:textColor="@color/dark_gray"
-                android:textSize="@dimen/font_size_small"
-                tools:text="9.3 km"/>
-        </LinearLayout>
+            app:drawableStartCompat="@drawable/distance"
+            android:textColor="@color/dark_gray"
+            android:textSize="@dimen/font_size_small"
+            tools:text="Distance: 9.3 km"/>
         <TextView
             android:id="@+id/item_base_steps"
             android:layout_width="wrap_content"
@@ -57,7 +50,7 @@
             android:textSize="@dimen/font_size_small"
             android:textColor="@color/dark_gray"
             app:drawableStartCompat="@drawable/steps"
-            tools:text="5,000" />
+            tools:text="Steps: 5,000" />
 
         <TextView
             android:id="@+id/item_base_milestones"
@@ -66,7 +59,7 @@
             android:textSize="@dimen/font_size_small"
             android:textColor="@color/dark_gray"
             app:drawableStartCompat="@drawable/location"
-            tools:text="3" />
+            tools:text="Milestones: 3" />
     </LinearLayout>
 
 </LinearLayout>

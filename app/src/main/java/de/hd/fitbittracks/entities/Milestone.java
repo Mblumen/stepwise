@@ -23,13 +23,13 @@ import de.hd.fitbittracks.ui.milestones.MilestoneItem;
         ),
         indices = {@Index("trackId")}
 )
-public class Milestone implements MilestoneItem {
+public class Milestone {
     @PrimaryKey(autoGenerate = true)
     public long id;
 
     public long trackId;
 
-    public int distanceOffset; // Optional, for location-based milestones
+    public int distanceOffsetToPrevious;
     @NonNull
     public String title = "";
     @NonNull
@@ -55,10 +55,5 @@ public class Milestone implements MilestoneItem {
         if (!title.equals(that.title)) return false;
         if (!description.equals(that.description)) return false;
         return Objects.equals(image, that.image);
-    }
-
-    @Override
-    public Milestone getMilestone() {
-        return this;
     }
 }

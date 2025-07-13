@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "a3334dddcf24924b50000a65f8fedadd",
+    "identityHash": "6535a9cb86dfab3bbc72087f1310be1e",
     "entities": [
       {
         "tableName": "tracks",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `startLocation` TEXT NOT NULL, `endLocation` TEXT NOT NULL, `image` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `startLocation` TEXT NOT NULL, `endLocation` TEXT NOT NULL, `image` TEXT, `challengeDuration` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -36,6 +36,12 @@
             "fieldPath": "image",
             "columnName": "image",
             "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "challengeDuration",
+            "columnName": "challengeDuration",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -47,7 +53,7 @@
       },
       {
         "tableName": "milestones",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `trackId` INTEGER NOT NULL, `distanceOffset` INTEGER NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `mapsUrl` TEXT, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `image` TEXT, `unlocked` INTEGER NOT NULL, `extra_images` TEXT, FOREIGN KEY(`trackId`) REFERENCES `tracks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `trackId` INTEGER NOT NULL, `distanceOffsetToPrevious` INTEGER NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `mapsUrl` TEXT, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `image` TEXT, `unlocked` INTEGER NOT NULL, `extra_images` TEXT, FOREIGN KEY(`trackId`) REFERENCES `tracks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -62,8 +68,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "distanceOffset",
-            "columnName": "distanceOffset",
+            "fieldPath": "distanceOffsetToPrevious",
+            "columnName": "distanceOffsetToPrevious",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -146,7 +152,7 @@
       },
       {
         "tableName": "user_progress",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `trackId` INTEGER NOT NULL, `stepsWalked` INTEGER NOT NULL, `distanceWalked` REAL NOT NULL, `status` TEXT, FOREIGN KEY(`trackId`) REFERENCES `tracks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `trackId` INTEGER NOT NULL, `stepsWalked` INTEGER NOT NULL, `distanceWalked` REAL NOT NULL, `status` TEXT, `startedAt` INTEGER, `pausedAt` INTEGER, `totalPausedTime` INTEGER, `completedAt` INTEGER, FOREIGN KEY(`trackId`) REFERENCES `tracks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -176,6 +182,26 @@
             "fieldPath": "status",
             "columnName": "status",
             "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "startedAt",
+            "columnName": "startedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "pausedAt",
+            "columnName": "pausedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "totalPausedTime",
+            "columnName": "totalPausedTime",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "completedAt",
+            "columnName": "completedAt",
+            "affinity": "INTEGER"
           }
         ],
         "primaryKey": {
@@ -284,7 +310,7 @@
       },
       {
         "tableName": "achievements",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `key` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `icon` TEXT NOT NULL, `type` TEXT NOT NULL, `difficulty` TEXT NOT NULL, `targetValue` REAL NOT NULL, `progressValue` REAL NOT NULL, `unlocked` INTEGER NOT NULL, `dateUnlocked` INTEGER)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `key` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `icon` TEXT NOT NULL, `type` INTEGER NOT NULL, `difficulty` INTEGER NOT NULL, `targetValue` REAL NOT NULL, `progressValue` REAL NOT NULL, `unlocked` INTEGER NOT NULL, `dateUnlocked` INTEGER)",
         "fields": [
           {
             "fieldPath": "id",
@@ -319,13 +345,13 @@
           {
             "fieldPath": "type",
             "columnName": "type",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
             "fieldPath": "difficulty",
             "columnName": "difficulty",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -358,11 +384,76 @@
             "id"
           ]
         }
+      },
+      {
+        "tableName": "app_records",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `unit` TEXT NOT NULL, `type` TEXT NOT NULL, `value` REAL NOT NULL, `trackId` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `description` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unit",
+            "columnName": "unit",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "value",
+            "columnName": "value",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "trackId",
+            "columnName": "trackId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "views": [
+      {
+        "viewName": "MilestoneWithTotalDistance",
+        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT\n    m.*,\n    SUM(m.distanceOffsetToPrevious) OVER (\n      PARTITION BY m.trackId\n      ORDER BY m.id\n      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n    ) AS totalDistance\n  FROM milestones m"
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a3334dddcf24924b50000a65f8fedadd')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6535a9cb86dfab3bbc72087f1310be1e')"
     ]
   }
 }

@@ -3,10 +3,12 @@ package de.hd.fitbittracks.pojos;
 import androidx.room.Embedded;
 import androidx.room.Relation;
 
+import java.util.List;
 import java.util.Objects;
 
 import de.hd.fitbittracks.entities.Track;
 import de.hd.fitbittracks.entities.UserProgress;
+import de.hd.fitbittracks.entities.UserProgressMilestoneStatus;
 import de.hd.fitbittracks.enums.ListItemType;
 
 public class UserProgressWithTrackAndMilestones implements ListItem{
@@ -19,6 +21,13 @@ public class UserProgressWithTrackAndMilestones implements ListItem{
             entityColumn = "id"
     )
     public TrackWithMilestones trackWithMilestones;
+
+    @Relation(
+            entity = UserProgressMilestoneStatus.class,
+            parentColumn = "id",
+            entityColumn = "progressId"
+    )
+    public List<UserProgressMilestoneStatus> userProgressMilestoneStatus;
 
 
     @Override
@@ -36,6 +45,6 @@ public class UserProgressWithTrackAndMilestones implements ListItem{
 
     @Override
     public ListItemType getType() {
-        return ListItemType.USER_PROGRESS;
+        return ListItemType.ELEMENT;
     }
 }

@@ -18,6 +18,7 @@ import java.util.Locale;
 
 import de.hd.fitbittracks.databinding.MilestoneBinding;
 import de.hd.fitbittracks.entities.Milestone;
+import de.hd.fitbittracks.entities.MilestoneWithTotalDistance;
 import de.hd.fitbittracks.enums.AppImage;
 import de.hd.fitbittracks.interfaces.MapsItemClickedListener;
 import de.hd.fitbittracks.pojos.MapsItem;
@@ -89,9 +90,9 @@ public class MilestoneFragment extends BaseFragment {
                 });
             }
         });
-        viewModel.getSettings().observe(getViewLifecycleOwner(), settings -> {
-            if(settings != null) {
-                holder.updateStepCount(settings.stepLengthInMeters);
+        viewModel.getStepLength().observe(getViewLifecycleOwner(), stepLength -> {
+            if(stepLength != null) {
+                holder.updateStepCount(stepLength);
             }
         });
         View root = binding.getRoot();
@@ -123,7 +124,7 @@ public class MilestoneFragment extends BaseFragment {
 
     private static class MilestoneHolder extends RecyclerView.ViewHolder {
         private final MilestoneBinding binding;
-        private Milestone milestone;
+        private MilestoneWithTotalDistance milestone;
         private float stepLength = 1;
         protected final NumberFormat numberFormat = NumberFormat.getInstance(Locale.getDefault());
         protected final DecimalFormat df = new DecimalFormat("#,##0.0");
@@ -133,12 +134,12 @@ public class MilestoneFragment extends BaseFragment {
             this.binding = binding;
         }
 
-        public void bind(Milestone milestone, MapsItemClickedListener mapsItemClickedListener) {
+        public void bind(MilestoneWithTotalDistance milestone, MapsItemClickedListener mapsItemClickedListener) {
             this.milestone = milestone;
             binding.title.setText(milestone.title);
-            String formattedSteps = numberFormat.format((int)(milestone.distanceOffset / stepLength));
+            String formattedSteps = numberFormat.format((int)(milestone.totalDistance / stepLength));
             binding.stepCount.setText(formattedSteps);
-            String formattedDistance = milestone.distanceOffset >= 10000 ? df.format(milestone.distanceOffset/1000) + " km" : numberFormat.format(milestone.distanceOffset) + " m";
+            String formattedDistance = milestone.totalDistance >= 10000 ? df.format(milestone.totalDistance/1000) + " km" : numberFormat.format(milestone.totalDistance) + " m";
             binding.distance.setText(formattedDistance);
             binding.description.setText(milestone.description);
             binding.image.setImageResource(AppImage.getResIdFor(milestone.image));
@@ -153,7 +154,7 @@ public class MilestoneFragment extends BaseFragment {
         public void updateStepCount(float stepLength) {
             this.stepLength = stepLength;
             if(milestone == null) return;
-            int stepCount = (int) (milestone.distanceOffset / stepLength);
+            int stepCount = (int) (milestone.totalDistance / stepLength);
             binding.stepCount.setText(numberFormat.format(stepCount));
         }
     }

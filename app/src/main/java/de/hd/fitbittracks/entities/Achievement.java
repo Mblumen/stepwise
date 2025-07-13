@@ -7,9 +7,11 @@ import androidx.annotation.Nullable;
 
 import de.hd.fitbittracks.enums.AchievementDifficulty;
 import de.hd.fitbittracks.enums.AchievementType;
+import de.hd.fitbittracks.enums.ListItemType;
+import de.hd.fitbittracks.pojos.ListItem;
 
 @Entity(tableName = "achievements")
-public class Achievement {
+public class Achievement  implements ListItem {
 
     @PrimaryKey(autoGenerate = true)
     public long id;
@@ -55,6 +57,16 @@ public class Achievement {
         this.progressValue = progressValue;
         this.unlocked = unlocked;
         this.dateUnlocked = dateUnlocked;
+    }
+
+    @Override
+    public long getId() {
+        return id;
+    }
+
+    @Override
+    public ListItemType getType() {
+        return ListItemType.ELEMENT;
     }
 
     @Override

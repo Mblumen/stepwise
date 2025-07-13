@@ -10,6 +10,10 @@ import androidx.lifecycle.Observer;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
+import dagger.hilt.android.lifecycle.HiltViewModel;
 import de.hd.fitbittracks.database.AppDatabase;
 import de.hd.fitbittracks.entities.Track;
 import de.hd.fitbittracks.enums.ResultStatus;
@@ -22,13 +26,12 @@ import de.hd.fitbittracks.repositories.UserProgressRepository;
 import de.hd.fitbittracks.repositories.UserSettingsRepository;
 import de.hd.fitbittracks.ui.BaseViewModel;
 
+@HiltViewModel
 public class TracksProgressViewModel extends BaseViewModel {
 
     private final LiveData<List<ListItem>> allProgress;
-    private final MilestoneRepository repository;
-
+    private final MilestoneRepository milestoneRepository;
     private final UserProgressRepository userProgressRepository;
-    private final UserSettingsRepository userSettingsRepository;
     private Track track;
     private float distanceWalked;
     private int stepsWalked;
@@ -36,15 +39,14 @@ public class TracksProgressViewModel extends BaseViewModel {
     private final MutableLiveData<Event<MethodResult>> _methodResult = new MutableLiveData<>();
     public LiveData<Event<MethodResult>> observedResult = _methodResult;
 
-    public TracksProgressViewModel(@NonNull Application application) {
-        super(application);
-        AppDatabase db = AppDatabase.getInstance(application);
-        userProgressRepository = new UserProgressRepository(db);
-        userSettingsRepository = new UserSettingsRepository(application);
+    @Inject
+    public TracksProgressViewModel(@NonNull Application application, UserProgressRepository userProgressRepository, MilestoneRepository milestoneRepository, UserSettingsRepository userSettingsRepository) {
+        super(application, userSettingsRepository);
+        this.userProgressRepository = userProgressRepository;
+        this.milestoneRepository = milestoneRepository;
         allProgress = userProgressRepository.getProgressWithMilestonesForStatusWithSeparators(
                 userSettingsRepository.getShowCompletedTracks()
         );
-        repository = new MilestoneRepository(db.milestoneDao(), db.userProgressDao());
     }
 
     public void setTrack(Track track) {
@@ -61,7 +63,7 @@ public class TracksProgressViewModel extends BaseViewModel {
     public void setProgressId(long progressId) {
         this.progressId = progressId;
     }
-    public LiveData<List<MilestoneWithStatus>> getAllMilestones() { return repository.getMilestonesWithStatus(track.id, progressId, distanceWalked, stepsWalked); }
+    public LiveData<List<MilestoneWithStatus>> getAllMilestones() { return milestoneRepository.getMilestonesWithStatus(track.id, progressId, distanceWalked, stepsWalked); }
     public LiveData<List<ListItem>> getAllProgress() {
         return allProgress;
     }

@@ -9,36 +9,37 @@ import androidx.lifecycle.Observer;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.lifecycle.HiltViewModel;
 import de.hd.fitbittracks.daos.MilestoneDao;
 import de.hd.fitbittracks.database.AppDatabase;
 import de.hd.fitbittracks.entities.Milestone;
+import de.hd.fitbittracks.entities.MilestoneWithTotalDistance;
 import de.hd.fitbittracks.pojos.events.Event;
 import de.hd.fitbittracks.pojos.MethodResult;
 import de.hd.fitbittracks.pojos.TrackWithMilestones;
 import de.hd.fitbittracks.repositories.TrackRepository;
 import de.hd.fitbittracks.repositories.UserProgressRepository;
+import de.hd.fitbittracks.repositories.UserSettingsRepository;
 import de.hd.fitbittracks.ui.BaseViewModel;
 
+@HiltViewModel
 public class TracksViewModel extends BaseViewModel {
 
     private final MilestoneDao milestoneDao;
     private final LiveData<List<TrackWithMilestones>> allTracks;
-    private final TrackRepository repository;
     private final UserProgressRepository userProgressRepository;
     private long trackId;
-
-
-
     private final MutableLiveData<Event<MethodResult>> _methodResult = new MutableLiveData<>();
     public LiveData<Event<MethodResult>> observedResult = _methodResult;
 
-    public TracksViewModel(@NonNull Application application) {
-        super(application);
+    @Inject
+    public TracksViewModel(@NonNull Application application, UserProgressRepository userProgressRepository, TrackRepository trackRepository, UserSettingsRepository userSettingsRepository) {
+        super(application, userSettingsRepository);
         AppDatabase db = AppDatabase.getInstance(application);
-        TrackRepository trackRepository = new TrackRepository(db.trackDao(), db.milestoneDao());
         allTracks = trackRepository.getSortedTracksWithMilestones();
-        repository = new TrackRepository(db.trackDao(), db.milestoneDao());
-        userProgressRepository = new UserProgressRepository(db);
+        this.userProgressRepository = userProgressRepository;
         milestoneDao = db.milestoneDao();
     }
 
@@ -47,7 +48,7 @@ public class TracksViewModel extends BaseViewModel {
     public void setTrackId(long trackId) {
         this.trackId = trackId;
     }
-    public LiveData<List<Milestone>> getAllMilestones() { return milestoneDao.getMilestonesForTrackLive(trackId); }
+    public LiveData<List<MilestoneWithTotalDistance>> getAllMilestones() { return milestoneDao.getMilestonesForTrackLive(trackId); }
 
     public void selectTrack(long trackId) {
         LiveData<MethodResult> resultLiveData =  userProgressRepository.startTrack(trackId);

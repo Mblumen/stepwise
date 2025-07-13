@@ -1,17 +1,18 @@
 package de.hd.fitbittracks.pojos;
 
 import de.hd.fitbittracks.entities.Milestone;
+import de.hd.fitbittracks.entities.MilestoneWithTotalDistance;
 import de.hd.fitbittracks.ui.milestones.MilestoneItem;
 
 public class MilestoneWithStatus implements MilestoneItem {
-    public Milestone milestone;
+    public MilestoneWithTotalDistance milestone;
     public boolean isCompleted;
 
     public float distanceWalked;
     public int stepsWalked;
 
     @Override
-    public Milestone getMilestone() {
+    public MilestoneWithTotalDistance getMilestone() {
         return milestone;
     }
 

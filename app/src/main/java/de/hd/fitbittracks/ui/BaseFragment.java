@@ -19,11 +19,13 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
+import dagger.hilt.android.AndroidEntryPoint;
 import de.hd.fitbittracks.R;
 import de.hd.fitbittracks.enums.ResultStatus;
 import de.hd.fitbittracks.interfaces.MapsItemClickedListener;
 import de.hd.fitbittracks.pojos.MapsItem;
 
+@AndroidEntryPoint
 public abstract class BaseFragment extends Fragment implements MapsItemClickedListener {
 
 
