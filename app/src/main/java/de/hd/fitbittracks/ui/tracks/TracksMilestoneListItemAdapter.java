@@ -49,6 +49,7 @@ public class TracksMilestoneListItemAdapter extends MilestoneListItemBaseAdapter
         if(item.unlocked) {
             holder.lockedContainer.setVisibility(View.GONE);
             holder.milestoneUnlocked.setVisibility(View.VISIBLE);
+            addOpenMilestoneClickListener(holder, item);
         } else {
             holder.lockedContainer.setVisibility(View.VISIBLE);
             holder.milestoneUnlocked.setVisibility(View.GONE);

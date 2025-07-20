@@ -19,11 +19,17 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.google.android.gms.maps.model.LatLng;
+
+import java.util.List;
+
 import dagger.hilt.android.AndroidEntryPoint;
 import de.hd.fitbittracks.R;
+import de.hd.fitbittracks.entities.Track;
 import de.hd.fitbittracks.enums.ResultStatus;
 import de.hd.fitbittracks.interfaces.MapsItemClickedListener;
 import de.hd.fitbittracks.pojos.MapsItem;
+import okhttp3.OkHttpClient;
 
 @AndroidEntryPoint
 public abstract class BaseFragment extends Fragment implements MapsItemClickedListener {
@@ -102,5 +108,4 @@ public abstract class BaseFragment extends Fragment implements MapsItemClickedLi
 
         }
     }
-
 }

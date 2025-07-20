@@ -9,6 +9,10 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.maplibre.android.MapLibre;
+import org.osmdroid.config.Configuration;
+import org.osmdroid.library.BuildConfig;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -49,6 +53,9 @@ public class TracksProgressFragment extends BaseFragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
+
+        Configuration.getInstance().setUserAgentValue(BuildConfig.APPLICATION_ID);
+        //MapLibre.getInstance(context);
         viewModel = new ViewModelProvider(this).get(TracksProgressViewModel.class);
 
         binding = FragmentTracksProgressBinding.inflate(inflater, container, false);

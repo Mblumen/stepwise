@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "6535a9cb86dfab3bbc72087f1310be1e",
+    "identityHash": "0451d3677bb091efe4cf9927adb712b3",
     "entities": [
       {
         "tableName": "tracks",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `startLocation` TEXT NOT NULL, `endLocation` TEXT NOT NULL, `image` TEXT, `challengeDuration` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `startLocation` TEXT NOT NULL, `endLocation` TEXT NOT NULL, `image` TEXT, `trackRoute` TEXT, `challengeDuration` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -35,6 +35,11 @@
           {
             "fieldPath": "image",
             "columnName": "image",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "trackRoute",
+            "columnName": "trackRoute",
             "affinity": "TEXT"
           },
           {
@@ -453,7 +458,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6535a9cb86dfab3bbc72087f1310be1e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0451d3677bb091efe4cf9927adb712b3')"
     ]
   }
 }

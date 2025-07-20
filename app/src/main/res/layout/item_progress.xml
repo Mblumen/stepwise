@@ -114,6 +114,10 @@
                 android:layout_marginTop="@dimen/button_margin"
                 android:layout_marginHorizontal="@dimen/button_margin"
                 tools:text="@string/finish_track" />
+            <de.hd.fitbittracks.ui.map.AccessibleMapView
+                android:id="@+id/mapView"
+                android:layout_width="match_parent"
+                android:layout_height="200dp" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 </LinearLayout>

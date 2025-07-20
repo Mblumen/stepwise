@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.view.menu.MenuView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
@@ -85,12 +86,13 @@ public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> exte
         } else {
             holder.mapsButton.setVisibility(View.GONE);
         }
-        holder.itemView.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onItemClick(milestone);
-            }
-        });
         onBindExtendedViewHolder(holder, milestoneItem);
+    }
+
+    protected void addOpenMilestoneClickListener(MilestoneBaseViewHolder holder, MilestoneWithTotalDistance milestone) {
+        if (listener != null) {
+            holder.itemView.setOnClickListener(v -> listener.onItemClick(milestone));
+        }
     }
 
     protected abstract<E extends MilestoneBaseViewHolder> void onBindExtendedViewHolder(E holder, T item);

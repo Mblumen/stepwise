@@ -2,16 +2,19 @@ package de.hd.fitbittracks.ui.tracksprogress;
 
 import android.animation.LayoutTransition;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.core.util.Consumer;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.DiffUtil;
@@ -20,13 +23,21 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
 
+import org.osmdroid.api.IMapController;
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.CustomZoomButtonsController;
+import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Marker;
+import org.osmdroid.views.overlay.PolyOverlayWithIW;
+import org.osmdroid.views.overlay.Polyline;
+
 import java.util.List;
 
 import de.hd.fitbittracks.R;
 import de.hd.fitbittracks.databinding.DetailsListItemSharedBinding;
 import de.hd.fitbittracks.databinding.ItemProgressBinding;
 import de.hd.fitbittracks.databinding.ListSeparatorBinding;
-import de.hd.fitbittracks.entities.Milestone;
 import de.hd.fitbittracks.entities.MilestoneWithTotalDistance;
 import de.hd.fitbittracks.entities.Track;
 import de.hd.fitbittracks.entities.UserProgress;
@@ -42,19 +53,19 @@ import de.hd.fitbittracks.ui.milestones.MilestoneListItemBaseAdapter;
 
 public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.ViewHolder> {
     private int expandedPosition = RecyclerView.NO_POSITION;
+    private float lastDistanceWalked = Integer.MIN_VALUE;
+    private Marker currentMarker = null;
+    private MapView mapView = null;
+    private boolean userTouchedMap = false;
     private final Context context;
     private final TracksProgressViewModel viewModel;
     private final LifecycleOwner lifecycleOwner;
-
     private RecyclerView recyclerView;
-
     private final MapsItemClickedListener mapsItemClickedListener;
-
     private long progressId = RecyclerView.NO_POSITION;
-
     private final MilestoneListItemBaseAdapter.OnMilestoneClickListener onMilestoneClickListener;
-
     private final Consumer<ProgressStatus> toggleCallback;
+
 
     public TracksProgressAdapter(Context context, TracksProgressViewModel viewModel, LifecycleOwner liveCycleOwner, MapsItemClickedListener mapsItemClickedListener,
                                  MilestoneListItemBaseAdapter.OnMilestoneClickListener onMilestoneClickListener, Consumer<ProgressStatus> toggleCallback) {
@@ -76,6 +87,21 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
         this.mapsItemClickedListener = mapsItemClickedListener;
         this.onMilestoneClickListener = onMilestoneClickListener;
         this.toggleCallback = toggleCallback;
+        viewModel.geoData.observe(lifecycleOwner, event -> {
+            List<GeoPoint> gps = event.getContentIfNotHandled();
+            Log.i("TracksProgressAdapter", "Position update received");
+            if (gps != null) {
+                drawPathOnMap(gps);
+                //updatePositionOnMap(p);
+            }
+        });
+        viewModel.pos.observe(lifecycleOwner, event -> {
+            GeoPoint geoPoint = event.getContentIfNotHandled();
+            Log.i("TracksProgressAdapter", "Position update received: " + geoPoint);
+            if (geoPoint != null) {
+                updatePositionOnMap(geoPoint);
+            }
+        });
     }
 
     @Override
@@ -111,6 +137,79 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
             ((ViewGroup) holder.itemView).setLayoutTransition(transition);
             return holder;
         }
+    }
+
+    private boolean checkEnoughDistanceWalked (float distanceWalked) {
+        long now = System.currentTimeMillis();
+
+        if (distanceWalked - lastDistanceWalked >= 8) {
+            lastDistanceWalked = distanceWalked;
+            return true;
+        }
+        return false;
+    }
+
+    private void loadPositionData(UserProgressWithTrackAndMilestones userProgressWithTrackAndMilestones) {
+        //boolean enoughDistanceWalked = checkEnoughDistanceWalked(userProgressWithTrackAndMilestones.userProgress.distanceWalked);
+        //if(!enoughDistanceWalked) return;
+        viewModel.calculateAndPostPosition(userProgressWithTrackAndMilestones);
+    }
+
+    public void drawPathOnMap(List<GeoPoint> path) {
+        if(mapView == null || path == null || path.isEmpty()) {
+            Log.w("TracksProgressAdapter", "MapView or path is null/empty, cannot draw path.");
+            return;
+        }
+        Polyline polyline = new Polyline();
+        polyline.setPoints(path);
+        polyline.getOutlinePaint().setColor(Color.BLUE);
+        polyline.getOutlinePaint().setStrokeWidth(8);
+        mapView.getOverlays().add(polyline);
+        mapView.invalidate(); // Refresh the map
+        mapView.getController().setCenter(path.get(0));
+        mapView.invalidate();
+    }
+
+    private void updatePositionOnMap(GeoPoint geoPoint) {
+        Log.i("TracksProgressAdapter", "Updating position on map: " + geoPoint);
+        if (mapView == null || geoPoint == null) {
+            Log.w("TracksProgressAdapter", "MapView or GeoPoint is null, cannot update position.");
+            return;
+        }
+
+        if (currentMarker != null) {
+            mapView.getOverlays().remove(currentMarker);
+            mapView.invalidate(); // refresh the map
+            currentMarker = null;
+        }
+
+        IMapController mapController = mapView.getController();
+        Marker currentMarker = new Marker(mapView);
+        currentMarker.setPosition(geoPoint);
+        currentMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        currentMarker.setIcon(ContextCompat.getDrawable(context, R.drawable.person_pin_circle));
+        mapView.getOverlays().add(currentMarker);
+        mapController.setCenter(geoPoint);
+        mapView.invalidate();
+    }
+
+    private void initMap() {
+        //GeoPoint calculatedPoint = new GeoPoint(trackRoute.startLat, trackRoute.startLon);
+        mapView.setTileSource(TileSourceFactory.MAPNIK);
+        mapView.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.ALWAYS);
+        mapView.setMultiTouchControls(true);
+        IMapController mapController = mapView.getController();
+        mapController.setZoom(15.0);
+        // Berlin
+        //mapController.setCenter(calculatedPoint);
+
+/*        Marker currentMarker = new Marker(mapView);
+        currentMarker.setPosition(calculatedPoint);
+        currentMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        currentMarker.setIcon(ContextCompat.getDrawable(context, R.drawable.person_pin_circle));
+        mapView.getOverlays().add(currentMarker);*/
+
+        //mapView.invalidate();
     }
 
     @Override
@@ -173,6 +272,15 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
             }
             holder.milestoneRecycler.setLayoutManager(new LinearLayoutManager(holder.itemView.getContext()));
             holder.milestoneRecycler.setAdapter(milestoneAdapter);
+
+            if(track.trackRoute == null) holder.mapView.setVisibility(View.GONE);
+            else {
+                mapView = holder.mapView;
+                holder.mapView.setVisibility(View.VISIBLE);
+                initMap();
+                loadPositionData(userProgressWithTrackAndMilestones);
+            }
+
             viewModel.setProgressId(userProgress.id);
             viewModel.setTrack(track);
             viewModel.setDistanceWalked(userProgress.distanceWalked);
@@ -233,6 +341,13 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
             expandedPosition = isExpanded ? -1 : position;
             int currentAdapterPosition = holder.getAbsoluteAdapterPosition();
 
+            if(!isExpanded) {
+                // Reset lastDistanceWalked when collapsing
+                lastDistanceWalked = Integer.MIN_VALUE;
+                userTouchedMap = false;
+                currentMarker = null;
+            }
+
             notifyItemChanged(oldPos);
             notifyItemChanged(position);
 
@@ -284,6 +399,7 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
         private final TextView activeTime;
         private final RecyclerView milestoneRecycler;
         private final MaterialButton actionButton;
+        private final MapView mapView;
 
         public TracksProgressViewHolder(ItemProgressBinding binding) {
             super(binding.getRoot());
@@ -310,6 +426,8 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
 
             milestoneRecycler = binding.progressDetailsMilestones;
             actionButton = binding.actionButton;
+
+            mapView = binding.mapView;
         }
     }
 }

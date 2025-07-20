@@ -14,6 +14,7 @@ import de.hd.fitbittracks.enums.AchievementType;
 import de.hd.fitbittracks.enums.ProgressStatus;
 import de.hd.fitbittracks.enums.RecordType;
 import de.hd.fitbittracks.pojos.MilestoneImage;
+import de.hd.fitbittracks.pojos.TrackRoute;
 
 public class Converters {
     private static final Gson gson = new Gson();
@@ -69,5 +70,16 @@ public class Converters {
     @TypeConverter
     public static String fromRecord(RecordType type) {
         return type.displayName;
+    }
+
+    @TypeConverter
+    public static TrackRoute fromTrackRouteJson(String value) {
+        if (value == null) return null;
+        return gson.fromJson(value, new TypeToken<TrackRoute>(){}.getType());
+    }
+
+    @TypeConverter
+    public static String toTrackRouteJson(TrackRoute trackRoute) {
+        return gson.toJson(trackRoute);
     }
 }

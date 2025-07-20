@@ -10,6 +10,8 @@ import android.widget.ProgressBar;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 
+import org.maplibre.android.maps.MapView;
+
 import de.hd.fitbittracks.R;
 import de.hd.fitbittracks.databinding.MilestoneWithStatusTimelineBinding;
 import de.hd.fitbittracks.interfaces.MapsItemClickedListener;
@@ -56,6 +58,7 @@ public class TracksProgressMilestoneListItemAdapter extends MilestoneListItemBas
             progressViewHolder.milestoneUnlocked.setVisibility(View.VISIBLE);
             progressViewHolder.milestoneStatusBadge.setVisibility(View.VISIBLE);
             progressViewHolder.milestoneProgress.setVisibility(View.GONE);
+            addOpenMilestoneClickListener(holder, item.milestone);
         } else {
             progressViewHolder.lockedContainer.setVisibility(View.VISIBLE);
             progressViewHolder.milestoneUnlocked.setVisibility(View.GONE);
@@ -73,7 +76,6 @@ public class TracksProgressMilestoneListItemAdapter extends MilestoneListItemBas
     public static class MilestoneProgressViewHolder extends MilestoneListItemBaseAdapter.MilestoneBaseViewHolder {
         ImageView milestoneStatusBadge;
         private final ProgressBar milestoneProgress;
-
         public MilestoneProgressViewHolder(MilestoneWithStatusTimelineBinding binding) {
             super(binding);
             milestoneStatusBadge = milestone.milestoneStatusBadge;

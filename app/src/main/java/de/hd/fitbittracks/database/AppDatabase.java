@@ -35,6 +35,7 @@ import de.hd.fitbittracks.enums.AchievementType;
 import de.hd.fitbittracks.enums.ProgressStatus;
 import de.hd.fitbittracks.enums.RecordType;
 import de.hd.fitbittracks.pojos.MilestoneImage;
+import de.hd.fitbittracks.pojos.TrackRoute;
 
 @Database(entities = {Track.class, Milestone.class, UserProgress.class, UserProgressMilestoneStatus.class, UserSettings.class, Achievement.class, AppRecord.class}, views = {MilestoneWithTotalDistance.class}, version = 1)
 @TypeConverters({Converters.class})
@@ -101,7 +102,7 @@ public abstract class AppDatabase extends RoomDatabase {
         userSettings.useDarkMode = true;
         db.userSettingsDao().insertOrUpdate(userSettings);
 
-        long trackId = insertMockTrack(db, "Barcelona to Paris", "Barcelona", "Paris", "barcelona");
+        long trackId = insertMockTrack(db, "Barcelona to Paris", "Barcelona", "Paris", "barcelona", null);
         insertMockMilestone(db, trackId, 3000, "Milestone 1", "Description for milestone 1. Diese ist länger als sie in die Zeile passt, mal schauen, was passiert.", "berlin", List.of(new MilestoneImage("munich", "Eine Beschreibung zu München"), new MilestoneImage("paris", "Der Eifelturm"), new  MilestoneImage("berlin", "Brandenburger Tor")), "https://www.google.de/maps/place/Berliner+Fernsehturm/@52.5208182,13.4068442,17z/data=!3m1!5s0x47a84e1f8930e30b:0x45589dc39d6724c4!4m6!3m5!1s0x47a84e1f9014ffeb:0xc8fafc484349e4a1!8m2!3d52.520815!4d13.4094191!16zL20vMDJnOG4w?entry=ttu&g_ep=EgoyMDI1MDUyOC4wIKXMDSoASAFQAw%3D%3D", 0, 0, false);
         insertMockMilestone(db, trackId, 12000, "Milestone 2", "Description for milestone 2", "munich", Collections.emptyList(), "", 49.38440050589991, 8.678341220795584, false);
         insertMockMilestone(db, trackId, 10000, "Milestone 3", "Description for milestone 3", "paris", Collections.emptyList(), "", 0, 0, false);
@@ -114,7 +115,7 @@ public abstract class AppDatabase extends RoomDatabase {
         progress.pausedAt = System.currentTimeMillis() - 1000 * 60 * 60 * 12; // Paused 12 hours ago
         long progressId1 = db.userProgressDao().insertUserProgress(progress);
 
-        long trackId2 = insertMockTrack(db, "Paris to Berlin", "Paris", "Berlin", "paris");
+        long trackId2 = insertMockTrack(db, "Paris to Berlin", "Paris", "Berlin", "paris", null);
         insertMockMilestone(db, trackId2, 3000, "Milestone 1", "Description for milestone 1. Diese ist länger als sie in die Zeile passt, mal schauen, was passiert.", "berlin", List.of(new MilestoneImage("munich", "Eine Beschreibung zu München"), new MilestoneImage("paris", "Der Eifelturm"), new  MilestoneImage("berlin", "Brandenburger Tor")), "https://www.google.de/maps/place/Berliner+Fernsehturm/@52.5208182,13.4068442,17z/data=!3m1!5s0x47a84e1f8930e30b:0x45589dc39d6724c4!4m6!3m5!1s0x47a84e1f9014ffeb:0xc8fafc484349e4a1!8m2!3d52.520815!4d13.4094191!16zL20vMDJnOG4w?entry=ttu&g_ep=EgoyMDI1MDUyOC4wIKXMDSoASAFQAw%3D%3D", 0, 0, false);
         insertMockMilestone(db, trackId2, 12000, "Milestone 2", "Description for milestone 2", "munich", Collections.emptyList(), "", 49.38440050589991, 8.678341220795584, false);
         insertMockMilestone(db, trackId2, 10000, "Milestone 3", "Description for milestone 3", "paris", Collections.emptyList(), "", 0, 0, false);
@@ -127,15 +128,16 @@ public abstract class AppDatabase extends RoomDatabase {
         progress2.pausedAt = System.currentTimeMillis() - 1000 * 60 * 60 * 24; // Paused 24 hours ago
         long progressId2 = db.userProgressDao().insertUserProgress(progress2);
 
-        long trackId3 = insertMockTrack(db, "Berlin to Munich", "Berlin", "Munich", "berlin");
+        long trackId3 = insertMockTrack(db, "Berlin to Munich", "Berlin", "Munich", "berlin",
+                new TrackRoute("https://www.google.de/maps/dir/Berlin/M%C3%BCnchen/@51.1212444,12.8388161,10.75z/am=t/data=!4m14!4m13!1m5!1m1!1s0x47a84e373f035901:0x42120465b5e3b70!2m2!1d13.404954!2d52.5200066!1m5!1m1!1s0x479e75f9a38c5fd9:0x10cb84a7db1987d!2m2!1d11.5819805!2d48.1351253!3e2?entry=ttu&g_ep=EgoyMDI1MDcwOS4wIKXMDSoASAFQAw%3D%3D", 52.5069386, 13.2599298, 48.1549107, 11.5418357));
         long trackId3MilestoneId1 = insertMockMilestone(db, trackId3, 3000, "Milestone 1", "Description for milestone 1. Diese ist länger als sie in die Zeile passt, mal schauen, was passiert.", "berlin", List.of(new MilestoneImage("munich", "Eine Beschreibung zu München"), new MilestoneImage("paris", "Der Eifelturm"), new  MilestoneImage("berlin", "Brandenburger Tor")), "https://www.google.de/maps/place/Berliner+Fernsehturm/@52.5208182,13.4068442,17z/data=!3m1!5s0x47a84e1f8930e30b:0x45589dc39d6724c4!4m6!3m5!1s0x47a84e1f9014ffeb:0xc8fafc484349e4a1!8m2!3d52.520815!4d13.4094191!16zL20vMDJnOG4w?entry=ttu&g_ep=EgoyMDI1MDUyOC4wIKXMDSoASAFQAw%3D%3D", 0, 0, true);
         long trackId3MilestoneId2 = insertMockMilestone(db, trackId3, 12000, "Milestone 2", "Description for milestone 2", "munich", Collections.emptyList(), "", 49.38440050589991, 8.678341220795584, true);
         long trackId3MilestoneId3 = insertMockMilestone(db, trackId3, 10000, "Milestone 3", "Description for milestone 3", "paris", Collections.emptyList(), "", 0, 0, true);
         UserProgress progress3 = new UserProgress();
         progress3.trackId = trackId3;
         progress3.status = ProgressStatus.ACTIVE;
-        progress3.stepsWalked = 26731;
-        progress3.distanceWalked = 24995; // Assume the user has walked 25425 steps on this track
+        progress3.stepsWalked = 25731;
+        progress3.distanceWalked = 23995; // Assume the user has walked 25425 steps on this track
         progress3.startedAt = System.currentTimeMillis() - 1000 * 60 * 60 * 72; // Started 72 hour ago
         progress3.pausedAt = null; // Not paused
         progress3.totalPausedTime = 1000L * 60 * 60; // Assume the user has paused the track for 1 hour in total
@@ -150,7 +152,7 @@ public abstract class AppDatabase extends RoomDatabase {
         UserProgressMilestoneStatus milestoneStatus3 = new UserProgressMilestoneStatus(progressId3, trackId3MilestoneId3, true, 27532);
         //db.userProgressDao().markMilestoneNotified(milestoneStatus3);
 
-        long trackId4 = insertMockTrack(db, "Munich to Zurich", "Munich", "Zurich", "munich");
+        long trackId4 = insertMockTrack(db, "Munich to Zurich", "Munich", "Zurich", "munich", null);
         long trackId4MilestoneId1 = insertMockMilestone(db, trackId4, 3000, "Milestone 1", "Description for milestone 1", "berlin", Collections.emptyList(), "", 47.3768866, 8.541694, true);
         long trackId4MilestoneId2 = insertMockMilestone(db, trackId4, 6000, "Milestone 2", "Description for milestone 2", "paris", Collections.emptyList(), "", 0, 0, true);
         UserProgress progress4 = new UserProgress();
@@ -174,12 +176,13 @@ public abstract class AppDatabase extends RoomDatabase {
         addRecords(db);
     }
 
-    private static long insertMockTrack(AppDatabase db, String name, String startLocation, String endLocation, String image) {
+    private static long insertMockTrack(AppDatabase db, String name, String startLocation, String endLocation, String image, TrackRoute trackRoute) {
         Track track = new Track();
         track.name = name;
         track.startLocation = startLocation;
         track.endLocation = endLocation;
         track.image = image;
+        track.trackRoute = trackRoute;
 
         return db.trackDao().insertTrack(track);
     }

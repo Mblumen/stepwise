@@ -1,10 +1,13 @@
 package de.hd.fitbittracks.entities;
 
 import androidx.annotation.NonNull;
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 import java.util.Objects;
+
+import de.hd.fitbittracks.pojos.TrackRoute;
 
 @Entity(tableName = "tracks")
 public class Track {
@@ -20,6 +23,8 @@ public class Track {
     public String endLocation;
 
     public String image; // optional
+
+    public TrackRoute trackRoute; // optional, URL to the route on a map service
     public long challengeDuration; // in seconds, optional
 
     @Override

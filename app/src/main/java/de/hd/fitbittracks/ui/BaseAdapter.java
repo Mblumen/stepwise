@@ -40,7 +40,7 @@ public abstract class BaseAdapter<T, H extends RecyclerView.ViewHolder> extends 
     }
 
     protected String formatSteps(int steps, int stepsRemaining) {
-        return numberFormat.format(steps) + " (" + numberFormat.format(stepsRemaining) + ")";
+        return numberFormat.format(steps) + " (" + numberFormat.format(stepsRemaining) + " to go)";
     }
 
     protected String formatDuration(long durationMillis) {

@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class CenterSnapHelper extends LinearSnapHelper {
 
-    private int overlapOffset;
+    private final int overlapOffset;
 
     public CenterSnapHelper(int overlapOffset) {
         this.overlapOffset = overlapOffset;
