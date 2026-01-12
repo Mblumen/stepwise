@@ -6,4 +6,4 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layoutManager="LinearLayoutManager"
-    tools:context=".ui.tracks.TracksFragment" />
+    tools:context="de.hd.stepwise.ui.tracks.TracksFragment" />

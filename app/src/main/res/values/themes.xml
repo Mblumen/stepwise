@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.FitbitTracks" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.Stepwise" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/white</item>
         <item name="colorPrimaryVariant">@color/white</item>
@@ -11,43 +11,39 @@
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <item name="bottomNavigationStyle">@style/Widget.FitbitTracks.BottomNavigationView</item>
+        <item name="bottomNavigationStyle">@style/Widget.Stepwise.BottomNavigationView</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <!-- Customize your theme here. -->
     </style>
 
-   <!-- <style name="Theme.FitbitTracks.NoActionBar" parent="Theme.FitbitTracks">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-    </style>-->
     <style name="CustomToolbarStyle" parent="Widget.Material3.Toolbar">
         <item name="titleCentered">true</item>
         <item name="titleTextAppearance">@style/TextAppearance.Material3.TitleLarge</item>
     </style>
 
-    <style name="Theme.FitbitTracks.AppBarOverlay" parent="ThemeOverlay.Material3.Toolbar.Surface" />
+    <style name="Theme.Stepwise.AppBarOverlay" parent="ThemeOverlay.Material3.Toolbar.Surface" />
 
-    <style name="Theme.FitbitTracks.PopupOverlay" parent="ThemeOverlay.Material3.Light" />
+    <style name="Theme.Stepwise.PopupOverlay" parent="ThemeOverlay.Material3.Light" />
 
-    <style name="Widget.FitbitTracks.BottomNavigationView" parent="ThemeOverlay.Material3.Toolbar.Surface">
+    <style name="Widget.Stepwise.BottomNavigationView" parent="ThemeOverlay.Material3.Toolbar.Surface">
         <item name="backgroundTint">?attr/colorPrimary</item>
         <item name="itemIconTint">@drawable/bottom_nav_item_selector_light</item>
         <item name="itemTextColor">@drawable/bottom_nav_item_selector_light</item>
         <item name="labelVisibilityMode">labeled</item>
     </style>
 
-    <style name="Widget.FitbitTracks.Chip.Choice" parent="Widget.MaterialComponents.Chip.Choice">
+    <style name="Widget.Stepwise.Chip.Choice" parent="Widget.MaterialComponents.Chip.Choice">
         <item name="chipBackgroundColor">?attr/colorPrimary</item>
         <item name="chipStrokeColor">@drawable/bottom_nav_item_selector_light</item>
         <item name="chipStrokeWidth">1dp</item>
         <item name="android:textColor">@drawable/bottom_nav_item_selector_light</item>
         <item name="chipIconTint">@drawable/bottom_nav_item_selector_light</item>
         <item name="rippleColor">?attr/colorOnPrimary</item>
-        <item name="android:textAppearance">@style/TextAppearance.FitbitTracks.Chip</item>
+        <item name="android:textAppearance">@style/TextAppearance.Stepwise.Chip</item>
     </style>
 
-    <style name="TextAppearance.FitbitTracks.Chip" parent="TextAppearance.MaterialComponents.Body2">
+    <style name="TextAppearance.Stepwise.Chip" parent="TextAppearance.MaterialComponents.Body2">
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">?attr/colorOnPrimary</item>
     </style>

@@ -1,0 +1,72 @@
+package de.hd.stepwise.entities;
+
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import de.hd.stepwise.enums.AchievementDifficulty;
+import de.hd.stepwise.enums.AchievementType;
+import de.hd.stepwise.enums.ListItemType;
+import de.hd.stepwise.pojos.ListItem;
+
+@Entity(tableName = "achievement")
+public class Achievement  implements ListItem {
+
+    @PrimaryKey(autoGenerate = true)
+    public long id;
+
+    @NonNull
+    public String key; // Unique identifier for logic, e.g., "WALK_100KM"
+
+    @NonNull
+    public String title;
+
+    @NonNull
+    public String description;
+
+    public String icon; // icon file name or URI
+    //public String localImagePath; // local path to icon stored on device
+
+    @NonNull
+    public AchievementType type;
+
+    @NonNull
+    public AchievementDifficulty difficulty; // Difficulty level of the achievement
+
+    public float targetValue;
+
+    public float progressValue;
+
+    public boolean unlocked;
+
+    @Nullable
+    public Long dateUnlocked;
+
+
+    @Override
+    public long getId() {
+        return id;
+    }
+
+    @Override
+    public ListItemType getType() {
+        return ListItemType.ELEMENT;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Achievement)) return false;
+        Achievement other = (Achievement) obj;
+        return key.equals(other.key) &&
+               title.equals(other.title) &&
+               description.equals(other.description) &&
+               icon.equals(other.icon) &&
+               type == other.type &&
+               targetValue == other.targetValue &&
+               progressValue == other.progressValue &&
+               unlocked == other.unlocked &&
+               (dateUnlocked != null ? dateUnlocked.equals(other.dateUnlocked) : other.dateUnlocked == null);
+    }
+}

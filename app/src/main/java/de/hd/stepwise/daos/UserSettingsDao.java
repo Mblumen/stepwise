@@ -1,0 +1,30 @@
+package de.hd.stepwise.daos;
+
+import androidx.lifecycle.LiveData;
+import androidx.room.Dao;
+import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
+import androidx.room.Query;
+
+import de.hd.stepwise.entities.UserSettings;
+
+@Dao
+public interface UserSettingsDao {
+    @Query("SELECT * FROM user_settings WHERE id = 1")
+    LiveData<UserSettings> getSettingsLive();
+
+    @Query("SELECT * FROM user_settings WHERE id = 1")
+    UserSettings getSettings();
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertOrUpdate(UserSettings settings);
+
+    @Query("SELECT showCompletedTracks FROM user_settings WHERE id = 1")
+    LiveData<Boolean> getShowCompletedTracks();
+
+    @Query("SELECT showLockedMilestones FROM user_settings WHERE id = 1")
+    LiveData<Boolean> getShowLockedMilestones();
+
+    @Query("SELECT stepLengthInMeters FROM user_settings WHERE id = 1")
+    LiveData<Float> getStepLength();
+}

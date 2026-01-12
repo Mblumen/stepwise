@@ -1,9 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/progress_list"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:layoutManager="LinearLayoutManager"
-    tools:context=".ui.tracks.TracksFragment" />
+    tools:context="de.hd.stepwise.ui.tracks.TracksFragment">
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/progress_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layoutManager="LinearLayoutManager"
+        android:visibility="gone"
+        />
+    <TextView
+        android:id="@+id/empty_state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_tracks_selected_yet_start_by_adding_one"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:layout_gravity="center"/>
+</FrameLayout>

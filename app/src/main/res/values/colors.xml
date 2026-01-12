@@ -15,9 +15,10 @@
     <color name="warning_yellow">#CCFFC107</color>
     <color name="selected_item_bg">#FFa9d4fc</color>
     <color name="selected_item_highlight">#FF063f75</color>
-    <color name="selected_menu_item">#FF063f75</color>
+    <color name="selected_menu_item">@color/selected_item_highlight</color>
     <color name="notification_background">#FFFFFFFF</color>
     <color name="notification_text_color">#FF333333</color>
+    <color name="stone">#888C8D</color>
     <color name="bronze">#FFCD7F32</color>
     <color name="silver">#FFCED2D2</color>
     <color name="gold">#FFD4AF37</color>

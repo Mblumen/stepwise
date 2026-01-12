@@ -20,6 +20,6 @@ dependencyResolutionManagement {
 
 }
 
-rootProject.name = "Fitbit Tracks"
+rootProject.name = "Stepwise"
 include(":app")
  

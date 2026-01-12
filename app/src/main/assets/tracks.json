@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "tracks": [
+    {
+      "name": "Madeira",
+      "startLocation": "São Jorge",
+      "endLocation": "Achadas da Cruz",
+      "imageUrl": "https://drive.google.com/uc?export=download&id=11kwMrXp1wrmF8rscbz1hCwtCIBrJ-HL8",
+      "challengeDuration": 4838400,
+      "trackRoute": {
+        "routeUrl": "https://www.google.de/maps/dir/S%C3%A3o+Jorge,+Madeira/Furna+do+Porto+da+Cruz+(Praia+e+Ca%C3%ADs)/Ponta+de+S%C3%A3o+Louren%C3%A7o,+Cani%C3%A7al,+Portugal/Cani%C3%A7o,+Portugal/Funchal,+Portugal/Tropischer+Garten+Monte+Palace/Banana+Museum+of+Madeira+(BAM)/Praia+da+Calheta+beach/Jardim+do+Mar,+Portugal/Telef%C3%A9rico+das+Achadas+da+Cruz/@32.719396,-16.7845374,13z/data=!4m62!4m61!1m5!1m1!1s0xc60690048850d07:0xe48d13135f194a9a!2m2!1d-16.9093!2d32.8251838!1m5!1m1!1s0xc60672465e1daf9:0x29f0bc37cd5ccaf3!2m2!1d-16.8265959!2d32.7754076!1m5!1m1!1s0xc607ca293898805:0xa0a806b93c16e116!2m2!1d-16.7009394!2d32.7433696!1m5!1m1!1s0xc6061d0d0f8e33b:0xf6da6d908d145f94!2m2!1d-16.8518296!2d32.6503682!1m5!1m1!1s0xc605fc3501f8bab:0xffd84d2c15cda139!2m2!1d-16.9082357!2d32.6506129!1m5!1m1!1s0xc60615e41793867:0xac31fa91b3c562ab!2m2!1d-16.9005142!2d32.6755827!1m5!1m1!1s0xc6059e3cd6d808d:0xe66f945a08afcd71!2m2!1d-17.0867963!2d32.680012!1m5!1m1!1s0xc60510dd642ea67:0x1af8575b31249c87!2m2!1d-17.1783139!2d32.7203488!1m5!1m1!1s0xc60523a675ebc21:0xcb874f7d4f02fa9b!2m2!1d-17.2108709!2d32.7378784!1m5!1m1!1s0xc604c08dd6bf07d:0x5d10b6cc248e2fca!2m2!1d-17.2097363!2d32.8528631!3e2?entry=ttu&g_ep=EgoyMDI2MDEwNi4wIKXMDSoKLDEwMDc5MjA3M0gBUAM%3D",
+        "startLat": 32.76040317907327,
+        "startLon": -16.709544532133187,
+        "endLat": 32.863734165317524,
+        "endLon": -17.20868121667481
+      },
+      "milestones": [
+        {
+          "distanceOffsetToPrevious": 200,
+          "title": "São Jorge",
+          "description": "São Jorge ist ein ruhiges, traditionsreiches Dorf im Nordosten der Insel Madeira. Umgeben von üppig grünen Bergen, Weinbergen und steilen Klippen bietet der Ort beeindruckende Ausblicke auf den Atlantik. Bekannt ist São Jorge vor allem für seine historischen Strohdachhäuser („Casas de Colmo“) und die Nähe zu ursprünglicher Natur, Levadas und Wanderwegen. Außerdem gibt es hier eine kleine Kirche und eine saubere öffentliche Toilette, in deren Nähe immer ein Parkplatz frei ist :)",
+          "imageUrl": "https://drive.google.com/uc?export=download&id=1wQjKzRfHx1li1VD_uZUW6DEjitIzO2pl",
+          "extraImages": [
+            {
+              "imageUrl": "https://drive.google.com/uc?export=download&id=1ftDQdA7qWeodaPIYFv7R_6vdBp6bwegI",
+              "description": "Kleine Kirche, von außen relativ unscheinbar."
+            },
+            {
+              "imageUrl": "https://drive.google.com/uc?export=download&id=1BtkpDgPCvGVZCAg5XsN0hwcirqrOn3-b",
+              "description": "Von innen deutlich prunkvoller als von außen..."
+            },
+            {
+              "imageUrl": "https://drive.google.com/uc?export=download&id=1VVn0DfQG3SHuGF_ceWSwOmOnKtTscb0E",
+              "description": "...mit kleinem Marienaltar."
+            }
+          ]
+        },
+        {
+          "distanceOffsetToPrevious": 18300,
+          "title": "Porto da Cruz",
+          "description": "Porto da Cruz ist ein malerischer Küstenort an der Nordküste Madeiras, eingebettet zwischen steilen Bergen und dem Atlantik. Das Dorf ist bekannt für seine schwarze Kieselsteinbucht, die traditionelle Zuckerrohrmühle und seine entspannte, authentische Atmosphäre. Hier gibt es einen netten Streefoodstand und eine alte Rumbrennerei, die man besichtigen kann.",
+          "imageUrl": "https://drive.google.com/uc?export=download&id=1glOduSsLbHcjRPoAtkOlo-tpazYYtFXe",
+          "extraImages": [
+            {
+              "imageUrl": "https://drive.google.com/uc?export=download&id=1ApiBJJMWZtCmL7xlQZyGL9HoIGjSalwn",
+              "description": "An er Promenade hat man einen schönen Blick aufs Meer.."
+            },
+            {
+              "imageUrl": "https://drive.google.com/uc?export=download&id=1ksVM5JtoUSM3gDJrYP3u0uH3r_2PZfn_",
+              "description": "Alte Rumbrennerei, noch in Betrieb."
+            },
+            {
+              "imageUrl": "https://drive.google.com/uc?export=download&id=1vArMBXc-8hYlH6jiGDN6ytshsVMEfoYJ",
+              "description": "Am Streetfoodstand findet man Sandwiches und Pommes zu essen."
+            }
+          ]
+        },
+        {
+          "distanceOffsetToPrevious": 22600,
+          "title": "São Lourenço",
+          "description": "Ponta de São Lourenço ist eine beeindruckende, karge Halbinsel im Osten Madeiras und bildet einen starken Kontrast zur sonst üppig grünen Insel. Geprägt von vulkanischen Felsformationen, steilen Klippen und weiten Ausblicken auf den Atlantik, gilt sie als eines der spektakulärsten Naturgebiete Madeiras. Ein gut ausgebauter Wanderweg führt entlang der Landzunge. Außerdem ist es bekannt für seinen starken Wind und die Gefahr, sich einen Platten am Auto zuzulegen.",
+          "imageUrl": "https://drive.google.com/uc?export=download&id=10YDEyET6OWxrVHopQPOrHltKWBjhLiXj",
+          "extraImages": [
+            {
+              "imageUrl": "https://drive.google.com/uc?export=download&id=1k9AcKWWsGe1dddcq2hHYZRu57WfG86Bf",
+              "description": "Früh aufstehen lohnt sich, man hat einen schönen Blick auf den Sonnenaufgang."
+            },
+            {
+              "imageUrl": "https://drive.google.com/uc?export=download&id=1VgXMCVeYIG-2NnGvbdmHCRQnJuo9kQHV",
+              "description": "Man läuft teilweise über sehr steinige Wege, hat aber auch immer wieder tolle Ausblicke."
+            },
+            {
+              "imageUrl": "https://drive.google.com/uc?export=download&id=1X6lcisnqndEuyKLcqyYQSS5_5_F9d9bg",
+              "description": "Aber auch eine Pause darf natürlich nicht fehlen :)"
+            },
+            {
+              "imageUrl": "https://drive.google.com/uc?export=download&id=1HfAF11iUZYxr4bN6QS0INce7syS_gunZ",
+              "description": "Bei Regen kann sich auch ein sehr schöner Anblick auftun, den man bei reinem Sonnenschein so nicht hat."
+            }
+          ]
+        },
+        {
+          "distanceOffsetToPrevious": 22600,
+          "title": "Caniço",
+          "description": "Caniço ist ein lebendiger Ort an der Südküste Madeiras, gelegen zwischen Funchal und dem Flughafen. Er bietet sowohl ruhige Wohnviertel als auch eine schöne Küstenzone rund um Caniço de Baixo. Bekannt ist die Region für ihre Tauchspots, den Blick auf den Atlantik und die Nähe zu Natur- und Wandergebieten. Dank des milden Klimas und der guten Anbindung ist Caniço ein beliebter Wohn- und Urlaubsort.",
+          "imageUrl": "https://drive.google.com/uc?export=download&id=10YDEyET6OWxrVHopQPOrHltKWBjhLiXj",
+          "extraImages": [
+            {
+              "imageUrl": "https://drive.google.com/uc?export=download&id=1k9AcKWWsGe1dddcq2hHYZRu57WfG86Bf",
+              "description": "Früh aufstehen lohnt sich, man hat einen schönen Blick auf den Sonnenaufgang."
+            },
+            {
+              "imageUrl": "https://drive.google.com/uc?export=download&id=1VgXMCVeYIG-2NnGvbdmHCRQnJuo9kQHV",
+              "description": "Man läuft teilweise über sehr steinige Wege, hat aber auch immer wieder tolle Ausblicke."
+            },
+            {
+              "imageUrl": "https://drive.google.com/uc?export=download&id=1X6lcisnqndEuyKLcqyYQSS5_5_F9d9bg",
+              "description": "Aber auch eine Pause darf natürlich nicht fehlen :)"
+            },
+            {
+              "imageUrl": "https://drive.google.com/uc?export=download&id=1HfAF11iUZYxr4bN6QS0INce7syS_gunZ",
+              "description": "Bei Regen kann sich auch ein sehr schöner Anblick auftun, den man bei reinem Sonnenschein so nicht hat."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

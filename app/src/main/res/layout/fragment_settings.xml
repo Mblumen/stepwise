@@ -6,7 +6,7 @@
     android:padding="16dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.settings.UserSettingsFragment">
+    tools:context="de.hd.stepwise.ui.settings.UserSettingsFragment">
 
     <TextView
         android:text="@string/step_length_in_meters"
@@ -48,7 +48,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/dark_mode"
-        android:checked="false"
+        android:checked="true"
         android:layout_marginTop="16dp" />
 
     <com.google.android.material.materialswitch.MaterialSwitch
@@ -58,4 +58,162 @@
         android:text="@string/show_completed_tracks"
         android:checked="true"
         android:layout_marginTop="8dp" />
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/show_locked_milestones_switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/show_locked_milestones"
+        android:checked="false"
+        android:layout_marginTop="8dp" />
+
+    <LinearLayout
+        android:id="@+id/update_tracks_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="16dp">
+
+        <ImageView
+            android:id="@+id/update_tracks_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@string/update_tracks"
+            android:src="@drawable/map"
+            app:tint="?attr/colorOnPrimary" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:text="@string/update_tracks"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="?attr/colorOnPrimary"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    />
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"/>
+                <TextView
+                    android:id="@+id/update_tracks_available"
+                    android:text="@string/update_available"
+                    android:textSize="14sp"
+                    android:textColor="@color/success_green"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/button_margin"
+                    android:visibility="gone"
+                    tools:visibility="visible"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/update_tracks_desc"
+                android:text="@string/update_tracks_desc"
+                android:textSize="13sp"
+                android:textColor="?attr/colorOnPrimary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/update_tracks_button"
+            android:minHeight="0dp"
+            android:layout_width="50dp"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:icon="@drawable/sync"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:insetTop="0dp"
+            android:layout_height="wrap_content"
+            />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/update_achievements_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="16dp">
+
+        <ImageView
+            android:id="@+id/update_achievements_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@string/update_achievements"
+            android:src="@drawable/trophy"
+            app:tint="?attr/colorOnPrimary" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:text="@string/update_achievements"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="?attr/colorOnPrimary"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    />
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"/>
+                <TextView
+                    android:id="@+id/update_achievements_available"
+                    android:text="@string/update_available"
+                    android:textSize="14sp"
+                    android:textColor="@color/success_green"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/button_margin"
+                    android:visibility="gone"/>
+            </LinearLayout>
+
+
+            <TextView
+                android:id="@+id/update_achievements_desc"
+                android:text="@string/update_achievements_desc"
+                android:textSize="13sp"
+                android:textColor="?attr/colorOnPrimary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/update_achievements_button"
+            android:minHeight="0dp"
+            android:layout_width="50dp"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:icon="@drawable/sync"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:insetTop="0dp"
+            android:layout_height="wrap_content"
+            />
+    </LinearLayout>
 </LinearLayout >

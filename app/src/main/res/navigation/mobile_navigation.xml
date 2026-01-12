@@ -7,32 +7,36 @@
 
     <fragment
         android:id="@+id/nav_tracks_progress"
-        android:name="de.hd.fitbittracks.ui.tracksprogress.TracksProgressFragment"
+        android:name="de.hd.stepwise.ui.tracksprogress.TracksProgressFragment"
         android:label="@string/menu_tracks_progress"
         tools:layout="@layout/fragment_tracks_progress">
     </fragment>
 
     <fragment
         android:id="@+id/nav_tracks"
-        android:name="de.hd.fitbittracks.ui.tracks.TracksFragment"
+        android:name="de.hd.stepwise.ui.tracks.TracksFragment"
         android:label="@string/menu_tracks"
         tools:layout="@layout/fragment_tracks" />
     <fragment
         android:id="@+id/nav_achievements"
-        android:name="de.hd.fitbittracks.ui.achievements.AchievementsHostFragment"
+        android:name="de.hd.stepwise.ui.achievements.AchievementsHostFragment"
         android:label="@string/achievements"
         tools:layout="@layout/fragment_achievements_container">
     </fragment>
     <fragment
         android:id="@+id/nav_settings"
-        android:name="de.hd.fitbittracks.ui.settings.UserSettingsFragment"
+        android:name="de.hd.stepwise.ui.settings.UserSettingsFragment"
         android:label="@string/menu_settings"
         tools:layout="@layout/fragment_settings" />
     <fragment
         android:id="@+id/nav_milestone"
-        android:name="de.hd.fitbittracks.ui.milestones.MilestoneFragment"
+        android:name="de.hd.stepwise.ui.milestones.MilestoneFragment"
         android:label="@string/milestone"
         tools:layout="@layout/milestone">
+        <argument
+            android:name="track_id"
+            app:argType="long"
+            android:defaultValue="-1L"/>
         <argument
             android:name="milestone_id"
             app:argType="long"

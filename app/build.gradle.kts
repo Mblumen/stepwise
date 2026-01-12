@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.android.application)
     id("androidx.navigation.safeargs")
@@ -5,11 +7,15 @@ plugins {
 }
 
 android {
-    namespace = "de.hd.fitbittracks"
+    namespace = "de.hd.stepwise"
     compileSdk = 35
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
-        applicationId = "de.hd.fitbittracks"
+        applicationId = "de.hd.stepwise"
         minSdk = 30
         targetSdk = 35
         versionCode = 1
@@ -22,6 +28,13 @@ android {
                 arguments["room.incremental"] = "true"
             }
         }
+        val githubToken: String = gradleLocalProperties(rootDir, providers).getProperty("GITHUB_TOKEN")
+        buildConfigField(
+            "String",
+            "GITHUB_TOKEN",
+            "\"$githubToken\"" // <-- quotes are required for Java string literal
+        )
+
     }
 
     buildTypes {

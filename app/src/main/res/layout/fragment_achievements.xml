@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".ui.achievements.AchievementsFragment">
+    tools:context="de.hd.stepwise.ui.achievements.AchievementsFragment">
 
     <!-- ChipGroup Filter Bar -->
     <com.google.android.material.chip.ChipGroup
@@ -19,7 +19,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_all"
-                style="@style/Widget.FitbitTracks.Chip.Choice"
+                style="@style/Widget.Stepwise.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -29,7 +29,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_unlocked"
-                style="@style/Widget.FitbitTracks.Chip.Choice"
+                style="@style/Widget.Stepwise.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -39,7 +39,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_locked"
-                style="@style/Widget.FitbitTracks.Chip.Choice"
+                style="@style/Widget.Stepwise.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"

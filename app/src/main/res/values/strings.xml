@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Fitbit Tracks</string>
+    <string name="app_name">Stepwise</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>
@@ -44,6 +44,7 @@
     <string name="milestone_image">Milestone Image</string>
     <string name="dark_mode">Dark Mode</string>
     <string name="show_completed_tracks">Show completed tracks</string>
+    <string name="show_locked_milestones">Show locked milestones</string>
     <string name="save">save</string>
     <string name="view_milestone">View Milestone</string>
     <string name="view_progress">View Progress</string>
@@ -80,4 +81,15 @@
     <string name="locked">Locked</string>
     <string name="record_icon">Record Icon</string>
     <string name="rotate_icon">Rotate Icon</string>
+    <string name="coming_soon">Coming soon!</string>
+    <string name="no_tracks_selected_yet_start_by_adding_one">No tracks selected yet.\nStart by adding one from the tracks tab!</string>
+    <string name="loading_new_data">Loading new app data…</string>
+    <string name="update_tracks">Update track data</string>
+    <string name="update_tracks_desc">Download latest tracks and milestones</string>
+
+    <string name="update_achievements">Update achievements</string>
+    <string name="update_achievements_desc">Download new and updated achievements</string>
+    <string name="update_available">New!</string>
+
+    <string name="check_update">Check</string>
 </resources>

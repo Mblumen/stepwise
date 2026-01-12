@@ -36,4 +36,5 @@
     <dimen name="collapsed_notification_height">64dp</dimen>
     <dimen name="line_width">4dp</dimen>
     <dimen name="track_connection_height">56dp</dimen>
+    <dimen name="carousel_height">450dp</dimen>
 </resources>
