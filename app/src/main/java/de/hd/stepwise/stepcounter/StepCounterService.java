@@ -204,8 +204,6 @@ public class StepCounterService extends Service implements SensorEventListener {
         }else {
             contentView.setImageViewResource(R.id.milestone_image, R.drawable.map);
         }
-        contentView.setImageViewResource(R.id.milestone_image, AppImage.getResIdFor(milestone.localImagePath));
-        //TODO: Adjust image url
 
         return contentView;
     }
@@ -223,8 +221,6 @@ public class StepCounterService extends Service implements SensorEventListener {
         }else {
             contentView.setImageViewResource(R.id.milestone_image, R.drawable.map);
         }
-        //contentView.setImageViewResource(R.id.milestone_image, AppImage.getResIdFor(milestone.localImagePath));
-        //TODO: Adjust image url
 
         contentView.setOnClickPendingIntent(R.id.action_milestone, createMilestoneIntent(milestone));
         contentView.setOnClickPendingIntent(R.id.action_progress, createProgressIntent(userProgress));
@@ -244,7 +240,7 @@ public class StepCounterService extends Service implements SensorEventListener {
         contentView.setTextColor(R.id.notification_achievement_title, textColor);
         contentView.setTextColor(R.id.notification_achievement_desc, textColor);
         contentView.setTextViewText(R.id.notification_achievement_desc, achievement.description);
-        //contentView.setImageViewResource(R.id.notification_achievement_icon, AppImage.getResIdFor(achievement.icon));
+        contentView.setImageViewResource(R.id.notification_achievement_icon, AppImage.getResIdFor(achievement.icon));
         contentView.setInt(R.id.notification_achievement_icon, "setColorFilter", iconColor);
         return contentView;
     }
@@ -261,7 +257,6 @@ public class StepCounterService extends Service implements SensorEventListener {
         }else {
             contentView.setImageViewResource(R.id.track_image, R.drawable.map);
         }
-        //contentView.setImageViewResource(R.id.track_image, AppImage.getResIdFor(track.imageUrl));
         return contentView;
     }
 
@@ -288,8 +283,6 @@ public class StepCounterService extends Service implements SensorEventListener {
         }else {
             contentView.setImageViewResource(R.id.track_image, R.drawable.map);
         }
-        //contentView.setImageViewResource(R.id.track_image, AppImage.getResIdFor(track.imageUrl));
-
         contentView.setOnClickPendingIntent(R.id.action_track_finished, createTrackFinishIntent(userProgress));
         return contentView;
     }
