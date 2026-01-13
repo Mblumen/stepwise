@@ -17,6 +17,9 @@
         android:orientation="vertical"
         android:padding="8dp">
 
+        <FrameLayout
+            android:layout_width="@dimen/image_size_large"
+            android:layout_height="@dimen/image_size_large">
         <ImageView
             android:id="@+id/milestone_image"
             android:layout_width="@dimen/image_size_large"
@@ -26,6 +29,17 @@
             android:transitionName="carouselImage"
             android:background="@drawable/rounded_image_background"
             tools:src="@drawable/berlin" />
+            <ImageButton
+                android:id="@+id/expand_button"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="6dp"
+                android:background="@drawable/expand_button_bg"
+                android:src="@drawable/expand"
+                android:contentDescription="@string/expand_image"
+                app:tint="@color/white"/>
+        </FrameLayout>
 
         <TextView
             android:id="@+id/milestone_image_description"

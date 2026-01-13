@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearSmoothScroller;
 import androidx.recyclerview.widget.RecyclerView;
@@ -28,6 +29,7 @@ import de.hd.stepwise.interfaces.MapsItemClickedListener;
 import de.hd.stepwise.pojos.MapsItem;
 import de.hd.stepwise.pojos.MilestoneImage;
 import de.hd.stepwise.ui.BaseFragment;
+import de.hd.stepwise.ui.dialog.ImagePreviewDialogFragment;
 import de.hd.stepwise.ui.layouthelper.CarouselLayoutManager;
 import de.hd.stepwise.ui.layouthelper.CenterSnapHelper;
 import de.hd.stepwise.ui.layouthelper.OverlapDecoration;
@@ -67,6 +69,7 @@ public class MilestoneFragment extends BaseFragment {
                     imageAdapter.setLayoutManager(layoutManager);
                     imageAdapter.setRecyclerView(recyclerView);
                     imageAdapter.setOnItemClickListener(this::scrollToCenter);
+                    imageAdapter.setOnExpandButtonClickedListener(this::expandImage);
                     // Snap to center
                     if (snapHelper == null) {
                         snapHelper = new CenterSnapHelper(0);
@@ -161,6 +164,13 @@ public class MilestoneFragment extends BaseFragment {
         };
         smoothScroller.setTargetPosition(position);
         layoutManager.startSmoothScroll(smoothScroller);
+    }
+
+    private void expandImage(MilestoneImage milestoneImage) {
+        String imagePath = milestoneImage.localImagePath;
+        if(imagePath == null) return;
+        ImagePreviewDialogFragment dialog = ImagePreviewDialogFragment.newInstance(imagePath);
+        dialog.show(getChildFragmentManager(), "image_preview");
     }
 
     private int getCurrentCenteredPosition() {

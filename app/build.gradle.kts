@@ -86,6 +86,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:5.1.0")
     implementation("org.maplibre.gl:android-sdk:11.8.0")
     implementation("org.osmdroid:osmdroid-android:6.1.8")
+    implementation("com.github.chrisbanes:PhotoView:2.3.0")
 
     implementation ("com.github.vipulasri:timelineview:1.2.2")
     implementation ("com.github.bumptech.glide:glide:4.16.0")

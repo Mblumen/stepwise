@@ -4,11 +4,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,6 +24,7 @@ import de.hd.stepwise.R;
 import de.hd.stepwise.databinding.ImageItemBinding;
 import de.hd.stepwise.pojos.MilestoneImage;
 import de.hd.stepwise.ui.BaseAdapter;
+import de.hd.stepwise.ui.dialog.ImagePreviewDialogFragment;
 import de.hd.stepwise.ui.layouthelper.CarouselLayoutManager;
 
 public class MilestoneImageAdapter extends BaseAdapter<MilestoneImage, MilestoneImageAdapter.ImageViewHolder> {
@@ -35,7 +38,12 @@ public class MilestoneImageAdapter extends BaseAdapter<MilestoneImage, Milestone
         void onItemClick(int position);
     }
 
+    public interface OnExpandButtonClickListener {
+        void onExpandButtonClick(MilestoneImage milestoneImage);
+    }
+
     private OnItemClickListener listener;
+    private OnExpandButtonClickListener expandButtonClickListener;
     protected MilestoneImageAdapter(MilestoneViewModel viewModel, long trackId, long milestoneId) {
         super(new DiffUtil.ItemCallback<>() {
             @Override
@@ -52,7 +60,6 @@ public class MilestoneImageAdapter extends BaseAdapter<MilestoneImage, Milestone
         this.trackId = trackId;
         this.milestoneId = milestoneId;
     }
-
     public void updateImageAtPosition(int position, MilestoneImage newImage) {
         this.getCurrentList().get(position).localImagePath = newImage.localImagePath;
     }
@@ -86,6 +93,11 @@ public class MilestoneImageAdapter extends BaseAdapter<MilestoneImage, Milestone
                 .signature(new ObjectKey(milestoneImage.localImagePath != null ? milestoneImage.localImagePath : milestoneImage.imageUrl))
                 .placeholder(R.drawable.avatar_1)
                 .into(holder.imageView);
+        holder.expandButton.setOnClickListener(v -> {
+            if(expandButtonClickListener != null) {
+                expandButtonClickListener.onExpandButtonClick(milestoneImage);
+            }
+        });
         //holder.imageView.setImageResource(AppImage.getResIdFor(milestoneImage.imageUrl));
         //TODO Adjust image loading
         holder.descriptionTextView.setText(milestoneImage.description);
@@ -155,17 +167,22 @@ public class MilestoneImageAdapter extends BaseAdapter<MilestoneImage, Milestone
     public void setOnItemClickListener(OnItemClickListener listener) {
         this.listener = listener;
     }
+    public void setOnExpandButtonClickedListener(OnExpandButtonClickListener listener) {
+        this.expandButtonClickListener = listener;
+    }
 
     public static class ImageViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
         TextView descriptionTextView;
         CardView cardView;
 
+        ImageButton expandButton;
         public ImageViewHolder(@NonNull ImageItemBinding binding) {
             super(binding.getRoot());
             imageView = binding.milestoneImage;
             descriptionTextView = binding.milestoneImageDescription;
             cardView = binding.milestoneImageCard;
+            expandButton = binding.expandButton;
         }
     }
 }

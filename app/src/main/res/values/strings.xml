@@ -92,4 +92,6 @@
     <string name="update_available">New!</string>
 
     <string name="check_update">Check</string>
+    <string name="image_preview">Image Preview</string>
+    <string name="expand_image">Expand Image</string>
 </resources>
