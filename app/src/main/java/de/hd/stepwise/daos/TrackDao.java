@@ -3,10 +3,9 @@ package de.hd.stepwise.daos;
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
-import androidx.room.Insert;
-import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Transaction;
+import androidx.room.Upsert;
 
 import java.util.List;
 
@@ -17,7 +16,7 @@ import de.hd.stepwise.pojos.TrackWithMilestones;
 @Dao
 public interface TrackDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     long insertTrack(Track track);
 
     @Query("Update track SET localImagePath = :localImagePath WHERE id = :trackId")

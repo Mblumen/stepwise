@@ -13,7 +13,6 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.Menu;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -121,7 +120,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         UpdateViewModel viewModel = new ViewModelProvider(this).get(UpdateViewModel.class);
         viewModel.isLoading().observe(this, isLoading -> {
-            Log.d("MainActivity", "Loading state changed: " + isLoading);
             binding.progressContainer.animate().alpha(1f).setDuration(200).start();
             binding.progressOverlay.setVisibility(isLoading ? View.VISIBLE : View.GONE);
             binding.progressContainer.setVisibility(isLoading ? View.VISIBLE : View.GONE);
@@ -131,15 +129,8 @@ public class MainActivity extends AppCompatActivity {
             if(result != null) showCustomToast(this, result.message, result.status, Toast.LENGTH_LONG);
         });
 
-        LinearLayout progressContainer = findViewById(R.id.progressContainer);
-        View progressOverlay = findViewById(R.id.progressOverlay);
-        progressContainer.animate().alpha(1f).setDuration(200).start();
-/*        progressOverlay.setVisibility(View.VISIBLE);
-        progressContainer.setVisibility(View.VISIBLE);*/
-
         AppDatabase db = AppDatabase.getInstance(this);
         viewModel.initialize(this, db, DataInitializer.DataType.ALL);
-        //DataInitializer.updateDataset( this, db, DataInitializer.DataType.ALL, () -> runOnUiThread(() -> { progressOverlay.setVisibility(View.GONE); progressContainer.setVisibility(View.GONE); }));
         db.userSettingsDao().getSettingsLive().observe(this, userSettings -> {
             if(userSettings != null) {
                 AppCompatDelegate.setDefaultNightMode(userSettings.useDarkMode ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO

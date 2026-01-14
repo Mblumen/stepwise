@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
-import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,8 +23,6 @@ import de.hd.stepwise.R;
 import de.hd.stepwise.databinding.ImageItemBinding;
 import de.hd.stepwise.pojos.MilestoneImage;
 import de.hd.stepwise.ui.BaseAdapter;
-import de.hd.stepwise.ui.dialog.ImagePreviewDialogFragment;
-import de.hd.stepwise.ui.layouthelper.CarouselLayoutManager;
 
 public class MilestoneImageAdapter extends BaseAdapter<MilestoneImage, MilestoneImageAdapter.ImageViewHolder> {
 
@@ -36,10 +33,6 @@ public class MilestoneImageAdapter extends BaseAdapter<MilestoneImage, Milestone
 
     public interface OnItemClickListener {
         void onItemClick(int position);
-    }
-
-    public interface OnExpandButtonClickListener {
-        void onExpandButtonClick(MilestoneImage milestoneImage);
     }
 
     private OnItemClickListener listener;
@@ -74,7 +67,6 @@ public class MilestoneImageAdapter extends BaseAdapter<MilestoneImage, Milestone
     @Override
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
         int actualPosition = toRealPosition(position);
-        //int actualFocusedPosition = toRealPosition(focusedPosition);
         boolean isFocused = position == focusedPosition;
         MilestoneImage milestoneImage = getItem(actualPosition);
         if (milestoneImage.localImagePath == null || !new File(milestoneImage.localImagePath).exists()) {
@@ -95,11 +87,10 @@ public class MilestoneImageAdapter extends BaseAdapter<MilestoneImage, Milestone
                 .into(holder.imageView);
         holder.expandButton.setOnClickListener(v -> {
             if(expandButtonClickListener != null) {
-                expandButtonClickListener.onExpandButtonClick(milestoneImage);
+                expandButtonClickListener.onExpandButtonClick(milestoneImage.localImagePath);
             }
         });
-        //holder.imageView.setImageResource(AppImage.getResIdFor(milestoneImage.imageUrl));
-        //TODO Adjust image loading
+
         holder.descriptionTextView.setText(milestoneImage.description);
         holder.itemView.setOnClickListener(v -> {
             if (recyclerView != null) {
@@ -112,7 +103,6 @@ public class MilestoneImageAdapter extends BaseAdapter<MilestoneImage, Milestone
                 }
             }
         });
-        //Log.i("focusedPosition", "Position: " + position + ", Actual Position: " + actualPosition + ", Focused Position: " + focusedPosition + ", Actual Focused Position: " + actualFocusedPosition);
         holder.itemView.post(() -> {
            // boolean isFocused = layoutManager.isViewInFocus(holder.itemView);
             Log.i("MilestoneImageAdapter", "Position: " + position + ", Actual Position: " + actualPosition + ", Is Focused: " + isFocused);
@@ -121,8 +111,6 @@ public class MilestoneImageAdapter extends BaseAdapter<MilestoneImage, Milestone
             } else if (holder.descriptionTextView.getVisibility() == View.GONE && isFocused) {
                 holder.descriptionTextView.setVisibility(View.VISIBLE);
             }
-            //if(isFocused) holder.cardView.animate().scaleY(1.05f).scaleX(1.05f).setDuration(300).start();
-            //else holder.cardView.animate().scaleY(1f).scaleX(1f).setDuration(300).start();
         });
 
     }
@@ -145,17 +133,11 @@ public class MilestoneImageAdapter extends BaseAdapter<MilestoneImage, Milestone
             }
             notifyItemChanged(focusedPosition);
         });
-        /*if (oldPosition != RecyclerView.NO_POSITION) {
-            notifyItemChanged(oldPosition);
-        }
-        notifyItemChanged(focusedPosition);*/
     }
 
     public int toRealPosition(int adapterPosition) {
         List<?> currentList = getCurrentList();
         return currentList.isEmpty() ? 0 : adapterPosition % currentList.size();
-    }
-    public void setLayoutManager(CarouselLayoutManager layoutManager) {
     }
 
     @Override

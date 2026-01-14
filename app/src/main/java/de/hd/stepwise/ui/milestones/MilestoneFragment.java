@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearSmoothScroller;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,7 +28,6 @@ import de.hd.stepwise.interfaces.MapsItemClickedListener;
 import de.hd.stepwise.pojos.MapsItem;
 import de.hd.stepwise.pojos.MilestoneImage;
 import de.hd.stepwise.ui.BaseFragment;
-import de.hd.stepwise.ui.dialog.ImagePreviewDialogFragment;
 import de.hd.stepwise.ui.layouthelper.CarouselLayoutManager;
 import de.hd.stepwise.ui.layouthelper.CenterSnapHelper;
 import de.hd.stepwise.ui.layouthelper.OverlapDecoration;
@@ -66,7 +64,6 @@ public class MilestoneFragment extends BaseFragment {
                     //LinearLayoutManager layoutManager = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false);
                     layoutManager = new CarouselLayoutManager(requireContext());
                     recyclerView.setLayoutManager(layoutManager);
-                    imageAdapter.setLayoutManager(layoutManager);
                     imageAdapter.setRecyclerView(recyclerView);
                     imageAdapter.setOnItemClickListener(this::scrollToCenter);
                     imageAdapter.setOnExpandButtonClickedListener(this::expandImage);
@@ -136,8 +133,6 @@ public class MilestoneFragment extends BaseFragment {
     }
 
     private void notifyImageChanged(MilestoneImage updatedImage) {
-        Log.d("MilestoneFragment", "Notifying image change for position: " + updatedImage.position);
-        Log.d("MilestoneFragment", "Current LocalImagePath: " + updatedImage.localImagePath);
         recyclerView.post(() -> {
             int childCount = recyclerView.getChildCount();
             for (int i = 0; i < childCount; i++) {
@@ -164,13 +159,6 @@ public class MilestoneFragment extends BaseFragment {
         };
         smoothScroller.setTargetPosition(position);
         layoutManager.startSmoothScroll(smoothScroller);
-    }
-
-    private void expandImage(MilestoneImage milestoneImage) {
-        String imagePath = milestoneImage.localImagePath;
-        if(imagePath == null) return;
-        ImagePreviewDialogFragment dialog = ImagePreviewDialogFragment.newInstance(imagePath);
-        dialog.show(getChildFragmentManager(), "image_preview");
     }
 
     private int getCurrentCenteredPosition() {
@@ -214,9 +202,7 @@ public class MilestoneFragment extends BaseFragment {
             //binding.image.setImageResource(AppImage.getResIdFor(milestone.imageUrl));
             //TODO: Adjust image url
             if((milestone.mapsUrl != null && !milestone.mapsUrl.isEmpty()) || (milestone.latitude > 0 && milestone.longitude > 0)) {
-                binding.milestoneMapButton.setOnClickListener(v -> {
-                    mapsItemClickedListener.onMapsItemClicked(new MapsItem(milestone.mapsUrl, milestone.latitude, milestone.longitude, milestone.title));
-                });
+                binding.milestoneMapButton.setOnClickListener(v -> mapsItemClickedListener.onMapsItemClicked(new MapsItem(milestone.mapsUrl, milestone.latitude, milestone.longitude, milestone.title)));
             } else {
                 binding.milestoneMapButton.setVisibility(View.GONE);
             }

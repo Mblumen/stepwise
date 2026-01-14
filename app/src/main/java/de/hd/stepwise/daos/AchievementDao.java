@@ -2,10 +2,9 @@ package de.hd.stepwise.daos;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
-import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
-import androidx.room.OnConflictStrategy;
+import androidx.room.Upsert;
 
 import java.util.List;
 
@@ -26,11 +25,8 @@ public interface AchievementDao {
     @Query("SELECT * FROM achievement WHERE `key` = :key LIMIT 1")
     Achievement getByKey(String key);
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     void insert(Achievement achievement);
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertAll(List<Achievement> achievements);
 
     @Update
     void update(Achievement achievement);

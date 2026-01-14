@@ -15,6 +15,7 @@ import dagger.hilt.android.AndroidEntryPoint;
 import de.hd.stepwise.enums.ResultStatus;
 import de.hd.stepwise.interfaces.MapsItemClickedListener;
 import de.hd.stepwise.pojos.MapsItem;
+import de.hd.stepwise.ui.dialog.ImagePreviewDialogFragment;
 
 @AndroidEntryPoint
 public abstract class BaseFragment extends Fragment implements MapsItemClickedListener {
@@ -41,5 +42,11 @@ public abstract class BaseFragment extends Fragment implements MapsItemClickedLi
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
 
         }
+    }
+
+    protected void expandImage(String imagePath) {
+        if(imagePath == null) return;
+        ImagePreviewDialogFragment dialog = ImagePreviewDialogFragment.newInstance(imagePath);
+        dialog.show(getChildFragmentManager(), "image_preview");
     }
 }

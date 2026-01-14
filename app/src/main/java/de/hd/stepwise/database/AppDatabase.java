@@ -8,11 +8,7 @@ import androidx.room.TypeConverters;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import android.content.Context;
-import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.Executors;
 
 import de.hd.stepwise.converter.Converters;
@@ -30,10 +26,7 @@ import de.hd.stepwise.entities.Track;
 import de.hd.stepwise.entities.UserProgress;
 import de.hd.stepwise.entities.UserProgressMilestoneStatus;
 import de.hd.stepwise.entities.UserSettings;
-import de.hd.stepwise.enums.ProgressStatus;
 import de.hd.stepwise.enums.RecordType;
-import de.hd.stepwise.pojos.MilestoneImage;
-import de.hd.stepwise.pojos.TrackRoute;
 
 @Database(entities = {Track.class, Milestone.class, UserProgress.class, UserProgressMilestoneStatus.class, UserSettings.class, Achievement.class, AppRecord.class}, views = {MilestoneWithTotalDistance.class}, version = 1)
 @TypeConverters({Converters.class})
@@ -77,7 +70,7 @@ public abstract class AppDatabase extends RoomDatabase {
         return INSTANCE;
     }
 
-    private static void insertMockData(AppDatabase db) {
+    /*private static void insertMockData(AppDatabase db) {
         // Insert a mock user settings
         UserSettings userSettings = new UserSettings();
         userSettings.showCompletedTracks = true;
@@ -182,7 +175,7 @@ public abstract class AppDatabase extends RoomDatabase {
 
         //insertAchievements(db);
         insertRecords(db);
-    }
+    }*/
 
     private static void insertDefaultSettings(AppDatabase db) {
         UserSettings userSettings = new UserSettings();
@@ -192,7 +185,7 @@ public abstract class AppDatabase extends RoomDatabase {
         db.userSettingsDao().insertOrUpdate(userSettings);
     }
 
-    private static long insertTrack(AppDatabase db, String name, String startLocation, String endLocation, String image, TrackRoute trackRoute) {
+    /*private static long insertTrack(AppDatabase db, String name, String startLocation, String endLocation, String image, TrackRoute trackRoute) {
         Track track = new Track();
         track.name = name;
         track.startLocation = startLocation;
@@ -217,7 +210,7 @@ public abstract class AppDatabase extends RoomDatabase {
         milestone.unlocked = unlocked;
 
         return db.milestoneDao().insertMilestone(milestone);
-    }
+    }*/
 
    /* private static void insertAchievements(AppDatabase db) {
         Achievement walk10Km = new Achievement(
@@ -343,7 +336,6 @@ public abstract class AppDatabase extends RoomDatabase {
 
     private static void insertRecords(AppDatabase db) {
         // This method can be used to add records or other data if needed
-        Log.d("AppDatabase", "Adding records is not implemented yet.");
         // Example: db.recordDao().insert(new Record(...));
         AppRecord record1 = new AppRecord("Most Daily Steps", "steps", RecordType.STEPS);
         record1.value = 15000;

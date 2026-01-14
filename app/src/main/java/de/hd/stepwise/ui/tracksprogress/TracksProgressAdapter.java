@@ -52,10 +52,8 @@ import de.hd.stepwise.ui.milestones.MilestoneListItemBaseAdapter;
 
 public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.ViewHolder> {
     private int expandedPosition = RecyclerView.NO_POSITION;
-    private float lastDistanceWalked = Integer.MIN_VALUE;
     private Marker currentMarker = null;
     private MapView mapView = null;
-    private boolean userTouchedMap = false;
     private final Context context;
     private final TracksProgressViewModel viewModel;
     private final LifecycleOwner lifecycleOwner;
@@ -64,6 +62,8 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
     private long progressId = RecyclerView.NO_POSITION;
     private final MilestoneListItemBaseAdapter.OnMilestoneClickListener onMilestoneClickListener;
     private final Consumer<ProgressStatus> toggleCallback;
+
+    private OnExpandButtonClickListener expandButtonClickListener;
 
 
     public TracksProgressAdapter(Context context, TracksProgressViewModel viewModel, LifecycleOwner liveCycleOwner, MapsItemClickedListener mapsItemClickedListener,
@@ -138,19 +138,7 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
         }
     }
 
-    private boolean checkEnoughDistanceWalked (float distanceWalked) {
-        long now = System.currentTimeMillis();
-
-        if (distanceWalked - lastDistanceWalked >= 8) {
-            lastDistanceWalked = distanceWalked;
-            return true;
-        }
-        return false;
-    }
-
     private void loadPositionData(UserProgressWithTrackAndMilestones userProgressWithTrackAndMilestones) {
-        //boolean enoughDistanceWalked = checkEnoughDistanceWalked(userProgressWithTrackAndMilestones.userProgress.distanceWalked);
-        //if(!enoughDistanceWalked) return;
         viewModel.calculateAndPostPosition(userProgressWithTrackAndMilestones);
     }
 
@@ -284,9 +272,9 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
         holder.itemSelectedAccent.setVisibility(userProgress.status == ProgressStatus.ACTIVE ? View.VISIBLE : View.GONE);
 
         if(isExpanded) {
-            TracksProgressMilestoneListItemAdapter milestoneAdapter = new TracksProgressMilestoneListItemAdapter(context, mapsItemClickedListener, viewModel, onMilestoneClickListener, stepLength);
+            TracksProgressMilestoneListItemAdapter milestoneAdapter = new TracksProgressMilestoneListItemAdapter(context, mapsItemClickedListener, viewModel, onMilestoneClickListener, expandButtonClickListener, stepLength);
             if (holder.milestoneRecycler.getItemDecorationCount() == 0) {
-                holder.milestoneRecycler.addItemDecoration(new TracksProgressMilestoneListItemAdapter.DistanceTrackDecoration(context, holder.milestoneRecycler, milestoneAdapter));
+                holder.milestoneRecycler.addItemDecoration(new TracksProgressMilestoneListItemAdapter.DistanceTrackDecoration(context, milestoneAdapter));
             }
             holder.milestoneRecycler.setLayoutManager(new LinearLayoutManager(holder.itemView.getContext()));
             holder.milestoneRecycler.setAdapter(milestoneAdapter);
@@ -336,19 +324,13 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
             } else if(userProgress.distanceWalked >= milestones.get(milestones.size() - 1).totalDistance
                     && userProgress.status != ProgressStatus.COMPLETED) {
                 holder.actionButton.setText(R.string.finish_progress);
-                holder.actionButton.setOnClickListener(v -> {
-                    viewModel.finishTrack(userProgress.id);
-                });
+                holder.actionButton.setOnClickListener(v -> viewModel.finishTrack(userProgress.id));
             } else if(userProgress.status == ProgressStatus.ACTIVE) {
                 holder.actionButton.setText(R.string.pause_progress);
-                holder.actionButton.setOnClickListener(v -> {
-                    viewModel.pauseTrackProgress(userProgress.id);
-                });
+                holder.actionButton.setOnClickListener(v -> viewModel.pauseTrackProgress(userProgress.id));
             } else if(userProgress.status == ProgressStatus.PAUSED) {
                 holder.actionButton.setText(R.string.resume_progress);
-                holder.actionButton.setOnClickListener(v -> {
-                    viewModel.resumeTrackProgress(userProgress.id);
-                });
+                holder.actionButton.setOnClickListener(v -> viewModel.resumeTrackProgress(userProgress.id));
             } else {
                 holder.actionButton.setVisibility(View.GONE);
             }
@@ -361,8 +343,6 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
 
             if(!isExpanded) {
                 // Reset lastDistanceWalked when collapsing
-                lastDistanceWalked = Integer.MIN_VALUE;
-                userTouchedMap = false;
                 currentMarker = null;
             }
 
@@ -378,6 +358,10 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
                 });
             }
         });
+    }
+
+    public void setOnExpandButtonClickedListener(OnExpandButtonClickListener listener) {
+        this.expandButtonClickListener = listener;
     }
 
     public void setRecyclerView(RecyclerView recyclerView) {

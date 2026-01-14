@@ -43,6 +43,8 @@ public class TracksAdapter extends BaseAdapter<TrackWithMilestones, TracksAdapte
 
     private final MilestoneListItemBaseAdapter.OnMilestoneClickListener onMilestoneClickListener;
 
+    private OnExpandButtonClickListener expandButtonClickListener;
+
     protected TracksAdapter(Context context, TracksViewModel viewModel, LifecycleOwner lifecycleOwner, MapsItemClickedListener mapsItemClickedListener, MilestoneListItemBaseAdapter.OnMilestoneClickListener onMilestoneClickListener) {
 
         super(new DiffUtil.ItemCallback<>() {
@@ -121,12 +123,10 @@ public class TracksAdapter extends BaseAdapter<TrackWithMilestones, TracksAdapte
         holder.expandedLayout.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
 
         if(isExpanded) {
-            holder.selectButton.setOnClickListener(v -> {;
-                viewModel.selectTrack(track.id);
-            });
-            TracksMilestoneListItemAdapter milestoneAdapter = new TracksMilestoneListItemAdapter(context, mapsItemClickedListener, viewModel, onMilestoneClickListener, stepLength, showLockedMilestones);
+            holder.selectButton.setOnClickListener(v -> viewModel.selectTrack(track.id));
+            TracksMilestoneListItemAdapter milestoneAdapter = new TracksMilestoneListItemAdapter(context, mapsItemClickedListener, viewModel, onMilestoneClickListener, expandButtonClickListener, stepLength, showLockedMilestones);
             if (holder.milestoneRecycler.getItemDecorationCount() == 0) {
-                holder.milestoneRecycler.addItemDecoration(new MilestoneListItemBaseAdapter.DistanceTrackDecoration(context, holder.milestoneRecycler, milestoneAdapter));
+                holder.milestoneRecycler.addItemDecoration(new MilestoneListItemBaseAdapter.DistanceTrackDecoration(context, milestoneAdapter));
             }
             holder.milestoneRecycler.setLayoutManager(new LinearLayoutManager(holder.itemView.getContext()));
             holder.milestoneRecycler.setAdapter(milestoneAdapter);
@@ -151,6 +151,10 @@ public class TracksAdapter extends BaseAdapter<TrackWithMilestones, TracksAdapte
                 });
             }
         });
+    }
+
+    public void setOnExpandButtonClickedListener(OnExpandButtonClickListener listener) {
+        this.expandButtonClickListener = listener;
     }
 
     public void setRecyclerView(RecyclerView recyclerView) {

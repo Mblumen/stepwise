@@ -103,6 +103,7 @@ public class TracksProgressFragment extends BaseFragment {
         });
         // Assuming you have a way to get all milestones mapped by trackId
         adapter.setRecyclerView(recyclerView);
+        adapter.setOnExpandButtonClickedListener(this::expandImage);
         return root;
     }
 

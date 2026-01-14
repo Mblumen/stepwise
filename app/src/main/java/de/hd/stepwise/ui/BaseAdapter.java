@@ -8,11 +8,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 public abstract class BaseAdapter<T, H extends RecyclerView.ViewHolder> extends ListAdapter<T, H> {
+
+    public interface OnExpandButtonClickListener {
+        void onExpandButtonClick(String imagePath);
+    }
     protected final NumberFormat numberFormat = NumberFormat.getInstance(Locale.getDefault());
     protected final DecimalFormat df = new DecimalFormat("#,##0.0");
     protected final SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
@@ -62,12 +65,6 @@ public abstract class BaseAdapter<T, H extends RecyclerView.ViewHolder> extends 
             return (totalHours > 0 ? totalHours + "h " : "") + minutes + "m";
         }
     }
-
-    protected String formatDate(long timestampMillis) {
-        Date date = new Date(timestampMillis);
-        return sdf.format(date);
-    }
-
     public void setRecyclerView (RecyclerView recyclerView) {
         this.recyclerView = recyclerView;
     }

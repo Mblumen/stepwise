@@ -2,9 +2,8 @@ package de.hd.stepwise.daos;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
-import androidx.room.Insert;
-import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Upsert;
 
 import de.hd.stepwise.entities.UserSettings;
 
@@ -16,7 +15,7 @@ public interface UserSettingsDao {
     @Query("SELECT * FROM user_settings WHERE id = 1")
     UserSettings getSettings();
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     void insertOrUpdate(UserSettings settings);
 
     @Query("SELECT showCompletedTracks FROM user_settings WHERE id = 1")

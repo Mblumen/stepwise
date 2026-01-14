@@ -46,14 +46,18 @@ public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> exte
     public interface OnMilestoneClickListener {
         void onItemClick(MilestoneWithTotalDistance milestone);
     }
+
+    private final OnExpandButtonClickListener expandButtonClickListener;
+
     private final OnMilestoneClickListener listener;
-    public MilestoneListItemBaseAdapter(Context context, @NonNull DiffUtil.ItemCallback<T> diffCallback, MapsItemClickedListener mapsItemClickedListener, BaseTracksViewModel trackViewModel, OnMilestoneClickListener listener, float stepLength) {
+    public MilestoneListItemBaseAdapter(Context context, @NonNull DiffUtil.ItemCallback<T> diffCallback, MapsItemClickedListener mapsItemClickedListener, BaseTracksViewModel trackViewModel, OnMilestoneClickListener listener, OnExpandButtonClickListener expandButtonClickListener, float stepLength) {
         super(diffCallback);
         this.mapsItemClickedListener = mapsItemClickedListener;
         this.trackViewModel = trackViewModel;
         this.listener = listener;
         this.stepLength = stepLength;
         this.context = context;
+        this.expandButtonClickListener = expandButtonClickListener;
     }
 
     public void openMap(MapsItem mapsItem) {
@@ -96,12 +100,15 @@ public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> exte
                 .into(holder.milestoneImage);
 
         if((milestone.mapsUrl != null && !milestone.mapsUrl.isEmpty()) || (milestone.latitude > 0 && milestone.longitude > 0)) {
-            holder.mapsButton.setOnClickListener(v -> {
-                openMap(new MapsItem(milestone.mapsUrl, milestone.latitude, milestone.longitude, milestone.title));
-            });
+            holder.mapsButton.setOnClickListener(v -> openMap(new MapsItem(milestone.mapsUrl, milestone.latitude, milestone.longitude, milestone.title)));
         } else {
             holder.mapsButton.setVisibility(View.GONE);
         }
+        holder.milestoneImage.setOnClickListener(v -> {
+            if(expandButtonClickListener != null) {
+                expandButtonClickListener.onExpandButtonClick(milestoneItem.getMilestone().localImagePath);
+            }
+        });
         onBindExtendedViewHolder(holder, milestoneItem);
     }
 
@@ -150,7 +157,7 @@ public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> exte
         private final int space; // vertical spacing in px
         private final RecyclerView.Adapter<?> adapter;
 
-        public DistanceTrackDecoration(Context ctx, RecyclerView recycler, RecyclerView.Adapter<?> adapter) {
+        public DistanceTrackDecoration(Context ctx, RecyclerView.Adapter<?> adapter) {
             this.adapter = adapter;
             this.space = ctx.getResources().getDimensionPixelSize(R.dimen.track_connection_height);
             linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);

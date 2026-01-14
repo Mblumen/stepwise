@@ -17,7 +17,7 @@ import de.hd.stepwise.ui.tracksprogress.TracksProgressMilestoneListItemAdapter;
 
 public class TracksMilestoneListItemAdapter extends MilestoneListItemBaseAdapter<MilestoneWithTotalDistance> {
     private final boolean showLockedMilestones;
-    public TracksMilestoneListItemAdapter(Context context, MapsItemClickedListener mapsItemClickedListener, BaseTracksViewModel trackViewModel, OnMilestoneClickListener onMilestoneClickListener, float stepLength, boolean showLockedMilestones) {
+    public TracksMilestoneListItemAdapter(Context context, MapsItemClickedListener mapsItemClickedListener, BaseTracksViewModel trackViewModel, OnMilestoneClickListener onMilestoneClickListener, OnExpandButtonClickListener onExpandButtonClickListener, float stepLength, boolean showLockedMilestones) {
         super(context, new DiffUtil.ItemCallback<>() {
             @Override
             public boolean areItemsTheSame(@NonNull MilestoneWithTotalDistance oldItem, @NonNull MilestoneWithTotalDistance newItem) {
@@ -28,7 +28,7 @@ public class TracksMilestoneListItemAdapter extends MilestoneListItemBaseAdapter
             public boolean areContentsTheSame(@NonNull MilestoneWithTotalDistance oldItem, @NonNull MilestoneWithTotalDistance newItem) {
                 return oldItem.equals(newItem);
             }
-        }, mapsItemClickedListener, trackViewModel, onMilestoneClickListener, stepLength);
+        }, mapsItemClickedListener, trackViewModel, onMilestoneClickListener, onExpandButtonClickListener, stepLength);
         this.showLockedMilestones = showLockedMilestones;
     }
 

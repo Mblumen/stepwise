@@ -18,7 +18,7 @@ import de.hd.stepwise.ui.milestones.MilestoneListItemBaseAdapter;
 import de.hd.stepwise.ui.tracks.BaseTracksViewModel;
 
 public class TracksProgressMilestoneListItemAdapter extends MilestoneListItemBaseAdapter<MilestoneWithStatus>{
-    public TracksProgressMilestoneListItemAdapter(Context context, MapsItemClickedListener mapsItemClickedListener, BaseTracksViewModel trackViewModel, MilestoneListItemBaseAdapter.OnMilestoneClickListener onMilestoneClickListener, float stepLength) {
+    public TracksProgressMilestoneListItemAdapter(Context context, MapsItemClickedListener mapsItemClickedListener, BaseTracksViewModel trackViewModel, MilestoneListItemBaseAdapter.OnMilestoneClickListener onMilestoneClickListener, OnExpandButtonClickListener onExpandButtonClickListener, float stepLength) {
         super(context, new DiffUtil.ItemCallback<>() {
             @Override
             public boolean areItemsTheSame(@NonNull MilestoneWithStatus oldItem, @NonNull MilestoneWithStatus newItem) {
@@ -29,7 +29,7 @@ public class TracksProgressMilestoneListItemAdapter extends MilestoneListItemBas
             public boolean areContentsTheSame(@NonNull MilestoneWithStatus oldItem, @NonNull MilestoneWithStatus newItem) {
                 return oldItem.equals(newItem);
             }
-        }, mapsItemClickedListener, trackViewModel, onMilestoneClickListener, stepLength);
+        }, mapsItemClickedListener, trackViewModel, onMilestoneClickListener, onExpandButtonClickListener, stepLength);
     }
 
     @NonNull

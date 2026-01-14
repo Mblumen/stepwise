@@ -1,7 +1,6 @@
 package de.hd.stepwise.helper;
 
 import android.content.Context;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -22,7 +21,6 @@ public class DownloadHelper {
         HttpURLConnection connection = getHttpURLConnection(jsonUrl);
 
         int code = connection.getResponseCode();
-        Log.d("TokenTest", "Response Code: " + code);
         if (code != HttpURLConnection.HTTP_OK) {
             throw new IOException("HTTP " + code);
         }
@@ -63,32 +61,6 @@ public class DownloadHelper {
                 out.write(buffer, 0, len);
             }
         }
-        return file.getAbsolutePath();
-    }
-
-    public static String downloadAchievementIcon(
-            Context context,
-            String imageUrl,
-            Long achievementId
-    ) throws IOException {
-        HttpURLConnection connection = getHttpURLConnection(imageUrl);
-        connection.connect();
-        File dir = new File(context.getFilesDir(), "images/achievements/");
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        File file = new File(dir, "achievement_" + achievementId + ".xml");
-
-        try (InputStream in = connection.getInputStream();
-             FileOutputStream out = new FileOutputStream(file)) {
-
-            byte[] buffer = new byte[8192];
-            int len;
-            while ((len = in.read(buffer)) != -1) {
-                out.write(buffer, 0, len);
-            }
-        }
-
         return file.getAbsolutePath();
     }
 

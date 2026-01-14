@@ -2,9 +2,8 @@ package de.hd.stepwise.daos;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
-import androidx.room.Insert;
-import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Upsert;
 
 import java.util.List;
 
@@ -15,11 +14,8 @@ import de.hd.stepwise.pojos.MilestoneImage;
 @Dao
 public interface MilestoneDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertMilestones(List<Milestone> milestones);
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    long insertMilestone(Milestone milestone);
+    @Upsert
+    void insertMilestone(Milestone milestone);
 
     @Query("Update milestone SET localImagePath = :localImagePath WHERE id = :milestoneId")
     void updateLocalImagePath(long milestoneId, String localImagePath);

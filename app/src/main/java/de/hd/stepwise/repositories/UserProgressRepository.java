@@ -144,7 +144,6 @@ public class UserProgressRepository extends BaseRepository{
             userProgressDao.insertUserProgress(newProgress);
             // Post a success result
             result.postValue(new MethodResult(ResultStatus.SUCCESS, "Track started successfully."));
-            return;
         });
         return result;
     }
@@ -278,7 +277,6 @@ public class UserProgressRepository extends BaseRepository{
                 achievement.unlocked = true;
                 achievement.dateUnlocked = System.currentTimeMillis();
                 // Post the achievement event
-                Log.d("UserProgressRepository", "Achievement unlocked: " + achievement.title);
                 achievementEvents.postValue(new AchievementEvent(achievement, "Achievement unlocked: " + achievement.title));
                 //AchievementEventBus.INSTANCE.postEvent(new AchievementEvent(achievement, "Achievement unlocked"));
             }

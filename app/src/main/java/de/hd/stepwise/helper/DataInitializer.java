@@ -2,7 +2,6 @@ package de.hd.stepwise.helper;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import androidx.room.Transaction;
 
@@ -53,8 +52,6 @@ public class DataInitializer {
                     case TRACKS:
                         String tracksJson = DownloadHelper.downloadJson(TRACKS_JSON_URL);
                         TrackJsonRoot trackRoot = parseJson(tracksJson, new TypeToken<>() {});
-                        Log.d("DataInitializer", "Checking track updates...");
-                        Log.d("DataInitializer", tracksJson);
                         for (var trackEntry : trackRoot.tracks) {
                             int currentVersion = prefs.getInt(KEY_TRACKS_VERSION + trackEntry.name, 0);
                             if (trackEntry.version > currentVersion) {
@@ -128,7 +125,6 @@ public class DataInitializer {
         root.tracks.forEach(trackEntry -> {
             int currentVersion = prefs.getInt(KEY_TRACKS_VERSION + trackEntry.name, 0);
             if (trackEntry.version > currentVersion) {
-                prefs.edit().putInt(KEY_TRACKS_VERSION + trackEntry.name, trackEntry.version).apply();
                 try {
                     String trackJson = DownloadHelper.downloadJson(trackEntry.file);
                     TrackJson track = parseJson(trackJson, new TypeToken<>() {});
@@ -136,6 +132,7 @@ public class DataInitializer {
                     downloadImagesIfNecessary(context, db, track);
                     downloadGeoDataIfNecessary(context, db, track);
                     updatedTracks.add(trackEntry.name);
+                    prefs.edit().putInt(KEY_TRACKS_VERSION + trackEntry.name, trackEntry.version).apply();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -168,8 +165,9 @@ public class DataInitializer {
         track.imageUrl = json.imageUrl;
         track.challengeDuration = json.challengeDuration;
         track.trackRoute = json.trackRoute;
+        long newTrackId = db.trackDao().insertTrack(track);
+        long trackId = track.id != 0 ? track.id : newTrackId;
 
-        long trackId = db.trackDao().insertTrack(track);
 
         for (MilestoneJson mj : json.milestones) {
             Milestone m = db.milestoneDao().getMilestoneByTitleAndTrackId(mj.title, trackId);

@@ -54,11 +54,10 @@ public class TracksFragment extends BaseFragment {
                 adapter.setStepLength(stepLength);
             }
         });
-        viewModel.getShowLockedMilestones().observe(getViewLifecycleOwner(), showLocked -> {;
-            adapter.showHiddenMilestones(showLocked);
-        });
+        viewModel.getShowLockedMilestones().observe(getViewLifecycleOwner(), adapter::showHiddenMilestones);
         // Assuming you have a way to get all milestones mapped by trackId
         adapter.setRecyclerView(recyclerView);
+        adapter.setOnExpandButtonClickedListener(this::expandImage);
         return root;
     }
 

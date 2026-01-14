@@ -135,7 +135,6 @@ public class TracksProgressViewModel extends BaseTracksViewModel {
                 List<GeoPoint> geoData = routeService.getGeoData(userProgressWithTrackAndMilestones);
                 _geoData.postValue(new Event<>(geoData));
                 GeoPoint positionForDistanceWalked = routeService.getPosition(geoData, userProgressWithTrackAndMilestones.userProgress.distanceWalked);
-                Log.d("TracksProgressViewModel", "Position for distance walked: " + positionForDistanceWalked);
                 _pos.postValue(new Event<>(positionForDistanceWalked));
             } catch (JSONException | IOException e) {
                 Log.e("TracksProgressViewModel", "Error calculating position: " + e.getMessage());

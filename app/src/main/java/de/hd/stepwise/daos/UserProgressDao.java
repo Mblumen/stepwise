@@ -6,6 +6,7 @@ import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Transaction;
+import androidx.room.Upsert;
 
 import java.util.List;
 
@@ -17,8 +18,8 @@ import de.hd.stepwise.pojos.UserProgressWithTrackAndMilestones;
 @Dao
 public interface UserProgressDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    long insertUserProgress(UserProgress progress);
+    @Upsert
+    void insertUserProgress(UserProgress progress);
 
     @Query("SELECT * FROM user_progress WHERE trackId = :trackId")
     UserProgress getProgressForTrack(long trackId);
