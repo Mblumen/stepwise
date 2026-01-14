@@ -44,9 +44,9 @@ public abstract class BaseFragment extends Fragment implements MapsItemClickedLi
         }
     }
 
-    protected void expandImage(String imagePath) {
+    protected void expandImage(String imagePath, String text) {
         if(imagePath == null) return;
-        ImagePreviewDialogFragment dialog = ImagePreviewDialogFragment.newInstance(imagePath);
+        ImagePreviewDialogFragment dialog = ImagePreviewDialogFragment.newInstance(imagePath, text);
         dialog.show(getChildFragmentManager(), "image_preview");
     }
 }

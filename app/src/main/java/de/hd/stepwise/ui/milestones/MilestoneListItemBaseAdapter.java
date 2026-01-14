@@ -81,9 +81,6 @@ public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> exte
         T milestoneItem = getItem(position);
         MilestoneWithTotalDistance milestone = milestoneItem.getMilestone();
         holder.title.setText(milestone.title);
-        //holder.description.setText(milestone.description);
-        //holder.milestoneImage.setImageResource(AppImage.getResIdFor(milestone.imageUrl));
-        //TODO: Adjust image url
         if (milestone.localImagePath == null || !new File(milestone.localImagePath).exists()) {
             trackViewModel.downloadMilestoneImageIfNeeded(milestone);
         }
@@ -106,7 +103,7 @@ public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> exte
         }
         holder.milestoneImage.setOnClickListener(v -> {
             if(expandButtonClickListener != null) {
-                expandButtonClickListener.onExpandButtonClick(milestoneItem.getMilestone().localImagePath);
+                expandButtonClickListener.onExpandButtonClick(milestone.localImagePath, milestone.title);
             }
         });
         onBindExtendedViewHolder(holder, milestoneItem);

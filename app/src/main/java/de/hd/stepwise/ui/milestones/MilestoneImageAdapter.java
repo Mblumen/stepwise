@@ -87,7 +87,7 @@ public class MilestoneImageAdapter extends BaseAdapter<MilestoneImage, Milestone
                 .into(holder.imageView);
         holder.expandButton.setOnClickListener(v -> {
             if(expandButtonClickListener != null) {
-                expandButtonClickListener.onExpandButtonClick(milestoneImage.localImagePath);
+                expandButtonClickListener.onExpandButtonClick(milestoneImage.localImagePath, milestoneImage.description);
             }
         });
 

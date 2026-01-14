@@ -199,8 +199,6 @@ public class MilestoneFragment extends BaseFragment {
                     .load(model)
                     .placeholder(R.drawable.avatar_1)
                     .into(binding.image);
-            //binding.image.setImageResource(AppImage.getResIdFor(milestone.imageUrl));
-            //TODO: Adjust image url
             if((milestone.mapsUrl != null && !milestone.mapsUrl.isEmpty()) || (milestone.latitude > 0 && milestone.longitude > 0)) {
                 binding.milestoneMapButton.setOnClickListener(v -> mapsItemClickedListener.onMapsItemClicked(new MapsItem(milestone.mapsUrl, milestone.latitude, milestone.longitude, milestone.title)));
             } else {

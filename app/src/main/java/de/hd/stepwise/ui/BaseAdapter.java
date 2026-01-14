@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class BaseAdapter<T, H extends RecyclerView.ViewHolder> extends ListAdapter<T, H> {
 
     public interface OnExpandButtonClickListener {
-        void onExpandButtonClick(String imagePath);
+        void onExpandButtonClick(String imagePath, String imageText);
     }
     protected final NumberFormat numberFormat = NumberFormat.getInstance(Locale.getDefault());
     protected final DecimalFormat df = new DecimalFormat("#,##0.0");
