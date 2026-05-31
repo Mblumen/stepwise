@@ -1,24 +1,16 @@
-package de.hd.stepwise.stepcounter;
+package de.hd.stepwise.progresstracking;
 
 import android.Manifest;
-import android.app.Notification;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.os.IBinder;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.RemoteViews;
 
-import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -28,100 +20,53 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
-import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
-import dagger.hilt.android.AndroidEntryPoint;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 import de.hd.stepwise.MainActivity;
 import de.hd.stepwise.R;
-import de.hd.stepwise.database.AppDatabase;
 import de.hd.stepwise.entities.Achievement;
 import de.hd.stepwise.entities.MilestoneWithTotalDistance;
 import de.hd.stepwise.entities.Track;
 import de.hd.stepwise.entities.UserProgress;
 import de.hd.stepwise.enums.AppImage;
-import de.hd.stepwise.repositories.UserProgressRepository;
+import de.hd.stepwise.pojos.events.StepUpdateResult;
 
-
-@AndroidEntryPoint
-public class StepCounterService extends Service implements SensorEventListener {
-
-    private SensorManager sensorManager;
-    private int lastUpdate = -1;
-    @Inject
-    UserProgressRepository userProgressRepository;
+@Singleton
+public class NotificationHandler {
+    private final Context context;
     private static final String CHANNEL_ID = "step_channel";
     protected final NumberFormat numberFormat = NumberFormat.getInstance(Locale.getDefault());
     protected final DecimalFormat df = new DecimalFormat("#,##0.0");
 
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        AppDatabase db = AppDatabase.getInstance(this);
-        userProgressRepository.getMilestoneProgressEvents().observeForever(event -> {
-            sendGoalNotification(event.getContentIfNotHandled());
-        });
-        userProgressRepository.getAchievementEvents().observeForever(event -> {
-            Achievement e = event.getContentIfNotHandled();
-            if (e != null) {
-                Log.i("StepCounterService", "Achievement event received: " + e);
-                sendAchievementNotification(e);
-            }
-            //Log.i("StepCounterService", "Achievement event received: " + event.getContentIfNotHandled());
-            //sendAchievementNotification(event.getContentIfNotHandled());
-        });
-        userProgressRepository.getTrackWithProgressEvents().observeForever(event -> {
-            sendTrackFinishedNotification(event.getContentIfNotHandled());
-        });
-
-        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        Sensor stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
-
-        if (stepSensor != null) {
-            sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_NORMAL);
-        }
-
-        startForeground(1, createNotification("Tracking steps..."));
+    @Inject
+    public NotificationHandler(@ApplicationContext Context context) {
+        this.context = context;
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        return START_STICKY;
-    }
-
-    private Notification createNotification(String content) {
-        /*NotificationChannel channel = new NotificationChannel("step_channel", "Step Tracker", NotificationManager.IMPORTANCE_HIGH);
-        NotificationManager manager = getSystemService(NotificationManager.class);
-        if (manager != null) manager.createNotificationChannel(channel);*/
-
-        return new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Step Tracker")
-                .setContentText(content)
-                .setSmallIcon(R.drawable.steps)
-                .build();
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        int totalSteps = (int) event.values[0];
-
-        if(lastUpdate < 0) {
-            lastUpdate = totalSteps;
-            return;
-        }
-
-        int stepsWalked = totalSteps - lastUpdate;
-        if(stepsWalked > 5) {
-            Executors.newSingleThreadExecutor().execute(() -> {
-                 userProgressRepository.updateStepsWalked(stepsWalked);
+    public void handleStepUpdate(StepUpdateResult stepUpdateResult) {
+        if(stepUpdateResult == null) return;
+        if (stepUpdateResult.reachedMilestones != null) {
+            stepUpdateResult.reachedMilestones.forEach(mileStone -> {
+                Log.i("NotificationHandler", "Milestone reached: " + mileStone.title);
+                showGoalNotification(new Pair<>(mileStone, stepUpdateResult.progress));
             });
-            lastUpdate = totalSteps;
+        }
+        if (stepUpdateResult.unlockedAchievements != null) {
+            stepUpdateResult.unlockedAchievements.forEach(achievement -> {
+                Log.i("NotificationHandler", "Achievement unlocked: " + achievement.title);
+                showAchievementNotification(achievement);
+            });
+        }
+        if (stepUpdateResult.finishedTrack != null) {
+            Log.i("NotificationHandler", "Track finished: " + stepUpdateResult.finishedTrack);
+            showTrackFinishedNotification(new Pair<>(stepUpdateResult.finishedTrack, stepUpdateResult.progress));
         }
     }
 
-    private void sendGoalNotification(Pair<MilestoneWithTotalDistance, UserProgress> pair) {
+    public void showGoalNotification(Pair<MilestoneWithTotalDistance, UserProgress> pair) {
         if(pair == null) {
             Log.e("StepCounterService", "No milestone data available for notification.");
             return;
@@ -131,7 +76,7 @@ public class StepCounterService extends Service implements SensorEventListener {
         RemoteViews collapsedView = getCollapsedGoalView(milestone);
         RemoteViews expandedView = getExpandedGoalView(userProgress, milestone);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.map)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCustomContentView(collapsedView)
@@ -139,20 +84,20 @@ public class StepCounterService extends Service implements SensorEventListener {
                 .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
                 .setAutoCancel(true);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             return; // Permission not granted, do not show notification
         }
-        NotificationManagerCompat.from(this).notify(2, builder.build());
+        NotificationManagerCompat.from(context).notify(2, builder.build());
     }
 
-    private void sendAchievementNotification(Achievement achievement) {
+    public void showAchievementNotification(Achievement achievement) {
         if (achievement == null) {
             Log.e("StepCounterService", "Achievement data is null for notification.");
             return;
         }
         Log.i("Achievement", "Achievement unlocked: " + achievement);
         RemoteViews remoteViews = getAchievementView(achievement);
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(AppImage.getResIdFor(achievement.icon)) // Fallback for system tray
                 .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
                 .setCustomContentView(remoteViews)
@@ -160,13 +105,13 @@ public class StepCounterService extends Service implements SensorEventListener {
                 .setContentIntent(createAchievementIntent(achievement))
                 .setAutoCancel(true);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             return; // Permission not granted, do not show notification
         }
-        NotificationManagerCompat.from(this).notify(2, builder.build());
+        NotificationManagerCompat.from(context).notify(2, builder.build());
     }
 
-    private void sendTrackFinishedNotification(Pair<Track, UserProgress> pair) {
+    private void showTrackFinishedNotification(Pair<Track, UserProgress> pair) {
         if (pair == null) {
             Log.e("StepCounterService", "Track finished data is null for notification.");
             return;
@@ -176,7 +121,7 @@ public class StepCounterService extends Service implements SensorEventListener {
 
         RemoteViews collapsedView = getTrackFinishedCollapsedView(track, userProgress);
         RemoteViews expandedView = getTrackFinishedExpandedView(track, userProgress);
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.map)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCustomContentView(collapsedView)
@@ -184,15 +129,15 @@ public class StepCounterService extends Service implements SensorEventListener {
                 .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
                 .setAutoCancel(true);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             return; // Permission not granted, do not show notification
         }
-        NotificationManagerCompat.from(this).notify(3, builder.build());
+        NotificationManagerCompat.from(context).notify(3, builder.build());
     }
 
     private RemoteViews getCollapsedGoalView(MilestoneWithTotalDistance milestone) {
-        RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.notification_collapsed);
-        int textColor = ContextCompat.getColor(this, R.color.notification_text_color);
+        RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_collapsed);
+        int textColor = ContextCompat.getColor(context, R.color.notification_text_color);
         contentView.setTextColor(R.id.action_milestone, textColor);
         contentView.setTextColor(R.id.action_progress, textColor);
         contentView.setTextColor(R.id.title, textColor);
@@ -209,8 +154,8 @@ public class StepCounterService extends Service implements SensorEventListener {
     }
 
     private RemoteViews getExpandedGoalView(UserProgress userProgress, MilestoneWithTotalDistance milestone) {
-        RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.notification_expanded);
-        int textColor = ContextCompat.getColor(this, R.color.notification_text_color);
+        RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_expanded);
+        int textColor = ContextCompat.getColor(context, R.color.notification_text_color);
         contentView.setTextColor(R.id.action_milestone, textColor);
         contentView.setTextColor(R.id.action_progress, textColor);
         contentView.setTextColor(R.id.title, textColor);
@@ -228,15 +173,15 @@ public class StepCounterService extends Service implements SensorEventListener {
     }
 
     private RemoteViews getAchievementView(Achievement achievement) {
-        RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.notification_achievement);
+        RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_achievement);
         int iconColor = switch (achievement.difficulty) {
-            case STONE -> ContextCompat.getColor(this, R.color.stone);
-            case BRONZE -> ContextCompat.getColor(this, R.color.bronze);
-            case SILVER -> ContextCompat.getColor(this, R.color.silver);
-            case GOLD -> ContextCompat.getColor(this, R.color.gold);
-            default -> ContextCompat.getColor(this, R.color.dark_gray);
+            case STONE -> ContextCompat.getColor(context, R.color.stone);
+            case BRONZE -> ContextCompat.getColor(context, R.color.bronze);
+            case SILVER -> ContextCompat.getColor(context, R.color.silver);
+            case GOLD -> ContextCompat.getColor(context, R.color.gold);
+            default -> ContextCompat.getColor(context, R.color.dark_gray);
         };
-        int textColor = ContextCompat.getColor(this, R.color.notification_text_color);
+        int textColor = ContextCompat.getColor(context, R.color.notification_text_color);
         contentView.setTextColor(R.id.notification_achievement_title, textColor);
         contentView.setTextColor(R.id.notification_achievement_desc, textColor);
         contentView.setTextViewText(R.id.notification_achievement_desc, achievement.description);
@@ -246,8 +191,8 @@ public class StepCounterService extends Service implements SensorEventListener {
     }
 
     private RemoteViews getTrackFinishedCollapsedView(Track track, UserProgress userProgress) {
-        RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.notification_finish_track_collapsed);
-        int textColor = ContextCompat.getColor(this, R.color.notification_text_color);
+        RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_finish_track_collapsed);
+        int textColor = ContextCompat.getColor(context, R.color.notification_text_color);
         contentView.setTextColor(R.id.notification_title, textColor);
         contentView.setTextColor(R.id.track_title, textColor);
         contentView.setTextViewText(R.id.track_title, track.name);
@@ -261,8 +206,8 @@ public class StepCounterService extends Service implements SensorEventListener {
     }
 
     private RemoteViews getTrackFinishedExpandedView(Track track, UserProgress userProgress) {
-        RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.notification_finish_track_expanded);
-        int textColor = ContextCompat.getColor(this, R.color.notification_text_color);
+        RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_finish_track_expanded);
+        int textColor = ContextCompat.getColor(context, R.color.notification_text_color);
         contentView.setTextColor(R.id.notification_title, textColor);
         contentView.setTextColor(R.id.track_title, textColor);
         contentView.setTextColor(R.id.start_text, textColor);
@@ -288,12 +233,12 @@ public class StepCounterService extends Service implements SensorEventListener {
     }
 
     private PendingIntent createMilestoneIntent(MilestoneWithTotalDistance milestone) {
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra("milestone_id", milestone.id);
         intent.putExtra("navigate_to", "milestone_fragment");
         // different request code
         return PendingIntent.getActivity(
-                this,
+                context,
                 (int) milestone.id + 1000, // different request code
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
@@ -301,12 +246,12 @@ public class StepCounterService extends Service implements SensorEventListener {
     }
 
     private PendingIntent createProgressIntent(UserProgress progress) {
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra("navigate_to", "progress_fragment");
         intent.putExtra("progress_id", progress.id);
         // unique per milestone
         return PendingIntent.getActivity(
-                this,
+                context,
                 (int) progress.id, // unique per milestone
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
@@ -314,11 +259,11 @@ public class StepCounterService extends Service implements SensorEventListener {
     }
 
     private PendingIntent createAchievementIntent(Achievement achievement) {
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra("achievement_id", achievement.id);
         intent.putExtra("navigate_to", "achievement_fragment");
         return PendingIntent.getActivity(
-                this,
+                context,
                 (int) achievement.id + 5000,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
@@ -326,30 +271,16 @@ public class StepCounterService extends Service implements SensorEventListener {
     }
 
     private PendingIntent createTrackFinishIntent(UserProgress userProgress) {
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra("navigate_to", "progress_fragment");
         intent.putExtra("track_finished", true);
         intent.putExtra("progress_id", userProgress.id);
         return PendingIntent.getActivity(
-                this,
+                context,
                 (int) userProgress.id + 1000,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
-    }
-
-    @Override public void onAccuracyChanged(Sensor sensor, int accuracy) {}
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        sensorManager.unregisterListener(this);
-    }
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
     }
 
     private String formatDistance(double value) {

@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.android.application)
     id("androidx.navigation.safeargs")
     id("com.google.dagger.hilt.android")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -34,6 +36,7 @@ android {
             "GITHUB_TOKEN",
             "\"$githubToken\"" // <-- quotes are required for Java string literal
         )
+        manifestPlaceholders["appAuthRedirectScheme"] = "de.stepwise"
 
     }
 
@@ -71,6 +74,7 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
 
     val room_version = "2.7.1"
+    val work_version = "2.11.2"
 
     implementation("androidx.room:room-runtime:$room_version")
 
@@ -95,10 +99,18 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation("com.google.code.gson:gson:2.7")
     implementation("nl.dionsegijn:konfetti-xml:2.0.2")
-    implementation("com.google.dagger:hilt-android:2.56.2")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation("com.google.dagger:hilt-android:2.57.1")
+    implementation("androidx.hilt:hilt-work:1.2.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
-    annotationProcessor("com.google.dagger:hilt-android-compiler:2.56.2")
+    implementation("net.openid:appauth:0.11.1")
+    annotationProcessor("com.google.dagger:hilt-android-compiler:2.57.1")
     annotationProcessor("androidx.hilt:hilt-compiler:1.0.0")
-
-
+    implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
+    implementation("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-analytics")
+    // (Java only)
+    implementation("androidx.work:work-runtime:$work_version")
+    // Kotlin + coroutines
+    implementation("androidx.work:work-runtime-ktx:$work_version")
 }

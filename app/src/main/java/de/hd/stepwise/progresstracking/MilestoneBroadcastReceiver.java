@@ -1,4 +1,4 @@
-package de.hd.stepwise.stepcounter;
+package de.hd.stepwise.progresstracking;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

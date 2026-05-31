@@ -3,8 +3,6 @@ package de.hd.stepwise;
 import static de.hd.stepwise.ui.ToastHelper.showCustomToast;
 
 import android.Manifest;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -34,12 +32,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
 import de.hd.stepwise.database.AppDatabase;
 import de.hd.stepwise.databinding.ActivityMainBinding;
 import de.hd.stepwise.helper.DataInitializer;
 import de.hd.stepwise.pojos.MethodResult;
-import de.hd.stepwise.stepcounter.StepCounterService;
+//import de.hd.stepwise.progresstracking.StepCounterService;
+import de.hd.stepwise.progresstracking.StepManager;
 import de.hd.stepwise.ui.MainSharedViewModel;
 import de.hd.stepwise.ui.UpdateViewModel;
 
@@ -50,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_CODE = 1001;
     private BottomNavigationView bottomNavigationView;
+
+    @Inject StepManager stepManager;
+    private boolean hasPermissions;
 
     private void checkAndRequestPermissions() {
         List<String> permissionsNeeded = new ArrayList<>();
@@ -70,8 +74,11 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     permissionsNeeded.toArray(new String[0]),
                     PERMISSION_REQUEST_CODE);
+        } else {
+            hasPermissions = true;
+            stepManager.initialize();
         }
-        startStepService();
+
     }
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -89,20 +96,22 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (allGranted) {
-                startStepService();
+                stepManager.initialize();
+                hasPermissions = true;
+                //startStepService();
             } else {
                 Toast.makeText(this, "Permissions required for step tracking", Toast.LENGTH_LONG).show();
             }
         }
     }
 
-    private void startStepService() {
+/*    private void startStepService() {
         NotificationChannel channel = new NotificationChannel("step_channel", "Step Tracker", NotificationManager.IMPORTANCE_HIGH);
         NotificationManager manager = getSystemService(NotificationManager.class);
         if (manager != null) manager.createNotificationChannel(channel);
         Intent intent = new Intent(this, StepCounterService.class);
         ContextCompat.startForegroundService(this, intent);
-    }
+    }*/
 
     OnBackPressedCallback backCallback = new OnBackPressedCallback(true) {
         @Override
@@ -301,5 +310,13 @@ public class MainActivity extends AppCompatActivity {
             bottomNavigationView.getMenu().findItem(R.id.nav_achievements).setChecked(true);
         }
         setIntent(new Intent());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (hasPermissions) {
+            stepManager.initialize();
+        }
     }
 }

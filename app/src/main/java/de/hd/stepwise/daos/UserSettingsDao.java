@@ -6,6 +6,7 @@ import androidx.room.Query;
 import androidx.room.Upsert;
 
 import de.hd.stepwise.entities.UserSettings;
+import de.hd.stepwise.enums.StepSource;
 
 @Dao
 public interface UserSettingsDao {
@@ -26,4 +27,13 @@ public interface UserSettingsDao {
 
     @Query("SELECT stepLengthInMeters FROM user_settings WHERE id = 1")
     LiveData<Float> getStepLength();
+
+    @Query("SELECT stepSource FROM user_settings WHERE id = 1")
+    StepSource getStepSource();
+
+    @Query("SELECT refreshTimeInMinutesFitbit FROM user_settings WHERE id = 1")
+    LiveData<Integer> getRefreshTimeInMinutesFitbitLive();
+
+    @Query("SELECT refreshTimeInMinutesFitbit FROM user_settings WHERE id = 1")
+    Integer getRefreshTimeInMinutesFitbit();
 }

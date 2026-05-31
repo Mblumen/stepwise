@@ -8,39 +8,31 @@
     android:layout_height="match_parent"
     tools:context="de.hd.stepwise.ui.settings.UserSettingsFragment">
 
-    <TextView
-        android:text="@string/step_length_in_meters"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:labelFor="@+id/step_length_input"/>
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginTop="8dp">
-
-        <EditText
-            android:id="@+id/step_length_input"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:autofillHints="stepLength" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/save_step_length_button"
-            android:text="@string/save"
+        android:orientation="vertical">
+        <TextView
+            android:text="@string/step_length_in_meters"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:textStyle="bold"
-            app:iconGravity="textStart"
-            app:iconTint="@color/white"
-            android:backgroundTint="@color/dark_gray"
-            android:textColor="@color/white"
-            android:visibility="gone"/>
+            android:labelFor="@+id/step_length_input"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="@dimen/container_margin">
+
+            <EditText
+                android:id="@+id/step_length_input"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:autofillHints="stepLength" />
+        </LinearLayout>
     </LinearLayout>
 
     <com.google.android.material.materialswitch.MaterialSwitch
@@ -49,7 +41,7 @@
         android:layout_height="wrap_content"
         android:text="@string/dark_mode"
         android:checked="true"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="@dimen/container_margin" />
 
     <com.google.android.material.materialswitch.MaterialSwitch
         android:id="@+id/show_completed_tracks_switch"
@@ -57,7 +49,7 @@
         android:layout_height="wrap_content"
         android:text="@string/show_completed_tracks"
         android:checked="true"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="@dimen/container_margin" />
 
     <com.google.android.material.materialswitch.MaterialSwitch
         android:id="@+id/show_locked_milestones_switch"
@@ -65,7 +57,175 @@
         android:layout_height="wrap_content"
         android:text="@string/show_locked_milestones"
         android:checked="false"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="@dimen/container_margin" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="@dimen/fragment_horizontal_margin"
+        android:background="?attr/colorPrimary">
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"
+            android:background="?attr/colorOnPrimary" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/fitbit_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="@dimen/fragment_horizontal_margin">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_fitbit"
+            android:contentDescription="@string/fitbit"
+            />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp">
+
+            <TextView
+                android:id="@+id/fitbit_status_title"
+                android:text="@string/fitbit"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="?attr/colorOnPrimary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/fitbit_status_desc"
+                android:text="@string/not_connected"
+                android:textSize="13sp"
+                android:textColor="?attr/colorOnPrimary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/fitbit_action_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/connect"/>
+    </LinearLayout>
+    <!--<LinearLayout
+        android:id="@+id/health_connect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="@dimen/fragment_horizontal_margin">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/health_connect"
+            android:contentDescription="@string/fitbit"
+            />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp">
+
+            <TextView
+                android:id="@+id/health_connect_status_title"
+                android:text="@string/health_connect"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="?attr/colorOnPrimary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/health_connect_status_desc"
+                android:text="@string/not_connected"
+                android:textSize="13sp"
+                android:textColor="?attr/colorOnPrimary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/health_connect_action_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/connect"/>
+    </LinearLayout>-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/refresh_time_fitbit"
+            android:text="@string/refresh_time_in_minutes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:labelFor="@+id/refresh_time_fitbit_input"
+            android:enabled="false"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="@dimen/container_margin">
+
+            <EditText
+                android:id="@+id/refresh_time_fitbit_input"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:autofillHints="stepLength"
+                android:enabled="false"/>
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="@dimen/fragment_horizontal_margin">
+        <TextView
+            android:text="@string/selected_step_counter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:labelFor="@+id/stepSource"/>
+        <Spinner
+            android:id="@+id/sensorSpinner"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/container_margin"
+            android:prompt="@string/selected_step_counter"
+            />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="@dimen/fragment_horizontal_margin"
+        android:background="?attr/colorPrimary">
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"
+            android:background="?attr/colorOnPrimary" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/update_tracks_row"
@@ -73,7 +233,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginTop="16dp">
+        android:layout_marginTop="@dimen/fragment_horizontal_margin">
 
         <ImageView
             android:id="@+id/update_tracks_icon"
@@ -141,14 +301,13 @@
             android:layout_height="wrap_content"
             />
     </LinearLayout>
-
     <LinearLayout
         android:id="@+id/update_achievements_row"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginTop="16dp">
+        android:layout_marginTop="@dimen/fragment_horizontal_margin">
 
         <ImageView
             android:id="@+id/update_achievements_icon"

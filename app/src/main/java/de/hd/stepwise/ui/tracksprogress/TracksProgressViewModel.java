@@ -25,6 +25,8 @@ import de.hd.stepwise.pojos.events.Event;
 import de.hd.stepwise.pojos.ListItem;
 import de.hd.stepwise.pojos.MethodResult;
 import de.hd.stepwise.pojos.MilestoneWithStatus;
+import de.hd.stepwise.pojos.events.FinishProgressResult;
+import de.hd.stepwise.progresstracking.NotificationHandler;
 import de.hd.stepwise.repositories.MilestoneRepository;
 import de.hd.stepwise.repositories.TrackRepository;
 import de.hd.stepwise.repositories.UserProgressRepository;
@@ -38,6 +40,7 @@ public class TracksProgressViewModel extends BaseTracksViewModel {
     private final LiveData<List<ListItem>> allProgress;
     private final UserProgressRepository userProgressRepository;
     private final RouteService routeService;
+    private final NotificationHandler notifcationHandler;
 
     private Track track;
     private float distanceWalked;
@@ -57,10 +60,11 @@ public class TracksProgressViewModel extends BaseTracksViewModel {
                                    MilestoneRepository milestoneRepository,
                                    UserSettingsRepository userSettingsRepository,
                                    TrackRepository trackRepository,
-                                   RouteService routeService) {
+                                   RouteService routeService, NotificationHandler notifcationHandler) {
         super(application, userSettingsRepository, trackRepository, milestoneRepository);
         this.userProgressRepository = userProgressRepository;
         this.routeService = routeService;
+        this.notifcationHandler = notifcationHandler;
         allProgress = userProgressRepository.getProgressWithMilestonesForStatusWithSeparators(
                 userSettingsRepository.getShowCompletedTracks()
         );
@@ -115,18 +119,20 @@ public class TracksProgressViewModel extends BaseTracksViewModel {
         });
     }
     public void finishTrack(long progressId) {
-        MutableLiveData<MethodResult> result = new MutableLiveData<>();
-        userProgressRepository.finishProgress(progressId).observeForever(new Observer<>() {
+        LiveData<FinishProgressResult> source = userProgressRepository.finishProgress(progressId);
+        Observer<FinishProgressResult> observer = new Observer<>() {
             @Override
-            public void onChanged(MethodResult methodResult) {
-                if (methodResult.status == ResultStatus.SUCCESS) {
-                    _methodResult.postValue(new Event<>(methodResult));
+            public void onChanged(FinishProgressResult finishProgressResult) {
+                if (finishProgressResult.methodResult.status == ResultStatus.SUCCESS) {
+                    _methodResult.postValue(new Event<>(finishProgressResult.methodResult));
+                    notifcationHandler.handleStepUpdate(finishProgressResult.stepUpdateResult);
                 } else {
-                    Log.e("TracksProgressViewModel", "Error finishing progress: " + methodResult.message);
+                    Log.e("TracksProgressViewModel", "Error finishing progress: " + finishProgressResult.methodResult.message);
                 }
-                result.removeObserver(this); // very important to prevent leaks
+                source.removeObserver(this);
             }
-        });
+        };
+        source.observeForever(observer);
     }
 
     public void calculateAndPostPosition(UserProgressWithTrackAndMilestones userProgressWithTrackAndMilestones) {

@@ -13,6 +13,7 @@ import de.hd.stepwise.enums.AchievementDifficulty;
 import de.hd.stepwise.enums.AchievementType;
 import de.hd.stepwise.enums.ProgressStatus;
 import de.hd.stepwise.enums.RecordType;
+import de.hd.stepwise.enums.StepSource;
 import de.hd.stepwise.pojos.MilestoneImage;
 import de.hd.stepwise.pojos.TrackRoute;
 
@@ -81,5 +82,15 @@ public class Converters {
     @TypeConverter
     public static String toTrackRouteJson(TrackRoute trackRoute) {
         return trackRoute == null ? null : gson.toJson(trackRoute);
+    }
+
+    @TypeConverter
+    public static StepSource fromSensorKey(int key) {
+        return StepSource.getFromKey(key);
+    }
+
+    @TypeConverter
+    public static int toSensorKey(StepSource type) {
+        return type.key;
     }
 }

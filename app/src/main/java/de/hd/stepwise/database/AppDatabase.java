@@ -5,6 +5,7 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
+import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import android.content.Context;
@@ -14,21 +15,27 @@ import java.util.concurrent.Executors;
 import de.hd.stepwise.converter.Converters;
 import de.hd.stepwise.daos.AchievementDao;
 import de.hd.stepwise.daos.AppRecordDao;
+import de.hd.stepwise.daos.DailyStepsDao;
 import de.hd.stepwise.daos.MilestoneDao;
+import de.hd.stepwise.daos.StepEventDao;
 import de.hd.stepwise.daos.TrackDao;
 import de.hd.stepwise.daos.UserProgressDao;
 import de.hd.stepwise.daos.UserSettingsDao;
 import de.hd.stepwise.entities.Achievement;
 import de.hd.stepwise.entities.AppRecord;
+import de.hd.stepwise.entities.DailySteps;
 import de.hd.stepwise.entities.Milestone;
 import de.hd.stepwise.entities.MilestoneWithTotalDistance;
+import de.hd.stepwise.entities.StepEvent;
 import de.hd.stepwise.entities.Track;
 import de.hd.stepwise.entities.UserProgress;
 import de.hd.stepwise.entities.UserProgressMilestoneStatus;
 import de.hd.stepwise.entities.UserSettings;
 import de.hd.stepwise.enums.RecordType;
 
-@Database(entities = {Track.class, Milestone.class, UserProgress.class, UserProgressMilestoneStatus.class, UserSettings.class, Achievement.class, AppRecord.class}, views = {MilestoneWithTotalDistance.class}, version = 1)
+@Database(entities = {Track.class, Milestone.class, UserProgress.class, UserProgressMilestoneStatus.class, UserSettings.class, Achievement.class, AppRecord.class, DailySteps.class, StepEvent.class},
+        views = {MilestoneWithTotalDistance.class},
+        version = 5)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
 
@@ -37,22 +44,64 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract TrackDao trackDao();
     public abstract MilestoneDao milestoneDao();
     public abstract UserProgressDao userProgressDao();
-
     public abstract UserSettingsDao userSettingsDao();
-
     public abstract AchievementDao achievementDao();
     public abstract AppRecordDao appRecordDao();
+    public abstract DailyStepsDao dailyStepsDao();
+    public abstract StepEventDao stepEventDao();
+
 
     public static AppDatabase getInstance(Context context) {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
                 if (INSTANCE == null) {
+                    Migration MIGRATION_1_2 = new Migration(1, 2) {
+                        @Override
+                        public void migrate(SupportSQLiteDatabase database) {
+                            // Add new column "step_source" with default "PHONE" and NOT NULL
+                            database.execSQL("ALTER TABLE user_settings ADD COLUMN stepSource INTEGER NOT NULL DEFAULT 0");
+                        }
+                    };
+                    Migration MIGRATION_2_3 = new Migration(2,3) {
+                        @Override
+                        public void migrate(SupportSQLiteDatabase database) {
+                            // Add new column "step_source" with default "PHONE" and NOT NULL
+                            database.execSQL("ALTER TABLE user_settings ADD COLUMN refreshTimeInMinutesFitbit INTEGER NOT NULL default 5");
+                        }
+                    };
+                    Migration MIGRATION_3_4 = new Migration(3,4) {
+                        @Override
+                        public void migrate(SupportSQLiteDatabase database) {
+                            // Add new column "step_source" with default "PHONE" and NOT NULL
+                            database.execSQL("CREATE TABLE IF NOT EXISTS `daily_steps` (" +
+                                    "`date` TEXT NOT NULL PRIMARY KEY, " +
+                                    "`steps` INTEGER NOT NULL DEFAULT 0, " +
+                                    "`source` INTEGER NOT NULL DEFAULT 0, " +
+                                    "`lastUpdated` INTEGER NOT NULL DEFAULT 0, " +
+                                    "`addedStepsSinceLastUpdate` INTEGER NOT NULL DEFAULT 0" +
+                                    ")");
+                        }
+                    };
+                    Migration MIGRATION_4_5 = new Migration(4,5) {
+                        @Override
+                        public void migrate(SupportSQLiteDatabase database) {
+                            // Add new column "step_source" with default "PHONE" and NOT NULL
+                            database.execSQL("CREATE TABLE IF NOT EXISTS `step_event` (" +
+                                    "`id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
+                                    "`steps` INTEGER NOT NULL, " +
+                                    "`source` INTEGER NOT NULL DEFAULT 0, " +
+                                    "`timestamp` INTEGER NOT NULL, " +
+                                    "`handled` INTEGER  NOT NULL DEFAULT 0" +
+                                    ")");
+                        }
+                    };
                     INSTANCE = Room.databaseBuilder(
                                     context.getApplicationContext(),
                                     AppDatabase.class,
                                     "stepwise_db"
                             )
-                           .addCallback(new RoomDatabase.Callback() {
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                            .addCallback(new RoomDatabase.Callback() {
                                 @Override
                                 public void onCreate(@NonNull SupportSQLiteDatabase db) {
                                     super.onCreate(db);
@@ -62,13 +111,14 @@ public abstract class AppDatabase extends RoomDatabase {
                                     });
                                 }
                             })
-                            //.fallbackToDestructiveMigration(true)
                             .build();
                 }
             }
         }
         return INSTANCE;
     }
+
+
 
     /*private static void insertMockData(AppDatabase db) {
         // Insert a mock user settings

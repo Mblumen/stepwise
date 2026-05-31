@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "185887115429",
+    "project_id": "stepwise-45e91",
+    "storage_bucket": "stepwise-45e91.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:185887115429:android:f26bb533eac45814aea54c",
+        "android_client_info": {
+          "package_name": "de.hd.stepwise"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATmeEHYO8sVJie2nQXg1BmVzey5r9vbkg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

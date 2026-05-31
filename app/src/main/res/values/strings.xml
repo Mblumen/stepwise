@@ -94,4 +94,12 @@
     <string name="check_update">Check</string>
     <string name="image_preview">Image Preview</string>
     <string name="expand_image">Expand Image</string>
+    <string name="connected">Connected</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="not_connected">Not connected</string>
+    <string name="connect">Connect</string>
+    <string name="fitbit">Fitbit</string>
+    <string name="selected_step_counter">Selected Step Counter</string>
+    <string name="health_connect">Health Connect</string>
+    <string name="refresh_time_in_minutes">Refresh time in minutes</string>
 </resources>

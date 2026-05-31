@@ -1,5 +1,6 @@
 package de.hd.stepwise.repositories;
 
+import android.net.DnsResolver;
 import android.util.Log;
 import android.util.Pair;
 
@@ -10,6 +11,7 @@ import androidx.room.Transaction;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -34,7 +36,9 @@ import de.hd.stepwise.pojos.Separator;
 import de.hd.stepwise.pojos.TrackWithMilestones;
 import de.hd.stepwise.pojos.UserProgressWithTrackAndMilestones;
 import de.hd.stepwise.pojos.events.AchievementEvent;
+import de.hd.stepwise.pojos.events.FinishProgressResult;
 import de.hd.stepwise.pojos.events.MilestoneWithProgressEvent;
+import de.hd.stepwise.pojos.events.StepUpdateResult;
 import de.hd.stepwise.pojos.events.TrackWithProgressEvent;
 
 @Singleton
@@ -44,9 +48,9 @@ public class UserProgressRepository extends BaseRepository{
     private final MilestoneDao milestoneDao;
     private final UserSettingsDao userSettingsDao;
     private final AchievementDao achievementDao;
-    private final MutableLiveData<MilestoneWithProgressEvent> milestoneWithProgressEvents = new MutableLiveData<>();
-    private final MutableLiveData<AchievementEvent> achievementEvents = new MutableLiveData<>();
-    private final MutableLiveData<TrackWithProgressEvent> trackWithProgressEvents = new MutableLiveData<>();
+    //private final MutableLiveData<MilestoneWithProgressEvent> milestoneWithProgressEvents = new MutableLiveData<>();
+    //private final MutableLiveData<AchievementEvent> achievementEvents = new MutableLiveData<>();
+    //private final MutableLiveData<TrackWithProgressEvent> trackWithProgressEvents = new MutableLiveData<>();
 
     @Inject
     public UserProgressRepository(AppDatabase appDatabase) {
@@ -57,16 +61,16 @@ public class UserProgressRepository extends BaseRepository{
         this.achievementDao = appDatabase.achievementDao();
     }
 
-    public LiveData<MilestoneWithProgressEvent> getMilestoneProgressEvents() {
+    /*public LiveData<MilestoneWithProgressEvent> getMilestoneProgressEvents() {
         return milestoneWithProgressEvents;
-    }
-    public LiveData<AchievementEvent> getAchievementEvents() {
+    }*/
+/*    public LiveData<AchievementEvent> getAchievementEvents() {
         return achievementEvents;
-    }
+    }*/
 
-    public LiveData<TrackWithProgressEvent> getTrackWithProgressEvents() {
+/*    public LiveData<TrackWithProgressEvent> getTrackWithProgressEvents() {
         return trackWithProgressEvents;
-    }
+    }*/
 
     public LiveData<List<ListItem>> getProgressWithMilestonesForStatusWithSeparators(LiveData<Boolean> includeCompletedLiveData) {
         return Transformations.switchMap(includeCompletedLiveData, includeCompleted -> {
@@ -149,8 +153,10 @@ public class UserProgressRepository extends BaseRepository{
     }
 
     @Transaction
-    public void updateStepsWalked(int stepsWalked) {
+    public StepUpdateResult updateStepsWalked(int stepsWalked) {
+        StepUpdateResult stepUpdateResult = new StepUpdateResult();
         UserProgress progress = userProgressDao.getActiveUserProgress();
+        stepUpdateResult.progress = progress;
         if (progress != null) {
             //distance walked
             float stepLength = userSettingsDao.getSettings().stepLengthInMeters;
@@ -163,9 +169,9 @@ public class UserProgressRepository extends BaseRepository{
             userProgressDao.insertUserProgress(progress);
 
             //update achievements
-            List<Achievement> achievementsByType = achievementDao.getAchievementsByType(List.of(AchievementType.DISTANCE, AchievementType.STEPS));
-            updateAchievements(achievementsByType.stream().filter(achievement -> achievement.type.equals(AchievementType.DISTANCE)).collect(Collectors.toList()), distanceWalked);
-            updateAchievements(achievementsByType.stream().filter(achievement -> achievement.type.equals(AchievementType.STEPS)).collect(Collectors.toList()), stepsWalked);
+            List<Achievement> achievementsByType = achievementDao.getAchievementsByType(List.of(AchievementType.DISTANCE, AchievementType.STEPS, AchievementType.MILESTONES_REACHED));
+            updateAchievements(achievementsByType.stream().filter(achievement -> achievement.type.equals(AchievementType.DISTANCE)).collect(Collectors.toList()), distanceWalked, stepUpdateResult);
+            updateAchievements(achievementsByType.stream().filter(achievement -> achievement.type.equals(AchievementType.STEPS)).collect(Collectors.toList()), stepsWalked, stepUpdateResult);
 
             TrackWithMilestones trackWithMilestonesById = trackDao.getTrackWithMilestonesById(progress.trackId);
             List<Long> notifiedMilestones = userProgressDao.getNotifiedMilestonesForProgress(progress.id);
@@ -184,14 +190,17 @@ public class UserProgressRepository extends BaseRepository{
                         }
                     }
                     if (isLastMilestone) {
-                        trackWithProgressEvents.postValue(new TrackWithProgressEvent(new Pair<>(trackWithMilestonesById.track, progress), "Track completed: " + trackWithMilestonesById.track.name));
+                        stepUpdateResult.finishedTrack = trackWithMilestonesById.track;
+                        //trackWithProgressEvents.postValue(new TrackWithProgressEvent(new Pair<>(trackWithMilestonesById.track, progress), "Track completed: " + trackWithMilestonesById.track.name));
                     }
                     // Post the milestone event
-                    milestoneWithProgressEvents.postValue(new MilestoneWithProgressEvent(new Pair<>(m, progress), "Milestone reached: " + m.title));
+                    stepUpdateResult.reachedMilestones.add(m);
+                    updateAchievements(achievementsByType.stream().filter(achievement -> achievement.type.equals(AchievementType.MILESTONES_REACHED)).collect(Collectors.toList()), 1, stepUpdateResult);
+                    //milestoneWithProgressEvents.postValue(new MilestoneWithProgressEvent(new Pair<>(m, progress), "Milestone reached: " + m.title));
                 }
             }
         }
-
+        return stepUpdateResult;
     }
     public LiveData<MethodResult> pauseTrackProgress(long progressId) {
         // This method is used to pause the progress for a specific track.
@@ -239,15 +248,15 @@ public class UserProgressRepository extends BaseRepository{
     }
 
     @Transaction
-    public LiveData<MethodResult> finishProgress(long progressId) {
+    public LiveData<FinishProgressResult> finishProgress(long progressId) {
         // This method is used to finish the progress for a specific track.
         // It updates the status of the user progress to 'completed' for the given track ID.
-        MutableLiveData<MethodResult> result = new MutableLiveData<>();
+        MutableLiveData<FinishProgressResult> result = new MutableLiveData<>();
         executor.execute(() -> {
             UserProgress progress = userProgressDao.getProgressById(progressId);
             if (progress != null) {
                 if(progress.status == ProgressStatus.COMPLETED) {
-                    result.postValue(new MethodResult(ResultStatus.SUCCESS, "Track progress already completed."));
+                    result.postValue(new FinishProgressResult(new MethodResult(ResultStatus.SUCCESS, "Track progress already completed."), null));
                     return;
                 }
                 progress.status = ProgressStatus.COMPLETED;
@@ -255,17 +264,20 @@ public class UserProgressRepository extends BaseRepository{
 
                 //update achievements
                 List<Achievement> achievementsByType = achievementDao.getAchievementsByType(List.of(AchievementType.TRACKS_COMPLETED));
-                updateAchievements(achievementsByType, 1.0f); // Increment by 1 for completed tracks
 
-                result.postValue(new MethodResult(ResultStatus.SUCCESS, "Track progress finished successfully."));
+                StepUpdateResult stepUpdateResult = new StepUpdateResult();
+                stepUpdateResult.progress = progress;
+                updateAchievements(achievementsByType, 1.0f, stepUpdateResult); // Increment by 1 for completed tracks
+
+                result.postValue(new FinishProgressResult(new MethodResult(ResultStatus.SUCCESS, "Track progress finished successfully."), stepUpdateResult));
             } else {
-                result.postValue(new MethodResult(ResultStatus.ERROR, "Track progress not found."));
+                result.postValue(new FinishProgressResult(new MethodResult(ResultStatus.ERROR, "Track progress not found."), null));
             }
         });
         return result;
     }
 
-    private void updateAchievements(List<Achievement> achievements, float updateValue) {
+    private void updateAchievements(List<Achievement> achievements, float updateValue, StepUpdateResult stepUpdateResult) {
         for (Achievement achievement : achievements) {
             if (achievement.unlocked) continue; // Skip already unlocked achievements
             achievement.progressValue += updateValue;
@@ -277,7 +289,8 @@ public class UserProgressRepository extends BaseRepository{
                 achievement.unlocked = true;
                 achievement.dateUnlocked = System.currentTimeMillis();
                 // Post the achievement event
-                achievementEvents.postValue(new AchievementEvent(achievement, "Achievement unlocked: " + achievement.title));
+                stepUpdateResult.unlockedAchievements.add(achievement);
+                //achievementEvents.postValue(new AchievementEvent(achievement, "Achievement unlocked: " + achievement.title));
                 //AchievementEventBus.INSTANCE.postEvent(new AchievementEvent(achievement, "Achievement unlocked"));
             }
             achievementDao.update(achievement);
