@@ -143,7 +143,7 @@ public class NotificationHandler {
         Track track = pair.first;
         UserProgress userProgress = pair.second;
 
-        RemoteViews collapsedView = getTrackFinishedCollapsedView(track, userProgress);
+        RemoteViews collapsedView = getTrackFinishedCollapsedView(track);
         RemoteViews expandedView = getTrackFinishedExpandedView(track, userProgress);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.map)
@@ -207,7 +207,6 @@ public class NotificationHandler {
             case BRONZE -> ContextCompat.getColor(context, R.color.bronze);
             case SILVER -> ContextCompat.getColor(context, R.color.silver);
             case GOLD -> ContextCompat.getColor(context, R.color.gold);
-            default -> ContextCompat.getColor(context, R.color.dark_gray);
         };
         int textColor = ContextCompat.getColor(context, R.color.notification_text_color);
         contentView.setTextColor(R.id.notification_achievement_title, textColor);
@@ -218,7 +217,7 @@ public class NotificationHandler {
         return contentView;
     }
 
-    private RemoteViews getTrackFinishedCollapsedView(Track track, UserProgress userProgress) {
+    private RemoteViews getTrackFinishedCollapsedView(Track track) {
         RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_finish_track_collapsed);
         int textColor = ContextCompat.getColor(context, R.color.notification_text_color);
         contentView.setTextColor(R.id.notification_title, textColor);
