@@ -2,6 +2,8 @@ package de.hd.stepwise.progresstracking;
 
 import android.Manifest;
 import android.app.PendingIntent;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -46,6 +48,20 @@ public class NotificationHandler {
         this.context = context;
     }
 
+    public static void createNotificationChannel(Context context) {
+        NotificationChannel channel = new NotificationChannel(
+                CHANNEL_ID,
+                "Stepwise updates",
+                NotificationManager.IMPORTANCE_HIGH
+        );
+        channel.setDescription("Milestones, achievements, and completed tracks");
+
+        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+        if (notificationManager != null) {
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
     public void handleStepUpdate(StepUpdateResult stepUpdateResult) {
         if(stepUpdateResult == null) return;
         if (stepUpdateResult.reachedMilestones != null) {
@@ -87,7 +103,11 @@ public class NotificationHandler {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             return; // Permission not granted, do not show notification
         }
-        NotificationManagerCompat.from(context).notify(2, builder.build());
+        NotificationManagerCompat.from(context).notify(
+                "milestone-" + milestone.id,
+                0,
+                builder.build()
+        );
     }
 
     public void showAchievementNotification(Achievement achievement) {
@@ -108,7 +128,11 @@ public class NotificationHandler {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             return; // Permission not granted, do not show notification
         }
-        NotificationManagerCompat.from(context).notify(2, builder.build());
+        NotificationManagerCompat.from(context).notify(
+                "achievement-" + achievement.id,
+                0,
+                builder.build()
+        );
     }
 
     private void showTrackFinishedNotification(Pair<Track, UserProgress> pair) {
@@ -119,7 +143,7 @@ public class NotificationHandler {
         Track track = pair.first;
         UserProgress userProgress = pair.second;
 
-        RemoteViews collapsedView = getTrackFinishedCollapsedView(track, userProgress);
+        RemoteViews collapsedView = getTrackFinishedCollapsedView(track);
         RemoteViews expandedView = getTrackFinishedExpandedView(track, userProgress);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.map)
@@ -132,7 +156,11 @@ public class NotificationHandler {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             return; // Permission not granted, do not show notification
         }
-        NotificationManagerCompat.from(context).notify(3, builder.build());
+        NotificationManagerCompat.from(context).notify(
+                "track-finished-" + userProgress.id,
+                0,
+                builder.build()
+        );
     }
 
     private RemoteViews getCollapsedGoalView(MilestoneWithTotalDistance milestone) {
@@ -179,7 +207,6 @@ public class NotificationHandler {
             case BRONZE -> ContextCompat.getColor(context, R.color.bronze);
             case SILVER -> ContextCompat.getColor(context, R.color.silver);
             case GOLD -> ContextCompat.getColor(context, R.color.gold);
-            default -> ContextCompat.getColor(context, R.color.dark_gray);
         };
         int textColor = ContextCompat.getColor(context, R.color.notification_text_color);
         contentView.setTextColor(R.id.notification_achievement_title, textColor);
@@ -190,7 +217,7 @@ public class NotificationHandler {
         return contentView;
     }
 
-    private RemoteViews getTrackFinishedCollapsedView(Track track, UserProgress userProgress) {
+    private RemoteViews getTrackFinishedCollapsedView(Track track) {
         RemoteViews contentView = new RemoteViews(context.getPackageName(), R.layout.notification_finish_track_collapsed);
         int textColor = ContextCompat.getColor(context, R.color.notification_text_color);
         contentView.setTextColor(R.id.notification_title, textColor);

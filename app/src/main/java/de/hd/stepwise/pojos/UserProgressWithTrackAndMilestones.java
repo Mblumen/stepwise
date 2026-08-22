@@ -8,7 +8,7 @@ import java.util.Objects;
 
 import de.hd.stepwise.entities.Track;
 import de.hd.stepwise.entities.UserProgress;
-import de.hd.stepwise.entities.UserProgressMilestoneStatus;
+import de.hd.stepwise.entities.ReachedMilestone;
 import de.hd.stepwise.enums.ListItemType;
 
 public class UserProgressWithTrackAndMilestones implements ListItem{
@@ -23,11 +23,11 @@ public class UserProgressWithTrackAndMilestones implements ListItem{
     public TrackWithMilestones trackWithMilestones;
 
     @Relation(
-            entity = UserProgressMilestoneStatus.class,
+            entity = ReachedMilestone.class,
             parentColumn = "id",
             entityColumn = "progressId"
     )
-    public List<UserProgressMilestoneStatus> userProgressMilestoneStatus;
+    public List<ReachedMilestone> reachedMilestones;
 
 
     @Override

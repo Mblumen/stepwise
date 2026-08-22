@@ -29,15 +29,30 @@ import de.hd.stepwise.entities.MilestoneWithTotalDistance;
 import de.hd.stepwise.entities.StepEvent;
 import de.hd.stepwise.entities.Track;
 import de.hd.stepwise.entities.UserProgress;
-import de.hd.stepwise.entities.UserProgressMilestoneStatus;
+import de.hd.stepwise.entities.ReachedMilestone;
 import de.hd.stepwise.entities.UserSettings;
 import de.hd.stepwise.enums.RecordType;
 
-@Database(entities = {Track.class, Milestone.class, UserProgress.class, UserProgressMilestoneStatus.class, UserSettings.class, Achievement.class, AppRecord.class, DailySteps.class, StepEvent.class},
+@Database(entities = {Track.class, Milestone.class, UserProgress.class, ReachedMilestone.class, UserSettings.class, Achievement.class, AppRecord.class, DailySteps.class, StepEvent.class},
         views = {MilestoneWithTotalDistance.class},
-        version = 5)
+        version = 6)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
+
+    public static final Migration MIGRATION_5_6 = new Migration(5, 6) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS `reached_milestone` ("
+                    + "`progressId` INTEGER NOT NULL, "
+                    + "`milestoneId` INTEGER NOT NULL, "
+                    + "`stepsWalked` INTEGER NOT NULL, "
+                    + "PRIMARY KEY(`progressId`, `milestoneId`))");
+            database.execSQL("INSERT INTO `reached_milestone` (progressId, milestoneId, stepsWalked) "
+                    + "SELECT progressId, milestoneId, stepsWalked FROM `user_progress_milestone_status` "
+                    + "WHERE notified = 1");
+            database.execSQL("DROP TABLE `user_progress_milestone_status`");
+        }
+    };
 
     private static volatile AppDatabase INSTANCE;
 
@@ -100,7 +115,7 @@ public abstract class AppDatabase extends RoomDatabase {
                                     AppDatabase.class,
                                     "stepwise_db"
                             )
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                             .addCallback(new RoomDatabase.Callback() {
                                 @Override
                                 public void onCreate(@NonNull SupportSQLiteDatabase db) {
@@ -193,15 +208,11 @@ public abstract class AppDatabase extends RoomDatabase {
         progress3.pausedAt = null; // Not paused
         progress3.totalPausedTime = 1000L * 60 * 60; // Assume the user has paused the track for 1 hour in total
         long progressId3 = db.userProgressDao().insertUserProgress(progress3);
-        // Insert a UserProgressMilestoneStatus for the first milestone
-        UserProgressMilestoneStatus milestoneStatus1 = new UserProgressMilestoneStatus(progressId3, trackId3MilestoneId1, true, 3152);
-        db.userProgressDao().markMilestoneNotified(milestoneStatus1);
-        // Insert a UserProgressMilestoneStatus for the second milestone
-        UserProgressMilestoneStatus milestoneStatus2 = new UserProgressMilestoneStatus(progressId3, trackId3MilestoneId2, true, 16330);
-        db.userProgressDao().markMilestoneNotified(milestoneStatus2);
-        // Insert a UserProgressMilestoneStatus for the third milestone
-        UserProgressMilestoneStatus milestoneStatus3 = new UserProgressMilestoneStatus(progressId3, trackId3MilestoneId3, true, 27532);
-        //db.userProgressDao().markMilestoneNotified(milestoneStatus3);
+        // Insert reached-milestone facts for the first two milestones
+        ReachedMilestone reachedMilestone1 = new ReachedMilestone(progressId3, trackId3MilestoneId1, 3152);
+        db.userProgressDao().insertReachedMilestone(reachedMilestone1);
+        ReachedMilestone reachedMilestone2 = new ReachedMilestone(progressId3, trackId3MilestoneId2, 16330);
+        db.userProgressDao().insertReachedMilestone(reachedMilestone2);
 
         long trackId4 = insertTrack(db, "Munich to Zurich", "Munich", "Zurich", "munich", null);
         long trackId4MilestoneId1 = insertMockMilestone(db, trackId4, 3000, "Milestone 1", "Description for milestone 1", "berlin", Collections.emptyList(), "", 47.3768866, 8.541694, true);
@@ -216,12 +227,10 @@ public abstract class AppDatabase extends RoomDatabase {
         progress4.totalPausedTime = 1000L * 60 * 60; // Assume the user has paused the track for 1 hour in total
         progress4.completedAt = System.currentTimeMillis() - 1000 * 60 * 60 * 24; // Completed 24 hours ago
         long progressId4 = db.userProgressDao().insertUserProgress(progress4);
-        // Insert a UserProgressMilestoneStatus for the first milestone
-        UserProgressMilestoneStatus milestoneStatus4 = new UserProgressMilestoneStatus(progressId4, trackId4MilestoneId1, true, 3251);
-        db.userProgressDao().markMilestoneNotified(milestoneStatus4);
-        // Insert a UserProgressMilestoneStatus for the second milestone
-        UserProgressMilestoneStatus milestoneStatus5 = new UserProgressMilestoneStatus(progressId4, trackId4MilestoneId2, true, 9621);
-        db.userProgressDao().markMilestoneNotified(milestoneStatus5);
+        ReachedMilestone reachedMilestone4 = new ReachedMilestone(progressId4, trackId4MilestoneId1, 3251);
+        db.userProgressDao().insertReachedMilestone(reachedMilestone4);
+        ReachedMilestone reachedMilestone5 = new ReachedMilestone(progressId4, trackId4MilestoneId2, 9621);
+        db.userProgressDao().insertReachedMilestone(reachedMilestone5);
 
         //insertAchievements(db);
         insertRecords(db);

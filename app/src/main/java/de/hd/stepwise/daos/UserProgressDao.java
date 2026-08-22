@@ -11,7 +11,7 @@ import androidx.room.Upsert;
 import java.util.List;
 
 import de.hd.stepwise.entities.UserProgress;
-import de.hd.stepwise.entities.UserProgressMilestoneStatus;
+import de.hd.stepwise.entities.ReachedMilestone;
 import de.hd.stepwise.enums.ProgressStatus;
 import de.hd.stepwise.pojos.UserProgressWithTrackAndMilestones;
 
@@ -50,19 +50,27 @@ public interface UserProgressDao {
     @Query("SELECT * FROM user_progress WHERE status = 'active'")
     UserProgress getActiveUserProgress();
 
-    @Query("SELECT milestoneId FROM user_progress_milestone_status WHERE progressId = :progressId")
-    List<Long>getNotifiedMilestonesForProgress(long progressId);
+    @Query("SELECT milestoneId FROM reached_milestone WHERE progressId = :progressId")
+    List<Long> getReachedMilestoneIdsForProgress(long progressId);
 
-    @Query("SELECT * FROM user_progress_milestone_status")
-    List<UserProgressMilestoneStatus>getNotifiedMilestones();
+    @Query("SELECT COUNT(DISTINCT milestoneId) FROM reached_milestone")
+    int countDistinctReachedMilestones();
 
-    //get UserProgressMilestoneStatus for a specific progressId and milestoneId
-    @Query("SELECT * FROM user_progress_milestone_status WHERE progressId = :progressId AND milestoneId = :milestoneId")
-    UserProgressMilestoneStatus getMilestoneStatusForProgress(long progressId, long milestoneId);
+    @Query("SELECT COUNT(DISTINCT trackId) FROM user_progress WHERE status = :status")
+    int countDistinctTracksWithStatus(ProgressStatus status);
 
-    @Query("SELECT * FROM user_progress_milestone_status WHERE progressId = :progressId")
-    LiveData<List<UserProgressMilestoneStatus>> getMilestoneStatusesForProgress(long progressId);
+    @Query("SELECT COALESCE(SUM(stepsWalked), 0) FROM user_progress")
+    int getTotalCreditedSteps();
+
+    @Query("SELECT COALESCE(SUM(distanceWalked), 0) FROM user_progress")
+    float getTotalCreditedDistance();
+
+    @Query("SELECT * FROM reached_milestone WHERE progressId = :progressId AND milestoneId = :milestoneId")
+    ReachedMilestone getReachedMilestone(long progressId, long milestoneId);
+
+    @Query("SELECT * FROM reached_milestone WHERE progressId = :progressId")
+    LiveData<List<ReachedMilestone>> observeReachedMilestonesForProgress(long progressId);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void markMilestoneNotified(UserProgressMilestoneStatus status);
+    void insertReachedMilestone(ReachedMilestone reachedMilestone);
 }

@@ -15,7 +15,7 @@ import de.hd.stepwise.daos.MilestoneDao;
 import de.hd.stepwise.daos.UserProgressDao;
 import de.hd.stepwise.database.AppDatabase;
 import de.hd.stepwise.entities.MilestoneWithTotalDistance;
-import de.hd.stepwise.entities.UserProgressMilestoneStatus;
+import de.hd.stepwise.entities.ReachedMilestone;
 import de.hd.stepwise.pojos.MilestoneImage;
 import de.hd.stepwise.pojos.MilestoneWithStatus;
 
@@ -36,19 +36,19 @@ public class MilestoneRepository extends BaseRepository {
         MediatorLiveData<List<MilestoneWithStatus>> result = new MediatorLiveData<>();
 
         LiveData<List<MilestoneWithTotalDistance>> milestonesLive = milestoneDao.getMilestonesForTrackLive(trackId);
-        LiveData<List<UserProgressMilestoneStatus>> progressStatusesLive = userProgressDao.getMilestoneStatusesForProgress(progressId);
+        LiveData<List<ReachedMilestone>> reachedMilestonesLive = userProgressDao.observeReachedMilestonesForProgress(progressId);
 
         result.addSource(milestonesLive, milestones -> {
-            List<UserProgressMilestoneStatus> cachedStatuses = progressStatusesLive.getValue();
-            if (cachedStatuses != null) {
-                result.setValue(combine(milestones, cachedStatuses, distanceWalked, stepsWalked));
+            List<ReachedMilestone> cachedReachedMilestones = reachedMilestonesLive.getValue();
+            if (cachedReachedMilestones != null) {
+                result.setValue(combine(milestones, cachedReachedMilestones, distanceWalked, stepsWalked));
             }
         });
 
-        result.addSource(progressStatusesLive, statuses -> {
+        result.addSource(reachedMilestonesLive, reachedMilestones -> {
             List<MilestoneWithTotalDistance> cachedMilestones = milestonesLive.getValue();
             if (cachedMilestones != null) {
-                result.setValue(combine(cachedMilestones, statuses, distanceWalked, stepsWalked));
+                result.setValue(combine(cachedMilestones, reachedMilestones, distanceWalked, stepsWalked));
             }
         });
 
@@ -56,13 +56,13 @@ public class MilestoneRepository extends BaseRepository {
     }
 
     private List<MilestoneWithStatus> combine(List<MilestoneWithTotalDistance> milestones,
-                                              List<UserProgressMilestoneStatus> statuses,
+                                              List<ReachedMilestone> reachedMilestones,
                                               float distanceWalked,
                                               int stepsWalked) {
 
-        Map<Long, UserProgressMilestoneStatus> statusMap = new HashMap<>();
-        for (UserProgressMilestoneStatus status : statuses) {
-            statusMap.put(status.milestoneId, status);
+        Map<Long, ReachedMilestone> reachedMilestonesById = new HashMap<>();
+        for (ReachedMilestone reachedMilestone : reachedMilestones) {
+            reachedMilestonesById.put(reachedMilestone.milestoneId, reachedMilestone);
         }
 
         List<MilestoneWithStatus> result = new ArrayList<>();
@@ -71,9 +71,9 @@ public class MilestoneRepository extends BaseRepository {
             mws.milestone = milestone;
             mws.isCompleted = distanceWalked >= milestone.totalDistance;
             mws.distanceWalked = Math.min(distanceWalked, milestone.totalDistance);
-            UserProgressMilestoneStatus status = statusMap.get(milestone.id);
-            mws.stepsWalked = (status != null && distanceWalked > milestone.totalDistance)
-                    ? status.stepsWalked : (distanceWalked > milestone.totalDistance ? -1 : stepsWalked);
+            ReachedMilestone reachedMilestone = reachedMilestonesById.get(milestone.id);
+            mws.stepsWalked = (reachedMilestone != null && distanceWalked > milestone.totalDistance)
+                    ? reachedMilestone.stepsWalked : (distanceWalked > milestone.totalDistance ? -1 : stepsWalked);
             result.add(mws);
         }
 

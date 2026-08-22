@@ -6,9 +6,13 @@ import androidx.annotation.NonNull;
 import androidx.hilt.work.HiltWorkerFactory;
 import androidx.work.Configuration;
 
+import java.util.concurrent.Executors;
+
 import javax.inject.Inject;
 
 import dagger.hilt.android.HiltAndroidApp;
+import de.hd.stepwise.progresstracking.NotificationHandler;
+import de.hd.stepwise.repositories.AchievementProgressReconciler;
 
 @HiltAndroidApp
 public class StepwiseApplication extends Application implements Configuration.Provider {
@@ -16,10 +20,14 @@ public class StepwiseApplication extends Application implements Configuration.Pr
     @Inject
     HiltWorkerFactory workerFactory;
 
+    @Inject
+    AchievementProgressReconciler achievementProgressReconciler;
+
     @Override
     public void onCreate() {
         super.onCreate();
-        // Any app-level initialization can go here
+        NotificationHandler.createNotificationChannel(this);
+        Executors.newSingleThreadExecutor().execute(achievementProgressReconciler::reconcileSilently);
     }
 
     @NonNull
