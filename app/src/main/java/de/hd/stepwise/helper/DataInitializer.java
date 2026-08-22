@@ -25,6 +25,7 @@ import de.hd.stepwise.entities.Milestone;
 import de.hd.stepwise.entities.Track;
 import de.hd.stepwise.enums.AchievementDifficulty;
 import de.hd.stepwise.enums.AchievementType;
+import de.hd.stepwise.repositories.AchievementProgressReconciler;
 
 public class DataInitializer {
 
@@ -148,6 +149,7 @@ public class DataInitializer {
         if (root.version <= currentVersion) return false;
         prefs.edit().putInt(KEY_ACHIEVEMENTS_VERSION, root.version).apply();
         db.runInTransaction(() -> insertAchievements(db, root.achievements));
+        new AchievementProgressReconciler(db).reconcileSilently();
         return true;
     }
 

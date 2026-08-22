@@ -56,6 +56,12 @@ public interface UserProgressDao {
     @Query("SELECT * FROM user_progress_milestone_status")
     List<UserProgressMilestoneStatus>getNotifiedMilestones();
 
+    @Query("SELECT COUNT(DISTINCT milestoneId) FROM user_progress_milestone_status")
+    int countDistinctReachedMilestones();
+
+    @Query("SELECT COUNT(DISTINCT trackId) FROM user_progress WHERE status = :status")
+    int countDistinctTracksWithStatus(ProgressStatus status);
+
     //get UserProgressMilestoneStatus for a specific progressId and milestoneId
     @Query("SELECT * FROM user_progress_milestone_status WHERE progressId = :progressId AND milestoneId = :milestoneId")
     UserProgressMilestoneStatus getMilestoneStatusForProgress(long progressId, long milestoneId);
