@@ -8,6 +8,8 @@ plugins {
     id("com.google.firebase.crashlytics")
 }
 
+val roomVersion = "2.7.1"
+
 android {
     namespace = "de.hd.stepwise"
     compileSdk = 35
@@ -57,6 +59,8 @@ android {
     buildFeatures {
         viewBinding = true
     }
+
+    sourceSets["androidTest"].assets.srcDir("$projectDir/schemas")
 }
 
 dependencies {
@@ -72,21 +76,21 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    androidTestImplementation("androidx.room:room-testing:$roomVersion")
 
-    val room_version = "2.7.1"
     val work_version = "2.11.2"
 
-    implementation("androidx.room:room-runtime:$room_version")
+    implementation("androidx.room:room-runtime:$roomVersion")
 
     // If this project only uses Java source, use the Java annotationProcessor
     // No additional plugins are necessary
-    annotationProcessor("androidx.room:room-compiler:$room_version")
+    annotationProcessor("androidx.room:room-compiler:$roomVersion")
 
     // optional - Guava support for Room, including Optional and ListenableFuture
-    implementation("androidx.room:room-guava:$room_version")
+    implementation("androidx.room:room-guava:$roomVersion")
 
     // optional - Paging 3 Integration
-    implementation("androidx.room:room-paging:$room_version")
+    implementation("androidx.room:room-paging:$roomVersion")
     implementation("com.squareup.okhttp3:okhttp:5.1.0")
     implementation("org.maplibre.gl:android-sdk:11.8.0")
     implementation("org.osmdroid:osmdroid-android:6.1.8")

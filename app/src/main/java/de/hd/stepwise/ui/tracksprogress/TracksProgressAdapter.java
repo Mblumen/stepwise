@@ -253,7 +253,7 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
             holder.detailsSteps.setText(context.getString(R.string.label_steps, formattedSteps));
         }
 
-        int finishedMilestones = userProgressWithTrackAndMilestones.userProgressMilestoneStatus.size();
+        int finishedMilestones = userProgressWithTrackAndMilestones.reachedMilestones.size();
         String milestoneText = context.getString(R.string.label_milestones, finishedMilestones + "/" + milestones.size());
         holder.baseMilestoneCount.setText(milestoneText);
         holder.detailsMilestoneCount.setText(milestoneText);

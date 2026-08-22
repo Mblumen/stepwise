@@ -10,23 +10,18 @@ import androidx.lifecycle.Transformations;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import de.hd.stepwise.daos.AchievementDao;
 import de.hd.stepwise.daos.MilestoneDao;
 import de.hd.stepwise.daos.TrackDao;
 import de.hd.stepwise.daos.UserProgressDao;
 import de.hd.stepwise.daos.UserSettingsDao;
 import de.hd.stepwise.database.AppDatabase;
-import de.hd.stepwise.entities.Achievement;
 import de.hd.stepwise.entities.MilestoneWithTotalDistance;
+import de.hd.stepwise.entities.ReachedMilestone;
 import de.hd.stepwise.entities.UserProgress;
-import de.hd.stepwise.entities.UserProgressMilestoneStatus;
-import de.hd.stepwise.enums.AchievementType;
 import de.hd.stepwise.enums.ResultStatus;
 import de.hd.stepwise.enums.ProgressStatus;
 import de.hd.stepwise.pojos.ListItem;
@@ -34,7 +29,6 @@ import de.hd.stepwise.pojos.MethodResult;
 import de.hd.stepwise.pojos.Separator;
 import de.hd.stepwise.pojos.TrackWithMilestones;
 import de.hd.stepwise.pojos.UserProgressWithTrackAndMilestones;
-import de.hd.stepwise.pojos.events.AchievementEvent;
 import de.hd.stepwise.pojos.events.FinishProgressResult;
 import de.hd.stepwise.pojos.events.MilestoneWithProgressEvent;
 import de.hd.stepwise.pojos.events.StepUpdateResult;
@@ -46,7 +40,6 @@ public class UserProgressRepository extends BaseRepository{
     private final TrackDao trackDao;
     private final MilestoneDao milestoneDao;
     private final UserSettingsDao userSettingsDao;
-    private final AchievementDao achievementDao;
     private final AppDatabase appDatabase;
     private final AchievementProgressReconciler achievementProgressReconciler;
     //private final MutableLiveData<MilestoneWithProgressEvent> milestoneWithProgressEvents = new MutableLiveData<>();
@@ -60,7 +53,6 @@ public class UserProgressRepository extends BaseRepository{
         this.trackDao = appDatabase.trackDao();
         this.milestoneDao = appDatabase.milestoneDao();
         this.userSettingsDao = appDatabase.userSettingsDao();
-        this.achievementDao = appDatabase.achievementDao();
         this.achievementProgressReconciler = achievementProgressReconciler;
     }
 
@@ -178,18 +170,13 @@ public class UserProgressRepository extends BaseRepository{
             progress.stepsWalked = totalSteps;
             userProgressDao.insertUserProgress(progress);
 
-            //update achievements
-            List<Achievement> achievementsByType = achievementDao.getAchievementsByType(List.of(AchievementType.DISTANCE, AchievementType.STEPS));
-            updateAchievements(achievementsByType.stream().filter(achievement -> achievement.type.equals(AchievementType.DISTANCE)).collect(Collectors.toList()), distanceWalked, stepUpdateResult);
-            updateAchievements(achievementsByType.stream().filter(achievement -> achievement.type.equals(AchievementType.STEPS)).collect(Collectors.toList()), stepsWalked, stepUpdateResult);
-
             TrackWithMilestones trackWithMilestonesById = trackDao.getTrackWithMilestonesById(progress.trackId);
-            List<Long> notifiedMilestones = userProgressDao.getNotifiedMilestonesForProgress(progress.id);
+            List<Long> reachedMilestoneIds = userProgressDao.getReachedMilestoneIdsForProgress(progress.id);
             List<MilestoneWithTotalDistance> milestones = trackWithMilestonesById.milestones;
             for (MilestoneWithTotalDistance m : milestones) {
-                if (totalDistance >= m.totalDistance && !notifiedMilestones.contains(m.id)) {
-                    UserProgressMilestoneStatus userProgressMilestoneStatus = new UserProgressMilestoneStatus(progress.id, m.id, true, totalSteps);
-                    userProgressDao.markMilestoneNotified(userProgressMilestoneStatus);
+                if (totalDistance >= m.totalDistance && !reachedMilestoneIds.contains(m.id)) {
+                    ReachedMilestone reachedMilestone = new ReachedMilestone(progress.id, m.id, totalSteps);
+                    userProgressDao.insertReachedMilestone(reachedMilestone);
                     milestoneDao.unlockMilestone(m.id);
                     //check if it was the last milestone (highest distance offset)
                     boolean isLastMilestone = true;
@@ -294,26 +281,6 @@ public class UserProgressRepository extends BaseRepository{
                 new MethodResult(ResultStatus.SUCCESS, "Track progress finished successfully."),
                 stepUpdateResult
         );
-    }
-
-    private void updateAchievements(List<Achievement> achievements, float updateValue, StepUpdateResult stepUpdateResult) {
-        for (Achievement achievement : achievements) {
-            if (achievement.unlocked) continue; // Skip already unlocked achievements
-            achievement.progressValue += updateValue;
-            if(achievement.progressValue > achievement.targetValue) {
-                // If the progress exceeds the target value, set it to the target value
-                achievement.progressValue = achievement.targetValue;
-            }
-            if (achievement.progressValue >= achievement.targetValue) {
-                achievement.unlocked = true;
-                achievement.dateUnlocked = System.currentTimeMillis();
-                // Post the achievement event
-                stepUpdateResult.unlockedAchievements.add(achievement);
-                //achievementEvents.postValue(new AchievementEvent(achievement, "Achievement unlocked: " + achievement.title));
-                //AchievementEventBus.INSTANCE.postEvent(new AchievementEvent(achievement, "Achievement unlocked"));
-            }
-            achievementDao.update(achievement);
-        }
     }
 
 }

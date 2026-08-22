@@ -25,13 +25,15 @@ import java.util.concurrent.atomic.AtomicReference;
 import de.hd.stepwise.database.AppDatabase;
 import de.hd.stepwise.entities.Achievement;
 import de.hd.stepwise.entities.Milestone;
+import de.hd.stepwise.entities.StepEvent;
 import de.hd.stepwise.entities.Track;
 import de.hd.stepwise.entities.UserProgress;
-import de.hd.stepwise.entities.UserProgressMilestoneStatus;
+import de.hd.stepwise.entities.ReachedMilestone;
 import de.hd.stepwise.entities.UserSettings;
 import de.hd.stepwise.enums.AchievementDifficulty;
 import de.hd.stepwise.enums.AchievementType;
 import de.hd.stepwise.enums.ProgressStatus;
+import de.hd.stepwise.enums.StepSource;
 import de.hd.stepwise.pojos.events.StepUpdateResult;
 import de.hd.stepwise.pojos.events.FinishProgressResult;
 
@@ -70,14 +72,14 @@ public class UserProgressRepositoryAchievementReconciliationTest {
         database.userProgressDao().insertUserProgress(activeProgress);
         database.userProgressDao().insertUserProgress(previousProgress);
 
-        database.userProgressDao().markMilestoneNotified(
-                new UserProgressMilestoneStatus(activeProgress.id, 10, true, 100)
+        database.userProgressDao().insertReachedMilestone(
+                new ReachedMilestone(activeProgress.id, 10, 100)
         );
-        database.userProgressDao().markMilestoneNotified(
-                new UserProgressMilestoneStatus(previousProgress.id, 10, true, 100)
+        database.userProgressDao().insertReachedMilestone(
+                new ReachedMilestone(previousProgress.id, 10, 100)
         );
-        database.userProgressDao().markMilestoneNotified(
-                new UserProgressMilestoneStatus(previousProgress.id, 11, true, 200)
+        database.userProgressDao().insertReachedMilestone(
+                new ReachedMilestone(previousProgress.id, 11, 200)
         );
 
         database.achievementDao().insert(achievement(
@@ -120,12 +122,89 @@ public class UserProgressRepositoryAchievementReconciliationTest {
     }
 
     @Test
+    public void reconciliationRepairsStepsAndDistanceFromCreditedProgressHistoryIdempotently() {
+        long firstTrackId = insertTrack("First track");
+        long secondTrackId = insertTrack("Second track");
+        UserProgress completedProgress = progress(1, firstTrackId, ProgressStatus.COMPLETED);
+        completedProgress.stepsWalked = 4_000;
+        completedProgress.distanceWalked = 3_000f;
+        UserProgress pausedProgress = progress(2, secondTrackId, ProgressStatus.PAUSED);
+        pausedProgress.stepsWalked = 2_500;
+        pausedProgress.distanceWalked = 1_750f;
+        database.userProgressDao().insertUserProgress(completedProgress);
+        database.userProgressDao().insertUserProgress(pausedProgress);
+        database.achievementDao().insert(achievement(
+                "WALK_10000_STEPS",
+                AchievementType.STEPS,
+                10_000
+        ));
+        database.achievementDao().insert(achievement(
+                "WALK_10KM",
+                AchievementType.DISTANCE,
+                10_000
+        ));
+
+        AchievementProgressReconciler reconciler = new AchievementProgressReconciler(database, () -> 999L);
+        reconciler.reconcileSilently();
+        reconciler.reconcileSilently();
+
+        Achievement steps = database.achievementDao().getByKey("WALK_10000_STEPS");
+        Achievement distance = database.achievementDao().getByKey("WALK_10KM");
+        assertEquals(6_500f, steps.progressValue, 0f);
+        assertFalse(steps.unlocked);
+        assertEquals(4_750f, distance.progressValue, 0f);
+        assertFalse(distance.unlocked);
+    }
+
+    @Test
+    public void sourceSwitchingDoesNotAddUncreditedSourceEventsToAchievementProgress() {
+        long trackId = insertTrack("Source-independent track");
+        UserProgress creditedProgress = progress(1, trackId, ProgressStatus.PAUSED);
+        creditedProgress.stepsWalked = 100;
+        creditedProgress.distanceWalked = 75f;
+        database.userProgressDao().insertUserProgress(creditedProgress);
+        database.achievementDao().insert(achievement("STEPS", AchievementType.STEPS, 1_000));
+        database.achievementDao().insert(achievement("DISTANCE", AchievementType.DISTANCE, 1_000));
+
+        database.stepEventDao().insertStepEvent(new StepEvent(5_000, StepSource.STEP_COUNTER, 100));
+        AchievementProgressReconciler reconciler = new AchievementProgressReconciler(database, () -> 999L);
+        reconciler.reconcileSilently();
+        UserSettings settings = database.userSettingsDao().getSettings();
+        settings.stepSource = StepSource.FITBIT;
+        database.userSettingsDao().insertOrUpdate(settings);
+        database.stepEventDao().insertStepEvent(new StepEvent(7_000, StepSource.FITBIT, 200));
+
+        reconciler.reconcileSilently();
+
+        assertEquals(100f, database.achievementDao().getByKey("STEPS").progressValue, 0f);
+        assertEquals(75f, database.achievementDao().getByKey("DISTANCE").progressValue, 0f);
+    }
+
+    @Test
+    public void silentCatalogReconciliationRepairsNewDefinitionsWithoutRetroactiveEvents() {
+        long trackId = insertTrack("Historical track");
+        UserProgress historicalProgress = progress(1, trackId, ProgressStatus.COMPLETED);
+        historicalProgress.stepsWalked = 120;
+        historicalProgress.distanceWalked = 90f;
+        database.userProgressDao().insertUserProgress(historicalProgress);
+        database.achievementDao().insert(achievement("NEW_STEPS", AchievementType.STEPS, 100));
+        database.achievementDao().insert(achievement("NEW_DISTANCE", AchievementType.DISTANCE, 80));
+        AchievementProgressReconciler reconciler = new AchievementProgressReconciler(database, () -> 999L);
+
+        reconciler.reconcileSilently();
+
+        assertTrue(database.achievementDao().getByKey("NEW_STEPS").unlocked);
+        assertTrue(database.achievementDao().getByKey("NEW_DISTANCE").unlocked);
+        assertTrue(reconciler.reconcileInteractively().isEmpty());
+    }
+
+    @Test
     public void interactiveReconciliationReportsEachUnlockTransitionOnlyOnce() {
-        database.userProgressDao().markMilestoneNotified(
-                new UserProgressMilestoneStatus(1, 10, true, 100)
+        database.userProgressDao().insertReachedMilestone(
+                new ReachedMilestone(1, 10, 100)
         );
-        database.userProgressDao().markMilestoneNotified(
-                new UserProgressMilestoneStatus(2, 11, true, 200)
+        database.userProgressDao().insertReachedMilestone(
+                new ReachedMilestone(2, 11, 200)
         );
         database.achievementDao().insert(achievement(
                 "REACH_2_MILESTONES",
@@ -168,9 +247,41 @@ public class UserProgressRepositoryAchievementReconciliationTest {
     }
 
     @Test
+    public void stepUpdateReportsStepAchievementUnlockOnlyOnce() {
+        long trackId = insertTrack("Step track");
+        UserProgress activeProgress = progress(1, trackId, ProgressStatus.ACTIVE);
+        activeProgress.stepsWalked = 5;
+        activeProgress.distanceWalked = 5f;
+        database.userProgressDao().insertUserProgress(activeProgress);
+        database.achievementDao().insert(achievement(
+                "WALK_10_STEPS",
+                AchievementType.STEPS,
+                10
+        ));
+        database.achievementDao().insert(achievement(
+                "WALK_10_METERS",
+                AchievementType.DISTANCE,
+                10
+        ));
+        UserProgressRepository repository = new UserProgressRepository(database);
+
+        StepUpdateResult unlockResult = repository.updateStepsWalked(5);
+        StepUpdateResult repeatedResult = repository.updateStepsWalked(0);
+
+        assertEquals(2, unlockResult.unlockedAchievements.size());
+        assertTrue(unlockResult.unlockedAchievements.stream()
+                .anyMatch(achievement -> achievement.key.equals("WALK_10_STEPS")));
+        assertTrue(unlockResult.unlockedAchievements.stream()
+                .anyMatch(achievement -> achievement.key.equals("WALK_10_METERS")));
+        assertTrue(repeatedResult.unlockedAchievements.isEmpty());
+        assertEquals(10f, database.achievementDao().getByKey("WALK_10_STEPS").progressValue, 0f);
+        assertEquals(10f, database.achievementDao().getByKey("WALK_10_METERS").progressValue, 0f);
+    }
+
+    @Test
     public void silentRepairPreventsLaterRetroactiveUnlockEvent() {
-        database.userProgressDao().markMilestoneNotified(
-                new UserProgressMilestoneStatus(1, 10, true, 100)
+        database.userProgressDao().insertReachedMilestone(
+                new ReachedMilestone(1, 10, 100)
         );
         database.achievementDao().insert(achievement(
                 "REACH_1_MILESTONE",

@@ -49,14 +49,20 @@ public class AchievementProgressReconciler {
     private List<Achievement> reconcileInCurrentTransaction(boolean reportNewUnlocks) {
         int distinctMilestones = userProgressDao.countDistinctReachedMilestones();
         int distinctCompletedTracks = userProgressDao.countDistinctTracksWithStatus(ProgressStatus.COMPLETED);
+        int totalCreditedSteps = userProgressDao.getTotalCreditedSteps();
+        float totalCreditedDistance = userProgressDao.getTotalCreditedDistance();
         List<Achievement> newlyUnlocked = new ArrayList<>();
 
         List<Achievement> achievements = achievementDao.getAchievementsByType(List.of(
+                AchievementType.DISTANCE,
+                AchievementType.STEPS,
                 AchievementType.MILESTONES_REACHED,
                 AchievementType.TRACKS_COMPLETED
         ));
         for (Achievement achievement : achievements) {
             float canonicalValue = switch (achievement.type) {
+                case DISTANCE -> totalCreditedDistance;
+                case STEPS -> totalCreditedSteps;
                 case MILESTONES_REACHED -> distinctMilestones;
                 case TRACKS_COMPLETED -> distinctCompletedTracks;
                 default -> achievement.progressValue;
