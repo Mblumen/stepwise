@@ -2,6 +2,8 @@ package de.hd.stepwise.progresstracking;
 
 import android.Manifest;
 import android.app.PendingIntent;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -46,6 +48,20 @@ public class NotificationHandler {
         this.context = context;
     }
 
+    public static void createNotificationChannel(Context context) {
+        NotificationChannel channel = new NotificationChannel(
+                CHANNEL_ID,
+                "Stepwise updates",
+                NotificationManager.IMPORTANCE_HIGH
+        );
+        channel.setDescription("Milestones, achievements, and completed tracks");
+
+        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+        if (notificationManager != null) {
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
     public void handleStepUpdate(StepUpdateResult stepUpdateResult) {
         if(stepUpdateResult == null) return;
         if (stepUpdateResult.reachedMilestones != null) {
@@ -87,7 +103,11 @@ public class NotificationHandler {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             return; // Permission not granted, do not show notification
         }
-        NotificationManagerCompat.from(context).notify(2, builder.build());
+        NotificationManagerCompat.from(context).notify(
+                "milestone-" + milestone.id,
+                0,
+                builder.build()
+        );
     }
 
     public void showAchievementNotification(Achievement achievement) {
@@ -108,7 +128,11 @@ public class NotificationHandler {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             return; // Permission not granted, do not show notification
         }
-        NotificationManagerCompat.from(context).notify(2, builder.build());
+        NotificationManagerCompat.from(context).notify(
+                "achievement-" + achievement.id,
+                0,
+                builder.build()
+        );
     }
 
     private void showTrackFinishedNotification(Pair<Track, UserProgress> pair) {
@@ -132,7 +156,11 @@ public class NotificationHandler {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             return; // Permission not granted, do not show notification
         }
-        NotificationManagerCompat.from(context).notify(3, builder.build());
+        NotificationManagerCompat.from(context).notify(
+                "track-finished-" + userProgress.id,
+                0,
+                builder.build()
+        );
     }
 
     private RemoteViews getCollapsedGoalView(MilestoneWithTotalDistance milestone) {
