@@ -30,7 +30,7 @@ import de.hd.stepwise.helper.fitbit.auth.FitbitAuthStateManager;
 @Singleton
 public class FitbitApiService {
 
-    public static enum ApiInterval {
+    public enum ApiInterval {
         HOURLY("1h"),
         DAILY("1d"),
         WEEKLY("7d");
@@ -70,10 +70,12 @@ public class FitbitApiService {
 
                         } else {
                             Log.e("FitbitSync", "Fitbit API error: " + responseCode);
+                            callback.accept(null);
                         }
                         conn.disconnect();
-                    } catch (Exception e) {
+            } catch (Exception e) {
                 Log.e("FitbitSync", "Error calling Fitbit API", e);
+                callback.accept(null);
             }});
         };
         fitbitAuthStateManager.performActionWithFreshTokens(accessTokenAction);

@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -22,19 +21,28 @@ import de.hd.stepwise.helper.fitbit.FitbitSyncStateManager;
 public class DailyStepsRepository {
     private final DailyStepsDao dailyStepsDao;
     private final StepEventRepository stepEventRepository;
+    private final DailyActivityRepository dailyActivityRepository;
     @Inject
-    public DailyStepsRepository(AppDatabase db, StepEventRepository stepEventRepository) {
+    public DailyStepsRepository(AppDatabase db, StepEventRepository stepEventRepository,
+                                DailyActivityRepository dailyActivityRepository) {
         dailyStepsDao = db.dailyStepsDao();
         this.stepEventRepository = stepEventRepository;
+        this.dailyActivityRepository = dailyActivityRepository;
     }
 
     public void updateDailySteps(FitbitSyncStateManager.FitbitSyncState syncState, boolean initSteps) {
+        boolean establishingBaseline = initSteps || !dailyActivityRepository.hasFitbitBaseline();
+        if (establishingBaseline) {
+            dailyActivityRepository.initializeFitbitBaselines(syncState.records);
+        } else {
+            dailyActivityRepository.applyFitbitSnapshots(syncState.records);
+        }
         List<DailySteps> dailyStepsList = new ArrayList<>();
         syncState.records.forEach(record -> {
             DailySteps dailySteps = dailyStepsDao.getByDateAndSource(record.date.toString(), record.source);
             if(dailySteps == null) dailySteps = new DailySteps();
             dailySteps.date = record.date.toString();
-            int stepDifference =  initSteps ? 0 : record.steps - dailySteps.steps;
+            int stepDifference = establishingBaseline ? 0 : record.steps - dailySteps.steps;
             //dailySteps.addedStepsSinceLastUpdate = initSteps ? 0 : record.steps - dailySteps.steps;
             dailySteps.steps = record.steps;
             dailySteps.source = record.source;

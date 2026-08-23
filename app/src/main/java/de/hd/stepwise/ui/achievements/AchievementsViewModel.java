@@ -5,6 +5,7 @@ import android.app.Application;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.MediatorLiveData;
 
 import java.util.List;
 
@@ -18,6 +19,11 @@ import de.hd.stepwise.entities.AppRecord;
 import de.hd.stepwise.pojos.ListItem;
 import de.hd.stepwise.repositories.AchievementRepository;
 import de.hd.stepwise.repositories.UserSettingsRepository;
+import de.hd.stepwise.repositories.DailyActivityRepository;
+import de.hd.stepwise.pojos.StreakSummary;
+import de.hd.stepwise.enums.RecordType;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import de.hd.stepwise.ui.BaseFragmentViewModel;
 
 @HiltViewModel
@@ -28,13 +34,65 @@ public class AchievementsViewModel extends BaseFragmentViewModel {
 
     private final MutableLiveData<AchievementFilter> achievementLiveData = new MutableLiveData<>();
     @Inject
-    public AchievementsViewModel(@NonNull Application application, AchievementRepository achievementRepository, UserSettingsRepository userSettingsRepository) {
+    public AchievementsViewModel(@NonNull Application application, AchievementRepository achievementRepository,
+                                 UserSettingsRepository userSettingsRepository,
+                                 DailyActivityRepository dailyActivityRepository) {
         super(application, userSettingsRepository);
         achievementDao = db.achievementDao();
         AppRecordDao appRecordDao = db.appRecordDao();
         allAchievements = achievementRepository.getAchievementsWithSeparators();
-        allAppRecords = appRecordDao.getAll();
+        allAppRecords = combineRecords(appRecordDao.getAll(), dailyActivityRepository);
 
+    }
+
+    private LiveData<List<AppRecord>> combineRecords(LiveData<List<AppRecord>> storedRecords,
+                                                     DailyActivityRepository dailyActivityRepository) {
+        MediatorLiveData<List<AppRecord>> result = new MediatorLiveData<>();
+        final List<AppRecord>[] stored = new List[]{List.of()};
+        final StreakSummary[] streak = new StreakSummary[]{null};
+        Runnable publish = () -> {
+            if (streak[0] == null) return;
+            List<AppRecord> combined = new ArrayList<>(stored[0]);
+            combined.add(currentStreakRecord(streak[0]));
+            combined.add(longestStreakRecord(streak[0]));
+            result.setValue(combined);
+        };
+        result.addSource(storedRecords, records -> {
+            stored[0] = records == null ? List.of() : records;
+            publish.run();
+        });
+        result.addSource(dailyActivityRepository.observeStreakSummary(), summary -> {
+            streak[0] = summary;
+            publish.run();
+        });
+        return result;
+    }
+
+    private AppRecord currentStreakRecord(StreakSummary summary) {
+        AppRecord record = new AppRecord("Current streak", "days", RecordType.STREAK);
+        record.id = Long.MIN_VALUE + 1;
+        record.value = summary.currentDays;
+        record.timestamp = startOfDay(summary.currentStartDate);
+        record.description = summary.currentStartDate == null
+                ? "Walk at least 5,000 steps in a day to start a streak."
+                : "5,000+ steps per day since " + summary.currentStartDate + ".";
+        return record;
+    }
+
+    private AppRecord longestStreakRecord(StreakSummary summary) {
+        AppRecord record = new AppRecord("Longest streak", "days", RecordType.STREAK);
+        record.id = Long.MIN_VALUE + 2;
+        record.value = summary.longestDays;
+        record.timestamp = startOfDay(summary.longestEndDate);
+        record.description = summary.longestStartDate == null
+                ? "Walk at least 5,000 steps in a day to set a streak record."
+                : "5,000+ steps per day from " + summary.longestStartDate
+                    + " through " + summary.longestEndDate + ".";
+        return record;
+    }
+
+    private long startOfDay(java.time.LocalDate date) {
+        return date == null ? 0 : date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 
     public LiveData<List<ListItem>> getAllAchievements() {

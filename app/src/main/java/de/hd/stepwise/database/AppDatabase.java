@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 import de.hd.stepwise.converter.Converters;
 import de.hd.stepwise.daos.AchievementDao;
 import de.hd.stepwise.daos.AppRecordDao;
+import de.hd.stepwise.daos.DailyActivityDao;
 import de.hd.stepwise.daos.DailyStepsDao;
 import de.hd.stepwise.daos.MilestoneDao;
 import de.hd.stepwise.daos.StepEventDao;
@@ -24,6 +25,7 @@ import de.hd.stepwise.daos.UserSettingsDao;
 import de.hd.stepwise.entities.Achievement;
 import de.hd.stepwise.entities.AppRecord;
 import de.hd.stepwise.entities.DailySteps;
+import de.hd.stepwise.entities.DailyActivity;
 import de.hd.stepwise.entities.Milestone;
 import de.hd.stepwise.entities.MilestoneWithTotalDistance;
 import de.hd.stepwise.entities.StepEvent;
@@ -33,27 +35,11 @@ import de.hd.stepwise.entities.ReachedMilestone;
 import de.hd.stepwise.entities.UserSettings;
 import de.hd.stepwise.enums.RecordType;
 
-@Database(entities = {Track.class, Milestone.class, UserProgress.class, ReachedMilestone.class, UserSettings.class, Achievement.class, AppRecord.class, DailySteps.class, StepEvent.class},
+@Database(entities = {Track.class, Milestone.class, UserProgress.class, ReachedMilestone.class, UserSettings.class, Achievement.class, AppRecord.class, DailySteps.class, DailyActivity.class, StepEvent.class},
         views = {MilestoneWithTotalDistance.class},
-        version = 6)
+        version = 7)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
-
-    public static final Migration MIGRATION_5_6 = new Migration(5, 6) {
-        @Override
-        public void migrate(@NonNull SupportSQLiteDatabase database) {
-            database.execSQL("CREATE TABLE IF NOT EXISTS `reached_milestone` ("
-                    + "`progressId` INTEGER NOT NULL, "
-                    + "`milestoneId` INTEGER NOT NULL, "
-                    + "`stepsWalked` INTEGER NOT NULL, "
-                    + "PRIMARY KEY(`progressId`, `milestoneId`))");
-            database.execSQL("INSERT INTO `reached_milestone` (progressId, milestoneId, stepsWalked) "
-                    + "SELECT progressId, milestoneId, stepsWalked FROM `user_progress_milestone_status` "
-                    + "WHERE notified = 1");
-            database.execSQL("DROP TABLE `user_progress_milestone_status`");
-        }
-    };
-
     private static volatile AppDatabase INSTANCE;
 
     public abstract TrackDao trackDao();
@@ -63,6 +49,7 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract AchievementDao achievementDao();
     public abstract AppRecordDao appRecordDao();
     public abstract DailyStepsDao dailyStepsDao();
+    public abstract DailyActivityDao dailyActivityDao();
     public abstract StepEventDao stepEventDao();
 
 
@@ -115,7 +102,7 @@ public abstract class AppDatabase extends RoomDatabase {
                                     AppDatabase.class,
                                     "stepwise_db"
                             )
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                             .addCallback(new RoomDatabase.Callback() {
                                 @Override
                                 public void onCreate(@NonNull SupportSQLiteDatabase db) {
@@ -132,6 +119,36 @@ public abstract class AppDatabase extends RoomDatabase {
         }
         return INSTANCE;
     }
+
+    public static final Migration MIGRATION_5_6 = new Migration(5, 6) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS `reached_milestone` ("
+                    + "`progressId` INTEGER NOT NULL, "
+                    + "`milestoneId` INTEGER NOT NULL, "
+                    + "`stepsWalked` INTEGER NOT NULL, "
+                    + "PRIMARY KEY(`progressId`, `milestoneId`))");
+            database.execSQL("INSERT INTO `reached_milestone` (progressId, milestoneId, stepsWalked) "
+                    + "SELECT progressId, milestoneId, stepsWalked FROM `user_progress_milestone_status` "
+                    + "WHERE notified = 1");
+            database.execSQL("DROP TABLE `user_progress_milestone_status`");
+        }
+    };
+
+    public static final Migration MIGRATION_6_7 = new Migration(6, 7) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE user_settings ADD COLUMN streakTrackingStartDate "
+                    + "TEXT NOT NULL DEFAULT ''");
+            database.execSQL("UPDATE user_settings SET streakTrackingStartDate = date('now', 'localtime') "
+                    + "WHERE streakTrackingStartDate = ''");
+            database.execSQL("CREATE TABLE IF NOT EXISTS daily_activity ("
+                    + "date TEXT NOT NULL PRIMARY KEY, "
+                    + "sensorSteps INTEGER NOT NULL, "
+                    + "fitbitSteps INTEGER NOT NULL, "
+                    + "fitbitLastObserved INTEGER)");
+        }
+    };
 
 
 

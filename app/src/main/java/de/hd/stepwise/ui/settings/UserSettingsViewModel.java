@@ -131,7 +131,8 @@ public class UserSettingsViewModel extends BaseFragmentViewModel {
             return;
         }
 
-        stepSourceManager.setStepSource(newSource, null);
+        stepSourceManager.setStepSource(newSource,
+                result -> _fitbitLoginResult.postValue(new Event<>(result)));
     }
 
     public StepSource getCurrentStepSource() {

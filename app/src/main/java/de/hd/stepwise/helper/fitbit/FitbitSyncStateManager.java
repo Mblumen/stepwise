@@ -49,17 +49,17 @@ public class FitbitSyncStateManager {
         dailyStepsRepository.updateDailySteps(fitbitSyncState, initSteps);
     }
 
-    public void startStepTracking(Runnable callback) {
+    public void startStepTracking(Consumer<Boolean> callback) {
         LocalDate today = LocalDate.now();
         LocalDate weekAgo = today.minusDays(7);
         getStepsForStartAndEndDate(weekAgo, today, (List<DailyStepRecord> apiResponse) -> {;
-            if(apiResponse.isEmpty()) {
+            if(apiResponse == null || apiResponse.isEmpty()) {
                 Log.d("FitbitSync", "No data received from Fitbit API during startStepTracking");
-                if(callback != null) callback.run();
+                if(callback != null) callback.accept(false);
                 return;
             }
             save(new FitbitSyncState(apiResponse), true);
-            if(callback != null) callback.run();
+            if(callback != null) callback.accept(true);
         });
     }
 

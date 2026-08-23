@@ -44,6 +44,9 @@ public class AppRecord {
 
     @Ignore
     public String getValueWithUnit() {
+        if (type == RecordType.STREAK) {
+            return String.format(Locale.getDefault(), "%.0f %s", value, unit);
+        }
         return String.format(Locale.getDefault(), "%.2f %s", value, unit);
     }
 

@@ -80,15 +80,18 @@ public class AppRecordsAdapter extends BaseAdapter<AppRecord, AppRecordsAdapter.
                 value.setVisibility(View.VISIBLE);
             }
             else value.setVisibility(View.GONE);
-            timestamp.setText(appRecord.getFormattedDate());
+            if (appRecord.timestamp > 0) {
+                timestamp.setText(appRecord.getFormattedDate());
+                timestamp.setVisibility(View.VISIBLE);
+            } else {
+                timestamp.setVisibility(View.GONE);
+            }
             description.setText(appRecord.description);
             front.setVisibility(View.VISIBLE);
             back.setVisibility(View.GONE);
             isFlipped = false;
 
-            itemView.setOnClickListener(v -> {
-                flipCard();
-            });
+            itemView.setOnClickListener(v -> flipCard());
         }
 
         private void flipCard() {
