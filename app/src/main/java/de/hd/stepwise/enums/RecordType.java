@@ -7,7 +7,8 @@ public enum RecordType {
     DISTANCE("Distance", R.drawable.distance),          // e.g., total distance walked
     STEPS("Steps", R.drawable.steps),
     DURATION("Duration", R.drawable.timer), // e.g., total time spent walking
-    TRACK("Track", R.drawable.map); // e.g., complete 5 tracks// e.g., 7-day walk streak
+    TRACK("Track", R.drawable.map),
+    STREAK("Streak", R.drawable.steps);
 
     public final String displayName;
     public final int iconResId;

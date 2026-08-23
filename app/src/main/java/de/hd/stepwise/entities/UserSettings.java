@@ -1,16 +1,16 @@
 package de.hd.stepwise.entities;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 import de.hd.stepwise.enums.StepSource;
+import java.time.LocalDate;
 
 @Entity(tableName = "user_settings")
 public class UserSettings {
-    @PrimaryKey(autoGenerate = false)
+    @PrimaryKey()
     public int id = 1; // Singleton entry
 
     public float stepLengthInMeters = 0.75f; // Default value, e.g. 75 cm
@@ -25,5 +25,9 @@ public class UserSettings {
     @NonNull
     @ColumnInfo(name = "stepSource", defaultValue = "0")
     public StepSource stepSource = StepSource.STEP_COUNTER;
+
+    @NonNull
+    @ColumnInfo(defaultValue = "''")
+    public String streakTrackingStartDate = LocalDate.now().toString();
 
 }

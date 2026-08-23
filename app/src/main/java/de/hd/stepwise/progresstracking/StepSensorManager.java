@@ -7,6 +7,9 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
 import java.util.Date;
+import java.time.LocalDate;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -15,32 +18,37 @@ import dagger.hilt.android.qualifiers.ApplicationContext;
 import de.hd.stepwise.entities.StepEvent;
 import de.hd.stepwise.enums.StepSource;
 import de.hd.stepwise.repositories.StepEventRepository;
+import de.hd.stepwise.repositories.DailyActivityRepository;
 
 @Singleton
 public class StepSensorManager implements SensorEventListener {
 
     private final Context context;
     private final StepEventRepository stepEventRepository;
+    private final DailyActivityRepository dailyActivityRepository;
     private SensorManager sensorManager;
+    private final ExecutorService persistenceExecutor = Executors.newSingleThreadExecutor();
 
     public static final String STEP_PREFS = "step_prefs";
     public static final String KEY_LAST_SENSOR_VALUE = "last_sensor_value";
     private boolean isRegistered = false;
 
     @Inject
-    public StepSensorManager(@ApplicationContext Context context, StepEventRepository stepEventRepository) {
+    public StepSensorManager(@ApplicationContext Context context, StepEventRepository stepEventRepository,
+                             DailyActivityRepository dailyActivityRepository) {
         this.context = context;
         this.stepEventRepository = stepEventRepository;
+        this.dailyActivityRepository = dailyActivityRepository;
     }
 
-    public void start() {
-        if (isRegistered) return;
+    public boolean start() {
+        if (isRegistered) return true;
 
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        if (sensorManager == null) return;
+        if (sensorManager == null) return false;
 
         Sensor stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
-        if (stepSensor == null) return;
+        if (stepSensor == null) return false;
 
         sensorManager.registerListener(
                 this,
@@ -49,6 +57,7 @@ public class StepSensorManager implements SensorEventListener {
         );
         setBaseline(-1);
         isRegistered = true;
+        return true;
     }
 
     public void stop() {
@@ -80,7 +89,14 @@ public class StepSensorManager implements SensorEventListener {
 
         if (delta > 0) {
             // push ONLY raw delta
-            stepEventRepository.addStepEvent(new StepEvent(delta, StepSource.STEP_COUNTER, (new Date()).getTime()));
+            LocalDate observedDate = LocalDate.now();
+            long observedAt = new Date().getTime();
+            persistenceExecutor.execute(() -> {
+                dailyActivityRepository.recordSensorDelta(observedDate, delta);
+                stepEventRepository.addStepEvent(
+                        new StepEvent(delta, StepSource.STEP_COUNTER, observedAt)
+                );
+            });
         }
 
         setBaseline(totalSteps);

@@ -1,6 +1,7 @@
 package de.hd.stepwise.database;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import android.database.Cursor;
 
@@ -53,6 +54,35 @@ public class AppDatabaseMigrationTest {
             assertEquals(11L, cursor.getLong(1));
             assertEquals(1234, cursor.getInt(2));
             assertEquals(3, cursor.getColumnCount());
+        }
+    }
+
+    @Test
+    public void migrationFrom6To7StartsEmptyStreakHistoryOnMigrationDate() throws Exception {
+        SupportSQLiteDatabase database = helper.createDatabase(TEST_DATABASE, 6);
+        database.execSQL("INSERT INTO user_settings "
+                + "(id, stepLengthInMeters, showCompletedTracks, useDarkMode, showLockedMilestones, "
+                + "refreshTimeInMinutesFitbit, stepSource) VALUES (1, 0.75, 1, 1, 0, 5, 0)");
+        database.execSQL("INSERT INTO daily_steps (date, steps, source, lastUpdated, addedStepsSinceLastUpdate) "
+                + "VALUES ('2026-08-01', 12000, 1, 0, 0)");
+        database.close();
+
+        database = helper.runMigrationsAndValidate(
+                TEST_DATABASE,
+                7,
+                true,
+                AppDatabase.MIGRATION_6_7
+        );
+
+        try (Cursor cursor = database.query("SELECT COUNT(*) FROM daily_activity")) {
+            cursor.moveToFirst();
+            assertEquals(0, cursor.getInt(0));
+        }
+        try (Cursor cursor = database.query(
+                "SELECT streakTrackingStartDate FROM user_settings WHERE id = 1"
+        )) {
+            cursor.moveToFirst();
+            assertNotNull(cursor.getString(0));
         }
     }
 }
