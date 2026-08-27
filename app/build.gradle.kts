@@ -38,8 +38,6 @@ android {
             "GITHUB_TOKEN",
             "\"$githubToken\"" // <-- quotes are required for Java string literal
         )
-        manifestPlaceholders["appAuthRedirectScheme"] = "de.stepwise"
-
     }
 
     buildTypes {
@@ -68,6 +66,7 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.recyclerview)
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation(libs.constraintlayout)
     implementation(libs.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
@@ -103,11 +102,10 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation("com.google.code.gson:gson:2.7")
     implementation("nl.dionsegijn:konfetti-xml:2.0.2")
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("com.google.dagger:hilt-android:2.57.1")
     implementation("androidx.hilt:hilt-work:1.2.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
-    implementation("net.openid:appauth:0.11.1")
+    implementation("com.google.android.gms:play-services-auth:22.0.0")
     annotationProcessor("com.google.dagger:hilt-android-compiler:2.57.1")
     annotationProcessor("androidx.hilt:hilt-compiler:1.0.0")
     implementation(platform("com.google.firebase:firebase-bom:34.12.0"))

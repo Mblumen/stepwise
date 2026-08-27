@@ -83,7 +83,7 @@ public class StepSourceManager {
     private void switchToFitbit(Runnable callback, Consumer<MethodResult> resultCallback) {
         fitbitSource.initialize(success -> {
             if (!success) {
-                report(resultCallback, ResultStatus.ERROR, "Could not initialize Fitbit step tracking");
+                report(resultCallback, ResultStatus.ERROR, "Could not initialize Google Health step tracking");
                 return;
             }
             sensorSource.stop();

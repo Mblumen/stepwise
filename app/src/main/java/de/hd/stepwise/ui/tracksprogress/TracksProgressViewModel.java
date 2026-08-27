@@ -6,7 +6,9 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.Observer;
+import androidx.work.WorkInfo;
 
 import org.json.JSONException;
 import org.osmdroid.util.GeoPoint;
@@ -27,6 +29,8 @@ import de.hd.stepwise.pojos.MethodResult;
 import de.hd.stepwise.pojos.MilestoneWithStatus;
 import de.hd.stepwise.pojos.events.FinishProgressResult;
 import de.hd.stepwise.progresstracking.NotificationHandler;
+import de.hd.stepwise.progresstracking.StepSyncScheduler;
+import de.hd.stepwise.progresstracking.StepSyncWorker;
 import de.hd.stepwise.repositories.MilestoneRepository;
 import de.hd.stepwise.repositories.TrackRepository;
 import de.hd.stepwise.repositories.UserProgressRepository;
@@ -41,6 +45,7 @@ public class TracksProgressViewModel extends BaseTracksViewModel {
     private final UserProgressRepository userProgressRepository;
     private final RouteService routeService;
     private final NotificationHandler notifcationHandler;
+    private final StepSyncScheduler stepSyncScheduler;
 
     private Track track;
     private float distanceWalked;
@@ -52,6 +57,9 @@ public class TracksProgressViewModel extends BaseTracksViewModel {
     public LiveData<Event<List<GeoPoint>>> geoData = _geoData;
     private final MutableLiveData<Event<GeoPoint>> _pos = new MutableLiveData<>();
     public LiveData<Event<GeoPoint>> pos = _pos;
+    private final MediatorLiveData<Boolean> _refreshing = new MediatorLiveData<>();
+    public LiveData<Boolean> refreshing = _refreshing;
+    private LiveData<WorkInfo> manualSyncWork;
 
 
     @Inject
@@ -60,14 +68,36 @@ public class TracksProgressViewModel extends BaseTracksViewModel {
                                    MilestoneRepository milestoneRepository,
                                    UserSettingsRepository userSettingsRepository,
                                    TrackRepository trackRepository,
-                                   RouteService routeService, NotificationHandler notifcationHandler) {
+                                   RouteService routeService, NotificationHandler notifcationHandler,
+                                   StepSyncScheduler stepSyncScheduler) {
         super(application, userSettingsRepository, trackRepository, milestoneRepository);
         this.userProgressRepository = userProgressRepository;
         this.routeService = routeService;
         this.notifcationHandler = notifcationHandler;
+        this.stepSyncScheduler = stepSyncScheduler;
         allProgress = userProgressRepository.getProgressWithMilestonesForStatusWithSeparators(
                 userSettingsRepository.getShowCompletedTracks()
         );
+    }
+
+    public void refreshSteps() {
+        if (Boolean.TRUE.equals(_refreshing.getValue())) return;
+        _refreshing.setValue(true);
+        manualSyncWork = stepSyncScheduler.triggerManualSync();
+        _refreshing.addSource(manualSyncWork, workInfo -> {
+            if (workInfo == null || !workInfo.getState().isFinished()) return;
+            _refreshing.removeSource(manualSyncWork);
+            manualSyncWork = null;
+            _refreshing.setValue(false);
+            if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
+                _methodResult.setValue(new Event<>(new MethodResult(
+                        ResultStatus.SUCCESS, "Step data refreshed")));
+            } else {
+                String error = workInfo.getOutputData().getString(StepSyncWorker.OUTPUT_ERROR);
+                _methodResult.setValue(new Event<>(new MethodResult(ResultStatus.ERROR,
+                        error == null ? "Could not refresh step data" : error)));
+            }
+        });
     }
 
     public void setTrack(Track track) {

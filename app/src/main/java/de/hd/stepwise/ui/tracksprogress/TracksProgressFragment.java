@@ -66,6 +66,9 @@ public class TracksProgressFragment extends BaseFragment {
 
         RecyclerView recyclerView = binding.progressList;
         TextView emptyState = binding.emptyState;
+        binding.progressRefresh.setOnRefreshListener(viewModel::refreshSteps);
+        viewModel.refreshing.observe(getViewLifecycleOwner(), refreshing ->
+                binding.progressRefresh.setRefreshing(Boolean.TRUE.equals(refreshing)));
 
         adapter = new TracksProgressAdapter(requireContext(), viewModel, getViewLifecycleOwner(), this, this::openMilestone, this::onSectionToggled);
         recyclerView.setAdapter(adapter);

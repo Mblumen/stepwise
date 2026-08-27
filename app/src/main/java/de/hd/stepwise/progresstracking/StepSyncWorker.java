@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.hilt.work.HiltWorker;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
+import androidx.work.Data;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -19,6 +20,7 @@ import dagger.assisted.AssistedInject;
 import de.hd.stepwise.entities.StepEvent;
 import de.hd.stepwise.enums.StepSource;
 import de.hd.stepwise.helper.fitbit.FitbitSyncStateManager;
+import de.hd.stepwise.helper.googlehealth.GoogleHealthAuthorizationRequiredException;
 import de.hd.stepwise.pojos.events.StepUpdateResult;
 import de.hd.stepwise.repositories.StepEventRepository;
 import de.hd.stepwise.repositories.UserProgressRepository;
@@ -26,6 +28,10 @@ import de.hd.stepwise.repositories.UserSettingsRepository;
 
 @HiltWorker
 public class StepSyncWorker extends Worker {
+
+    public static final String INPUT_MANUAL_SYNC = "manual_sync";
+    public static final String OUTPUT_ERROR = "sync_error";
+    private static final Object SYNC_LOCK = new Object();
 
     private final FitbitSyncStateManager fitbitSyncStateManager;
     private final UserSettingsRepository userSettingsRepository;
@@ -55,11 +61,22 @@ public class StepSyncWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
+        synchronized (SYNC_LOCK) {
+            return runSync();
+        }
+    }
+
+    private Result runSync() {
         try {
             Log.d("StepSyncWorker", "Running steps sync...");
             StepSource currentStepSource = userSettingsRepository.getStepSourceSync();
             if (currentStepSource == FITBIT) {
-                syncFromFitbit();
+                try {
+                    syncFromFitbit();
+                } catch (GoogleHealthAuthorizationRequiredException exception) {
+                    Log.i("StepSyncWorker", "Google Health sync needs foreground authorization");
+                    return manualFailure("Google Health authorization is required");
+                }
             } else if (currentStepSource == STEP_COUNTER) {
                 syncFromSensor();
             }
@@ -68,14 +85,23 @@ public class StepSyncWorker extends Worker {
             return Result.success();
         } catch (Exception e) {
             Log.e("FitbitSyncWorker", "Sync failed", e);
-            return Result.retry();
+            return getInputData().getBoolean(INPUT_MANUAL_SYNC, false)
+                    ? manualFailure("Could not refresh step data")
+                    : Result.retry();
         } finally {
             //stepSyncScheduler.scheduleNextRun();
         }
     }
 
-    private void syncFromFitbit() {
-        Log.d("StepSyncWorker", "Syncing steps from Fitbit...");
+    private Result manualFailure(String message) {
+        if (!getInputData().getBoolean(INPUT_MANUAL_SYNC, false)) {
+            return Result.success();
+        }
+        return Result.failure(new Data.Builder().putString(OUTPUT_ERROR, message).build());
+    }
+
+    private void syncFromFitbit() throws Exception {
+        Log.d("StepSyncWorker", "Syncing steps from Google Health...");
         List<FitbitSyncStateManager.DailyStepRecord> apiResponse = fitbitSyncStateManager.getStepDataPastWeekSync();
         if (apiResponse != null && !apiResponse.isEmpty()) {
             fitbitSyncStateManager.save(new FitbitSyncStateManager.FitbitSyncState(apiResponse), false);
@@ -88,7 +114,7 @@ public class StepSyncWorker extends Worker {
             StepUpdateResult stepUpdateResult = userProgressRepository.updateStepsWalked(totalSteps.get());
             notificationHandler.handleStepUpdate(stepUpdateResult);
         } else {
-            Log.d("StepSyncWorker", "No data received from Fitbit");
+            Log.d("StepSyncWorker", "No data received from Google Health");
         }
     }
 

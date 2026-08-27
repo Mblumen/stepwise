@@ -2,7 +2,7 @@ package de.hd.stepwise.enums;
 
 public enum StepSource {
     STEP_COUNTER(0, "Smartphone"),
-    FITBIT(1, "Fitbit");
+    FITBIT(1, "Google Health");
 
     public final int key;
     public final String displayName;

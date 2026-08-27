@@ -81,7 +81,6 @@
     <string name="locked">Locked</string>
     <string name="record_icon">Record Icon</string>
     <string name="rotate_icon">Rotate Icon</string>
-    <string name="coming_soon">Coming soon!</string>
     <string name="no_tracks_selected_yet_start_by_adding_one">No tracks selected yet.\nStart by adding one from the tracks tab!</string>
     <string name="loading_new_data">Loading new app data…</string>
     <string name="update_tracks">Update track data</string>
@@ -96,9 +95,13 @@
     <string name="expand_image">Expand Image</string>
     <string name="connected">Connected</string>
     <string name="disconnect">Disconnect</string>
+    <string name="google_health_choose_account">Choose the Google Health account to disconnect</string>
+    <string name="google_health_choose_account_to_connect">Choose the Google Health account to connect</string>
+    <string name="google_health_connected_as">Connected as %1$s</string>
+    <string name="google_health_account_missing">Could not determine the Google account</string>
     <string name="not_connected">Not connected</string>
     <string name="connect">Connect</string>
-    <string name="fitbit">Fitbit</string>
+    <string name="fitbit">Google Health</string>
     <string name="selected_step_counter">Selected Step Counter</string>
     <string name="health_connect">Health Connect</string>
     <string name="refresh_time_in_minutes">Refresh time in minutes</string>
