@@ -207,6 +207,7 @@ public class NotificationHandler {
             case BRONZE -> ContextCompat.getColor(context, R.color.bronze);
             case SILVER -> ContextCompat.getColor(context, R.color.silver);
             case GOLD -> ContextCompat.getColor(context, R.color.gold);
+            default -> ContextCompat.getColor(context, R.color.dark_gray);
         };
         int textColor = ContextCompat.getColor(context, R.color.notification_text_color);
         contentView.setTextColor(R.id.notification_achievement_title, textColor);

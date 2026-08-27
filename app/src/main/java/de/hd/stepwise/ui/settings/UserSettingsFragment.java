@@ -3,6 +3,7 @@ package de.hd.stepwise.ui.settings;
 import static de.hd.stepwise.ui.ToastHelper.showCustomToast;
 
 import android.annotation.SuppressLint;
+import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -23,6 +24,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.activity.result.IntentSenderRequest;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,35 +32,45 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
-import net.openid.appauth.AuthorizationException;
-import net.openid.appauth.AuthorizationResponse;
-
 import de.hd.stepwise.R;
 import de.hd.stepwise.databinding.FragmentSettingsBinding;
 import de.hd.stepwise.entities.UserSettings;
 import de.hd.stepwise.enums.ResultStatus;
 import de.hd.stepwise.enums.StepSource;
 import de.hd.stepwise.helper.DataInitializer;
-import de.hd.stepwise.helper.fitbit.auth.FitbitAuthHelper;
 import de.hd.stepwise.pojos.MethodResult;
 import de.hd.stepwise.ui.BaseFragment;
 import de.hd.stepwise.ui.UpdateViewModel;
 
 public class UserSettingsFragment extends BaseFragment {
 
+    private static final String STATE_ACCOUNT_PICKER_FOR_DISCONNECT =
+            "account_picker_for_disconnect";
+
     private FragmentSettingsBinding binding;
     private EditText lastFocusedEditText;
     private UserSettingsViewHolder holder;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable saveRunnable;
-    private ActivityResultLauncher<Intent> fitbitAuthLauncher;
+    private ActivityResultLauncher<IntentSenderRequest> googleHealthAuthLauncher;
+    private ActivityResultLauncher<Intent> googleAccountPickerLauncher;
+    private boolean accountPickerForDisconnect;
     private UserSettingsViewModel viewModel;
 
     @SuppressLint("SetTextI18n")
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        observeFitbitAuth();
+        accountPickerForDisconnect = savedInstanceState != null
+                && savedInstanceState.getBoolean(STATE_ACCOUNT_PICKER_FOR_DISCONNECT);
+        registerGoogleHealthAuthorizationLauncher();
+        registerGoogleAccountPickerLauncher();
         viewModel = new ViewModelProvider(this).get(UserSettingsViewModel.class);
+        viewModel.googleHealthAuthorizationResolution.observe(getViewLifecycleOwner(), event -> {
+            android.app.PendingIntent pendingIntent = event.getContentIfNotHandled();
+            if (pendingIntent != null) {
+                googleHealthAuthLauncher.launch(new IntentSenderRequest.Builder(pendingIntent).build());
+            }
+        });
         UpdateViewModel updateViewModel = new ViewModelProvider(requireActivity()).get(UpdateViewModel.class);
         binding = FragmentSettingsBinding.inflate(inflater, container, false);
         holder = new UserSettingsViewHolder(binding);
@@ -69,7 +81,7 @@ public class UserSettingsFragment extends BaseFragment {
             showCustomToast(requireContext(), result.message, result.status, Toast.LENGTH_LONG);
             if(result.status == ResultStatus.SUCCESS) {
                 if (viewModel.isAuthorized()) {
-                    holder.fitbitStatusDesc.setText(R.string.connected);
+                    updateGoogleHealthStatus();
                     holder.fitbitActionButton.setText(R.string.disconnect);
                     holder.refreshTimeFitbit.setEnabled(true);
                     holder.refreshTimeFitbitInput.setEnabled(true);
@@ -178,9 +190,7 @@ public class UserSettingsFragment extends BaseFragment {
         holder.darkModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.updateUseDarkMode(isChecked));
         holder.showCompletedTracksSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.updateShowCompletedTracks(isChecked));
         holder.showLockedMilestonesSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.updateShowLockedMilestones(isChecked));
-        viewModel.getSettings().observe(getViewLifecycleOwner(), settings -> {
-            holder.bind(settings, requireContext());
-        });
+        viewModel.getSettings().observe(getViewLifecycleOwner(), settings -> holder.bind(settings, requireContext()));
         holder.updateTracksButton.setOnClickListener(v -> {
             updateViewModel.update(getContext(), DataInitializer.DataType.TRACKS);
             holder.updateTracksButton.setEnabled(false);
@@ -194,7 +204,7 @@ public class UserSettingsFragment extends BaseFragment {
 
         try {
             if (viewModel.isAuthorized()) {
-                holder.fitbitStatusDesc.setText(R.string.connected);
+                updateGoogleHealthStatus();
                 holder.fitbitActionButton.setText(R.string.disconnect);
                 holder.refreshTimeFitbit.setEnabled(true);
                 holder.refreshTimeFitbitInput.setEnabled(true);
@@ -207,16 +217,14 @@ public class UserSettingsFragment extends BaseFragment {
             holder.fitbitActionButton.setOnClickListener(v -> {
 
                 if (viewModel.isAuthorized()) {
-                    viewModel.clearAuthorization();
-                    if(viewModel.getCurrentStepSource().equals(StepSource.FITBIT)) {
-                        viewModel.updateSelectedSensor(StepSource.STEP_COUNTER);
+                    String accountName = viewModel.getConnectedGoogleAccountName();
+                    if (accountName != null && !accountName.isBlank()) {
+                        viewModel.clearAuthorization(accountName);
+                    } else {
+                        launchGoogleAccountPicker(true);
                     }
-                    holder.fitbitStatusDesc.setText(R.string.not_connected);
-                    holder.fitbitActionButton.setText(R.string.connect);
                 } else {
-                    FitbitAuthHelper authHelper = new FitbitAuthHelper();
-                    Intent authIntent = authHelper.getFitbitAuthIntent(requireActivity());
-                    fitbitAuthLauncher.launch(authIntent);
+                    launchGoogleAccountPicker(false);
                 }
             });
         } catch (Exception e) {
@@ -231,7 +239,7 @@ public class UserSettingsFragment extends BaseFragment {
                 StepSource selectedStepSource = StepSource.getFromDisplayName(selected);
                 if(selectedStepSource != null) {
                     if(selectedStepSource.equals(StepSource.FITBIT) && !viewModel.isAuthorized()) {
-                        showCustomToast(requireContext(), "Please connect your Fitbit account first", ResultStatus.ERROR, Toast.LENGTH_LONG);
+                        showCustomToast(requireContext(), "Please connect Google Health first", ResultStatus.ERROR, Toast.LENGTH_LONG);
                         // Revert to previous selection
                         UserSettings currentSettings = viewModel.getSettings().getValue();
                         if (currentSettings != null) {
@@ -258,6 +266,13 @@ public class UserSettingsFragment extends BaseFragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(STATE_ACCOUNT_PICKER_FOR_DISCONNECT,
+                accountPickerForDisconnect);
     }
 
     private static class UserSettingsViewHolder extends RecyclerView.ViewHolder {
@@ -322,22 +337,59 @@ public class UserSettingsFragment extends BaseFragment {
         }
     }
 
-    private void observeFitbitAuth() {
-        fitbitAuthLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
+    private void registerGoogleHealthAuthorizationLauncher() {
+        googleHealthAuthLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartIntentSenderForResult(),
             result -> {
-
                 Intent data = result.getData();
-
-                if (data == null) {
-                    Log.e("UserSettingsFragment", "Authorization failed: No data received");
+                if (result.getResultCode() != android.app.Activity.RESULT_OK || data == null) {
+                    showCustomToast(requireContext(), "Google Health authorization cancelled",
+                            ResultStatus.ERROR, Toast.LENGTH_LONG);
                     return;
                 }
-
-                AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
-                AuthorizationException ex = AuthorizationException.fromIntent(data);
-                viewModel.processFitbitAuthResponse(response, ex);
+                viewModel.processGoogleHealthAuthorizationResult(data);
             }
         );
+    }
+
+    private void registerGoogleAccountPickerLauncher() {
+        googleAccountPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    Intent data = result.getData();
+                    if (result.getResultCode() != android.app.Activity.RESULT_OK || data == null) {
+                        return;
+                    }
+                    String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+                    if (accountName == null || accountName.isBlank()) {
+                        showCustomToast(requireContext(),
+                                getString(R.string.google_health_account_missing),
+                                ResultStatus.ERROR, Toast.LENGTH_LONG);
+                        return;
+                    }
+                    if (accountPickerForDisconnect) {
+                        viewModel.clearAuthorization(accountName);
+                    } else {
+                        viewModel.connectGoogleHealth(accountName);
+                    }
+                });
+    }
+
+    private void launchGoogleAccountPicker(boolean forDisconnect) {
+        accountPickerForDisconnect = forDisconnect;
+        Intent accountPickerIntent = AccountManager.newChooseAccountIntent(
+                null, null, new String[]{"com.google"},
+                getString(forDisconnect
+                        ? R.string.google_health_choose_account
+                        : R.string.google_health_choose_account_to_connect),
+                null, null, null);
+        googleAccountPickerLauncher.launch(accountPickerIntent);
+    }
+
+    private void updateGoogleHealthStatus() {
+        String accountName = viewModel.getConnectedGoogleAccountName();
+        holder.fitbitStatusDesc.setText(accountName == null || accountName.isBlank()
+                ? getString(R.string.connected)
+                : getString(R.string.google_health_connected_as, accountName));
     }
 }

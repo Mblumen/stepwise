@@ -2,6 +2,6 @@
 <resources>
     <string-array name="sensor_array">
         <item>Smartphone</item>
-        <item>Fitbit</item>
+        <item>Google Health</item>
     </string-array>
 </resources>

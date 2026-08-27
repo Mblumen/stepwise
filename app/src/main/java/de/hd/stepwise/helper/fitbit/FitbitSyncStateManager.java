@@ -4,15 +4,14 @@ import android.util.Log;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import de.hd.stepwise.entities.DailySteps;
 import de.hd.stepwise.enums.StepSource;
+import de.hd.stepwise.helper.googlehealth.GoogleHealthApiService;
 import de.hd.stepwise.repositories.DailyStepsRepository;
 
 @Singleton
@@ -36,12 +35,12 @@ public class FitbitSyncStateManager {
         }
     }
 
-    private final FitbitApiService fitbitApiService;
+    private final GoogleHealthApiService googleHealthApiService;
     private final DailyStepsRepository dailyStepsRepository;
 
     @Inject
-    public FitbitSyncStateManager(FitbitApiService fitbitApiService, DailyStepsRepository dailyStepsRepository) {
-        this.fitbitApiService = fitbitApiService;
+    public FitbitSyncStateManager(GoogleHealthApiService googleHealthApiService, DailyStepsRepository dailyStepsRepository) {
+        this.googleHealthApiService = googleHealthApiService;
         this.dailyStepsRepository = dailyStepsRepository;
     }
 
@@ -52,14 +51,14 @@ public class FitbitSyncStateManager {
     public void startStepTracking(Consumer<Boolean> callback) {
         LocalDate today = LocalDate.now();
         LocalDate weekAgo = today.minusDays(7);
-        getStepsForStartAndEndDate(weekAgo, today, (List<DailyStepRecord> apiResponse) -> {;
-            if(apiResponse == null || apiResponse.isEmpty()) {
-                Log.d("FitbitSync", "No data received from Fitbit API during startStepTracking");
-                if(callback != null) callback.accept(false);
+        getStepsForStartAndEndDate(weekAgo, today, apiResponse -> {
+            if (!isSuccessfulResponse(apiResponse)) {
+                Log.d("GoogleHealthSync", "Could not initialize Google Health step tracking");
+                if (callback != null) callback.accept(false);
                 return;
             }
             save(new FitbitSyncState(apiResponse), true);
-            if(callback != null) callback.accept(true);
+            if (callback != null) callback.accept(true);
         });
     }
 
@@ -75,22 +74,9 @@ public class FitbitSyncStateManager {
         getStepsForStartAndEndDate(weekAgo, today, callback);
     }
 
-    public List<DailyStepRecord> getStepDataPastWeekSync() {
-        CountDownLatch latch = new CountDownLatch(1);
-        AtomicReference<List<DailyStepRecord>> result = new AtomicReference<>();
-
-        getStepDataPastWeek(data -> {
-            result.set(data);
-            latch.countDown();
-        });
-
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        return result.get();
+    public List<DailyStepRecord> getStepDataPastWeekSync() throws Exception {
+        LocalDate today = LocalDate.now();
+        return googleHealthApiService.getStepsData(today.minusDays(7), today);
     }
 
     /*public void getStepsSinceLastUpdate(Consumer<List<DailyStepRecord>> callback) {
@@ -123,6 +109,19 @@ public class FitbitSyncStateManager {
     }*/
 
     private void getStepsForStartAndEndDate(LocalDate startDate, LocalDate endDate, Consumer<List<DailyStepRecord>> callback) {
-        fitbitApiService.getStepsData(startDate, endDate, FitbitApiService.ApiInterval.DAILY, callback);
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                callback.accept(googleHealthApiService.getStepsData(startDate, endDate));
+            } catch (Exception exception) {
+                Log.e("GoogleHealthSync", "Could not read Google Health steps", exception);
+                callback.accept(null);
+            }
+        });
+    }
+
+    static boolean isSuccessfulResponse(List<DailyStepRecord> records) {
+        // An empty rollup is a valid response when the account has no step history.
+        // Only null represents a request failure in this callback chain.
+        return records != null;
     }
 }

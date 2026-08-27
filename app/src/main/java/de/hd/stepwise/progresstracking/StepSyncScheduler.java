@@ -7,15 +7,11 @@ import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
-import androidx.work.Operation;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
-import androidx.work.WorkRequest;
+import androidx.lifecycle.LiveData;
 
-import com.google.common.util.concurrent.ListenableFuture;
-
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -29,6 +25,7 @@ public class StepSyncScheduler {
     private final Context context;
     private final UserSettingsRepository userSettingsRepository;
     public static final String WORK_TAG = "fitbit_sync_chain";
+    private static final String MANUAL_WORK_NAME = "manual_step_sync";
 
     @Inject
     public StepSyncScheduler(@ApplicationContext Context context, UserSettingsRepository userSettingsRepository) {
@@ -53,6 +50,17 @@ public class StepSyncScheduler {
 
     public void stopWorker() {
         WorkManager.getInstance(context).cancelAllWorkByTag(WORK_TAG);
+    }
+
+    public LiveData<WorkInfo> triggerManualSync() {
+        OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(StepSyncWorker.class)
+                .setInputData(new androidx.work.Data.Builder()
+                        .putBoolean(StepSyncWorker.INPUT_MANUAL_SYNC, true)
+                        .build())
+                .build();
+        WorkManager workManager = WorkManager.getInstance(context);
+        workManager.enqueueUniqueWork(MANUAL_WORK_NAME, ExistingWorkPolicy.REPLACE, work);
+        return workManager.getWorkInfoByIdLiveData(work.getId());
     }
 
     public void scheduleNextRun() {

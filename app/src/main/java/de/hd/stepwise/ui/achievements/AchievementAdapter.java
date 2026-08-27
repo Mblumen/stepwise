@@ -149,7 +149,7 @@ public class AchievementAdapter extends BaseAdapter<ListItem, RecyclerView.ViewH
                 achievementContainer.setBackgroundResource(R.drawable.border_stone);
                 icon.setImageTintList(ContextCompat.getColorStateList(context, R.color.stone));
                 progressBar.setProgressTintList(ContextCompat.getColorStateList(context, R.color.stone));
-                if(achievement.unlocked) medalText.setText("\uD83E\uDDFF");
+                if(achievement.unlocked) medalText.setVisibility(View.GONE); //medalText.setText("\uD83E\uDDFF");
             } else if (achievement.difficulty == AchievementDifficulty.BRONZE) {
                 achievementContainer.setBackgroundResource(R.drawable.border_bronze);
                 icon.setImageTintList(ContextCompat.getColorStateList(context, R.color.bronze));
