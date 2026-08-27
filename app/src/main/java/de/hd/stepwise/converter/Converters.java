@@ -15,6 +15,8 @@ import de.hd.stepwise.enums.ProgressStatus;
 import de.hd.stepwise.enums.RecordType;
 import de.hd.stepwise.enums.StepSource;
 import de.hd.stepwise.pojos.MilestoneImage;
+import de.hd.stepwise.pojos.MilestoneDiscovery;
+import de.hd.stepwise.pojos.MilestoneQuiz;
 import de.hd.stepwise.pojos.TrackRoute;
 
 public class Converters {
@@ -41,6 +43,26 @@ public class Converters {
     @TypeConverter
     public static String toJson(List<MilestoneImage> list) {
         return gson.toJson(list);
+    }
+
+    @TypeConverter
+    public static MilestoneDiscovery fromMilestoneDiscoveryJson(String value) {
+        return value == null ? null : gson.fromJson(value, MilestoneDiscovery.class);
+    }
+
+    @TypeConverter
+    public static String toMilestoneDiscoveryJson(MilestoneDiscovery discovery) {
+        return discovery == null ? null : gson.toJson(discovery);
+    }
+
+    @TypeConverter
+    public static MilestoneQuiz fromMilestoneQuizJson(String value) {
+        return value == null ? null : gson.fromJson(value, MilestoneQuiz.class);
+    }
+
+    @TypeConverter
+    public static String toMilestoneQuizJson(MilestoneQuiz quiz) {
+        return quiz == null ? null : gson.toJson(quiz);
     }
 
     @TypeConverter

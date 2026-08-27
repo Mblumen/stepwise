@@ -37,7 +37,7 @@ import de.hd.stepwise.enums.RecordType;
 
 @Database(entities = {Track.class, Milestone.class, UserProgress.class, ReachedMilestone.class, UserSettings.class, Achievement.class, AppRecord.class, DailySteps.class, DailyActivity.class, StepEvent.class},
         views = {MilestoneWithTotalDistance.class},
-        version = 7)
+        version = 8)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
     private static volatile AppDatabase INSTANCE;
@@ -102,7 +102,7 @@ public abstract class AppDatabase extends RoomDatabase {
                                     AppDatabase.class,
                                     "stepwise_db"
                             )
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
                             .addCallback(new RoomDatabase.Callback() {
                                 @Override
                                 public void onCreate(@NonNull SupportSQLiteDatabase db) {
@@ -147,6 +147,31 @@ public abstract class AppDatabase extends RoomDatabase {
                     + "sensorSteps INTEGER NOT NULL, "
                     + "fitbitSteps INTEGER NOT NULL, "
                     + "fitbitLastObserved INTEGER)");
+        }
+    };
+
+    /**
+     * Legacy milestone reach times were not stored. Completed progress uses its completion time;
+     * unfinished progress uses its start time; records without either timestamp use epoch zero.
+     */
+    public static final Migration MIGRATION_7_8 = new Migration(7, 8) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE reached_milestone ADD COLUMN reachedAt "
+                    + "INTEGER NOT NULL DEFAULT 0");
+            database.execSQL("ALTER TABLE reached_milestone ADD COLUMN selectedQuizAnswer INTEGER");
+            database.execSQL("ALTER TABLE reached_milestone ADD COLUMN quizCompletedAt INTEGER");
+            database.execSQL("UPDATE reached_milestone SET reachedAt = COALESCE("
+                    + "(SELECT completedAt FROM user_progress "
+                    + "WHERE user_progress.id = reached_milestone.progressId), "
+                    + "(SELECT startedAt FROM user_progress "
+                    + "WHERE user_progress.id = reached_milestone.progressId), 0)");
+            database.execSQL("ALTER TABLE milestone ADD COLUMN audioUrl TEXT");
+            database.execSQL("ALTER TABLE milestone ADD COLUMN localAudioPath TEXT");
+            database.execSQL("ALTER TABLE milestone ADD COLUMN stampImageUrl TEXT");
+            database.execSQL("ALTER TABLE milestone ADD COLUMN localStampImagePath TEXT");
+            database.execSQL("ALTER TABLE milestone ADD COLUMN discovery TEXT");
+            database.execSQL("ALTER TABLE milestone ADD COLUMN quiz TEXT");
         }
     };
 

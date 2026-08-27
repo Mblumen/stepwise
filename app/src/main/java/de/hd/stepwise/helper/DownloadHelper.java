@@ -6,7 +6,7 @@ import androidx.annotation.NonNull;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,6 +17,9 @@ import java.nio.charset.StandardCharsets;
 import de.hd.stepwise.BuildConfig;
 
 public class DownloadHelper {
+    private static final AtomicFileDownloader FILE_DOWNLOADER =
+            new AtomicFileDownloader(DownloadHelper::openDownloadStream);
+
     public static String downloadJson(String jsonUrl) throws IOException {
         HttpURLConnection connection = getHttpURLConnection(jsonUrl);
 
@@ -44,24 +47,9 @@ public class DownloadHelper {
             String jsonUrl,
             String cacheFileName
     ) throws IOException {
-        HttpURLConnection connection = getHttpURLConnection(jsonUrl);
-        connection.connect();
         File dir = new File(context.getFilesDir(), "json_cache/");
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
         File file = new File(dir, cacheFileName);
-
-        try (InputStream in = connection.getInputStream();
-             FileOutputStream out = new FileOutputStream(file)) {
-
-            byte[] buffer = new byte[8192];
-            int len;
-            while ((len = in.read(buffer)) != -1) {
-                out.write(buffer, 0, len);
-            }
-        }
-        return file.getAbsolutePath();
+        return FILE_DOWNLOADER.download(jsonUrl, file);
     }
 
     public static String downloadTrackImage(
@@ -71,8 +59,6 @@ public class DownloadHelper {
             Long milestoneId,
             Long milestoneImageId
     ) throws IOException {
-        HttpURLConnection connection = getHttpURLConnection(imageUrl);
-        connection.connect();
         StringBuilder pathBuilder = new StringBuilder("images/tracks/");
         if (trackId != null) {
             pathBuilder.append(trackId);
@@ -81,24 +67,31 @@ public class DownloadHelper {
             pathBuilder.append("/milestones/").append(milestoneId);
         }
         File dir = new File(context.getFilesDir(), pathBuilder.toString());
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-
         String fileName = milestoneImageId != null ? "milestone_image_" + milestoneImageId + ".jpg" : milestoneId != null ? "milestone_" + milestoneId + ".jpg" : "track_" + trackId + ".jpg";
         File file = new File(dir, fileName);
+        return FILE_DOWNLOADER.download(imageUrl, file);
+    }
 
-        try (InputStream in = connection.getInputStream();
-             FileOutputStream out = new FileOutputStream(file)) {
+    public static String downloadMilestoneAsset(Context context, String assetUrl, long trackId,
+                                                long milestoneId, String fileName)
+            throws IOException {
+        File directory = new File(context.getFilesDir(),
+                "images/tracks/" + trackId + "/milestones/" + milestoneId);
+        return FILE_DOWNLOADER.download(assetUrl, new File(directory, fileName));
+    }
 
-            byte[] buffer = new byte[8192];
-            int len;
-            while ((len = in.read(buffer)) != -1) {
-                out.write(buffer, 0, len);
+    private static InputStream openDownloadStream(String url) throws IOException {
+        HttpURLConnection connection = getHttpURLConnection(url);
+        return new FilterInputStream(connection.getInputStream()) {
+            @Override
+            public void close() throws IOException {
+                try {
+                    super.close();
+                } finally {
+                    connection.disconnect();
+                }
             }
-        }
-
-        return file.getAbsolutePath();
+        };
     }
 
     @NonNull
