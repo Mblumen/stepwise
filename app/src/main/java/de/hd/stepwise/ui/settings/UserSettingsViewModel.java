@@ -10,6 +10,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import javax.inject.Inject;
+import java.util.function.Consumer;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import de.hd.stepwise.entities.UserSettings;
@@ -26,6 +27,15 @@ import de.hd.stepwise.ui.BaseFragmentViewModel;
 
 @HiltViewModel
 public class UserSettingsViewModel extends BaseFragmentViewModel {
+
+    interface AuthorizationRevoker {
+        void revoke(String accountName, Runnable successCallback,
+                    Consumer<Exception> errorCallback);
+    }
+
+    interface SourceSwitcher {
+        void setStepSource(StepSource source, Consumer<MethodResult> callback);
+    }
 
     private final UserSettingsRepository repository;
     private final GoogleHealthAuthManager googleHealthAuthManager;
@@ -117,15 +127,9 @@ public class UserSettingsViewModel extends BaseFragmentViewModel {
     }
 
     public void clearAuthorization(String accountName) {
-        googleHealthAuthManager.revoke(accountName,
-                () -> {
-                    if (getCurrentStepSource() == StepSource.FITBIT) {
-                        stepSourceManager.setStepSource(StepSource.STEP_COUNTER,
-                                ignored -> reportLoggedOut());
-                    } else {
-                        reportLoggedOut();
-                    }
-                },
+        disconnectGoogleHealth(accountName, googleHealthAuthManager::revoke,
+                stepSourceManager::setStepSource,
+                result -> _fitbitLoginResult.postValue(new Event<>(result)),
                 exception -> {
                     Log.e("GoogleHealthAuth", "Could not revoke Google Health access", exception);
                     _fitbitLoginResult.postValue(new Event<>(new MethodResult(
@@ -161,9 +165,22 @@ public class UserSettingsViewModel extends BaseFragmentViewModel {
                 ResultStatus.ERROR, "Google Health authentication failed")));
     }
 
-    private void reportLoggedOut() {
-        _fitbitLoginResult.postValue(new Event<>(new MethodResult(
-                ResultStatus.SUCCESS, "Disconnected from Google Health")));
+    static void disconnectGoogleHealth(String accountName, AuthorizationRevoker revoker,
+                                       SourceSwitcher sourceSwitcher,
+                                       Consumer<MethodResult> resultCallback,
+                                       Consumer<Exception> revokeErrorCallback) {
+        revoker.revoke(accountName,
+                () -> sourceSwitcher.setStepSource(StepSource.STEP_COUNTER, sourceResult -> {
+                    if (sourceResult.status == ResultStatus.SUCCESS) {
+                        resultCallback.accept(new MethodResult(
+                                ResultStatus.SUCCESS, "Disconnected from Google Health"));
+                    } else {
+                        resultCallback.accept(new MethodResult(
+                                ResultStatus.ERROR,
+                                "Disconnected from Google Health, but the phone step counter is unavailable"));
+                    }
+                }),
+                revokeErrorCallback);
     }
 
     public void updateSelectedSensor(StepSource newSource) {

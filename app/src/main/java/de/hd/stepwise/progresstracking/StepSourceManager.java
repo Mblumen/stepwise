@@ -1,5 +1,6 @@
 package de.hd.stepwise.progresstracking;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
@@ -15,9 +16,15 @@ import de.hd.stepwise.repositories.UserSettingsRepository;
 @Singleton
 public class StepSourceManager {
 
-    private final UserSettingsRepository userSettingsRepository;
+    private final SettingsStore settingsStore;
     private final FitbitSource fitbitSource;
     private final SensorSource sensorSource;
+    private final Executor executor;
+
+    interface SettingsStore {
+        StepSource getStepSource();
+        void updateStepSource(StepSource stepSource);
+    }
 
     interface FitbitSource {
         void initialize(Consumer<Boolean> callback);
@@ -30,7 +37,17 @@ public class StepSourceManager {
 
     @Inject
     public StepSourceManager(UserSettingsRepository userSettingsRepository, FitbitSyncStateManager fitbitSyncStateManager, StepSensorManager stepSensorManager) {
-        this(userSettingsRepository, fitbitSyncStateManager::startStepTracking, new SensorSource() {
+        this(new SettingsStore() {
+            @Override
+            public StepSource getStepSource() {
+                return userSettingsRepository.getStepSourceSync();
+            }
+
+            @Override
+            public void updateStepSource(StepSource stepSource) {
+                userSettingsRepository.updateStepSource(stepSource);
+            }
+        }, fitbitSyncStateManager::startStepTracking, new SensorSource() {
             @Override
             public boolean start() {
                 return stepSensorManager.start();
@@ -40,25 +57,26 @@ public class StepSourceManager {
             public void stop() {
                 stepSensorManager.stop();
             }
-        });
+        }, Executors.newSingleThreadExecutor());
     }
 
-    StepSourceManager(UserSettingsRepository userSettingsRepository, FitbitSource fitbitSource,
-                      SensorSource sensorSource) {
-        this.userSettingsRepository = userSettingsRepository;
+    StepSourceManager(SettingsStore settingsStore, FitbitSource fitbitSource,
+                      SensorSource sensorSource, Executor executor) {
+        this.settingsStore = settingsStore;
         this.fitbitSource = fitbitSource;
         this.sensorSource = sensorSource;
+        this.executor = executor;
     }
 
     public void setStepSource(StepSource newSource, Consumer<MethodResult> callback) {
-        Executors.newSingleThreadExecutor().execute(() -> {
-            StepSource current = userSettingsRepository.getStepSourceSync();
+        executor.execute(() -> {
+            StepSource current = settingsStore.getStepSource();
             if (current == newSource) {
                 report(callback, ResultStatus.SUCCESS, "Step source unchanged");
                 return;
             }
             Runnable combinedCallback = () -> {
-                userSettingsRepository.updateStepSource(newSource);
+                settingsStore.updateStepSource(newSource);
                 report(callback, ResultStatus.SUCCESS, "Step source updated");
             };
             switch (newSource) {
