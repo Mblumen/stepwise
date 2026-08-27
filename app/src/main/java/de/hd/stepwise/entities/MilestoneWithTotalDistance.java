@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Objects;
 
 import de.hd.stepwise.pojos.MilestoneImage;
+import de.hd.stepwise.pojos.MilestoneDiscovery;
+import de.hd.stepwise.pojos.MilestoneQuiz;
 import de.hd.stepwise.ui.milestones.MilestoneItem;
 
 @DatabaseView("""
@@ -34,6 +36,12 @@ public class MilestoneWithTotalDistance implements MilestoneItem {
     public boolean unlocked = false; // default is locked
     @ColumnInfo(name = "extra_images")
     public List<MilestoneImage> extraImages;
+    public String audioUrl;
+    public String localAudioPath;
+    public String stampImageUrl;
+    public String localStampImagePath;
+    public MilestoneDiscovery discovery;
+    public MilestoneQuiz quiz;
 
     @Override
     public MilestoneWithTotalDistance getMilestone() {

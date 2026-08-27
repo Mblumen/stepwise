@@ -20,6 +20,12 @@ public interface MilestoneDao {
     @Query("Update milestone SET localImagePath = :localImagePath WHERE id = :milestoneId")
     void updateLocalImagePath(long milestoneId, String localImagePath);
 
+    @Query("Update milestone SET localAudioPath = :localAudioPath WHERE id = :milestoneId")
+    void updateLocalAudioPath(long milestoneId, String localAudioPath);
+
+    @Query("Update milestone SET localStampImagePath = :localStampImagePath WHERE id = :milestoneId")
+    void updateLocalStampImagePath(long milestoneId, String localStampImagePath);
+
     @Query("Update milestone SET extra_images = :images WHERE id = :milestoneId")
     void updateExtraImages(long milestoneId, List<MilestoneImage> images);
 

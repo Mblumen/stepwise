@@ -11,6 +11,7 @@ import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
@@ -128,9 +129,10 @@ public class DataInitializer {
             if (trackEntry.version > currentVersion) {
                 try {
                     String trackJson = DownloadHelper.downloadJson(trackEntry.file);
-                    TrackJson track = parseJson(trackJson, new TypeToken<>() {});
+                    TrackJson track = new TrackCatalogParser().parse(trackJson);
                     db.runInTransaction(() -> insertTrack(db, track));
                     downloadImagesIfNecessary(context, db, track);
+                    downloadRichMilestoneAssetsIfNecessary(context, db, track);
                     downloadGeoDataIfNecessary(context, db, track);
                     updatedTracks.add(trackEntry.name);
                     prefs.edit().putInt(KEY_TRACKS_VERSION + trackEntry.name, trackEntry.version).apply();
@@ -183,6 +185,16 @@ public class DataInitializer {
             m.longitude = mj.longitude != null ? mj.longitude : 0;
             m.imageUrl = mj.imageUrl;
             m.extraImages = mj.extraImages;
+            if (!Objects.equals(m.audioUrl, mj.audioUrl)) {
+                m.localAudioPath = null;
+            }
+            if (!Objects.equals(m.stampImageUrl, mj.stampImageUrl)) {
+                m.localStampImagePath = null;
+            }
+            m.audioUrl = mj.audioUrl;
+            m.stampImageUrl = mj.stampImageUrl;
+            m.discovery = mj.discovery;
+            m.quiz = mj.quiz;
 
             db.milestoneDao().insertMilestone(m);
         }
@@ -233,6 +245,35 @@ public class DataInitializer {
                 db.trackDao().updateTrackRoute(track.id, track.trackRoute);
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+        }
+    }
+
+    private static void downloadRichMilestoneAssetsIfNecessary(Context context, AppDatabase db,
+                                                               TrackJson json) {
+        Track track = db.trackDao().getTrackByName(json.name);
+        if (track == null || json.milestones == null) return;
+        for (MilestoneJson milestoneJson : json.milestones) {
+            Milestone milestone = db.milestoneDao().getMilestoneByTitleAndTrackId(
+                    milestoneJson.title, track.id);
+            if (milestone == null) continue;
+            if (milestone.audioUrl != null) {
+                try {
+                    String path = DownloadHelper.downloadMilestoneAsset(context,
+                            milestone.audioUrl, track.id, milestone.id, "narration.mp3");
+                    db.milestoneDao().updateLocalAudioPath(milestone.id, path);
+                } catch (IOException exception) {
+                    exception.printStackTrace();
+                }
+            }
+            if (milestone.stampImageUrl != null) {
+                try {
+                    String path = DownloadHelper.downloadMilestoneAsset(context,
+                            milestone.stampImageUrl, track.id, milestone.id, "stamp.png");
+                    db.milestoneDao().updateLocalStampImagePath(milestone.id, path);
+                } catch (IOException exception) {
+                    exception.printStackTrace();
+                }
             }
         }
     }

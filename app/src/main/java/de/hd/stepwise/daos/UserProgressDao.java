@@ -47,6 +47,24 @@ public interface UserProgressDao {
     @Query("SELECT * FROM user_progress WHERE status IN (:status) ORDER BY status ASC, stepsWalked DESC")
     LiveData<List<UserProgressWithTrackAndMilestones>> getProgressWithTrackAndMilestonesForStatus(List<ProgressStatus> status);
 
+    @Transaction
+    @Query("SELECT * FROM user_progress WHERE id = :progressId")
+    UserProgressWithTrackAndMilestones getProgressWithTrackAndMilestonesById(long progressId);
+
+    @Transaction
+    @Query("SELECT * FROM user_progress WHERE id = :progressId")
+    LiveData<UserProgressWithTrackAndMilestones> observeProgressWithTrackAndMilestonesById(long progressId);
+
+    @Transaction
+    @Query("SELECT * FROM user_progress WHERE status IN ('active', 'paused') "
+            + "ORDER BY CASE status WHEN 'active' THEN 0 ELSE 1 END LIMIT 1")
+    UserProgressWithTrackAndMilestones getCurrentProgressWithTrackAndMilestones();
+
+    @Transaction
+    @Query("SELECT * FROM user_progress WHERE status IN ('active', 'paused') "
+            + "ORDER BY CASE status WHEN 'active' THEN 0 ELSE 1 END LIMIT 1")
+    LiveData<UserProgressWithTrackAndMilestones> observeCurrentProgressWithTrackAndMilestones();
+
     @Query("SELECT * FROM user_progress WHERE status = 'active'")
     UserProgress getActiveUserProgress();
 
@@ -73,4 +91,10 @@ public interface UserProgressDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertReachedMilestone(ReachedMilestone reachedMilestone);
+
+    @Query("UPDATE reached_milestone SET selectedQuizAnswer = :selectedAnswer, "
+            + "quizCompletedAt = :completedAt "
+            + "WHERE progressId = :progressId AND milestoneId = :milestoneId")
+    void updateReachedMilestoneQuizState(long progressId, long milestoneId,
+                                         int selectedAnswer, Long completedAt);
 }
