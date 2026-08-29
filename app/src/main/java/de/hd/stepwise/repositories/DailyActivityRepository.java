@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
-import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -30,7 +29,7 @@ import de.hd.stepwise.pojos.TodayStepStatus;
 import de.hd.stepwise.pojos.DailyGoalState;
 
 @Singleton
-public class DailyActivityRepository {
+public class DailyActivityRepository extends BaseRepository {
     public static final int ACTIVE_DAY_STEPS = 5_000;
 
     private final AppDatabase database;
@@ -115,7 +114,11 @@ public class DailyActivityRepository {
     }
 
     public LiveData<StreakSummary> observeStreakSummary() {
-        return observeCalculation(LocalDate.now(), CalculationValue.STREAK);
+        return observeStreakSummary(LocalDate.now());
+    }
+
+    public LiveData<StreakSummary> observeStreakSummary(LocalDate today) {
+        return observeCalculation(today, CalculationValue.STREAK);
     }
 
     public LiveData<TodayStepStatus> observeTodayStatus(LocalDate today) {
@@ -142,12 +145,16 @@ public class DailyActivityRepository {
         });
     }
 
+    public void scheduleDailyGoalAsync(int steps, LocalDate today) {
+        executor.execute(() -> scheduleDailyGoal(steps, today));
+    }
+
     public static boolean isValidGoal(int steps) {
         return steps >= 1_000 && steps <= 50_000 && steps % 500 == 0;
     }
 
     public void refreshStreakLedger(LocalDate today) {
-        Executors.newSingleThreadExecutor().execute(() -> reconcile(today));
+        executor.execute(() -> reconcile(today));
     }
 
     private DailyActivity getOrCreate(LocalDate date) {

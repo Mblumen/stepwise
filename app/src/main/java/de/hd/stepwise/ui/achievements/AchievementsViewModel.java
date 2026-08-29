@@ -50,14 +50,16 @@ public class AchievementsViewModel extends BaseFragmentViewModel {
         achievementDao = db.achievementDao();
         AppRecordDao appRecordDao = db.appRecordDao();
         allAchievements = achievementRepository.getAchievementsWithSeparators();
-        allAppRecords = combineRecords(appRecordDao.getAll(), dailyActivityRepository);
+        LiveData<StreakSummary> streakSummary = Transformations.switchMap(today,
+                dailyActivityRepository::observeStreakSummary);
+        allAppRecords = combineRecords(appRecordDao.getAll(), streakSummary);
         todayStepStatus = Transformations.switchMap(today,
                 dailyActivityRepository::observeTodayStatus);
 
     }
 
     private LiveData<List<AppRecord>> combineRecords(LiveData<List<AppRecord>> storedRecords,
-                                                     DailyActivityRepository dailyActivityRepository) {
+                                                     LiveData<StreakSummary> streakSummary) {
         MediatorLiveData<List<AppRecord>> result = new MediatorLiveData<>();
         final List<AppRecord>[] stored = new List[]{List.of()};
         final StreakSummary[] streak = new StreakSummary[]{null};
@@ -72,7 +74,7 @@ public class AchievementsViewModel extends BaseFragmentViewModel {
             stored[0] = records == null ? List.of() : records;
             publish.run();
         });
-        result.addSource(dailyActivityRepository.observeStreakSummary(), summary -> {
+        result.addSource(streakSummary, summary -> {
             streak[0] = summary;
             publish.run();
         });

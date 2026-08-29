@@ -12,7 +12,6 @@ import androidx.lifecycle.Transformations;
 
 import javax.inject.Inject;
 import java.time.LocalDate;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
@@ -80,8 +79,7 @@ public class UserSettingsViewModel extends BaseFragmentViewModel {
 
     public void updateDailyGoal(int steps) {
         LocalDate date = today.getValue() == null ? LocalDate.now() : today.getValue();
-        Executors.newSingleThreadExecutor().execute(
-                () -> dailyActivityRepository.scheduleDailyGoal(steps, date));
+        dailyActivityRepository.scheduleDailyGoalAsync(steps, date);
     }
 
     public void setToday(LocalDate date) {
