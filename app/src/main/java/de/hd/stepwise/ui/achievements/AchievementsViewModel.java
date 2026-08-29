@@ -114,7 +114,7 @@ public class AchievementsViewModel extends BaseFragmentViewModel {
         return todayStepStatus;
     }
 
-    public void observeToday(java.time.LocalDate date) {
+    public void setToday(java.time.LocalDate date) {
         if (!date.equals(today.getValue())) {
             today.setValue(date);
         }

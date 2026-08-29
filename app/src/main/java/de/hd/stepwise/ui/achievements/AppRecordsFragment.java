@@ -48,7 +48,7 @@ public class AppRecordsFragment extends BaseFragment {
     @Override
     public void onResume() {
         super.onResume();
-        viewModel.observeToday(LocalDate.now());
+        viewModel.setToday(LocalDate.now());
     }
 
     private void bindTodayStatus(FragmentRecordsBinding binding, TodayStepStatus status) {
