@@ -19,6 +19,10 @@ Use /tdd where possible, at pre-agreed seams.
 
 Run typechecking regularly, single test files regularly, and the full test suite once at the end.
 
+Add every file created for the implementation to Git tracking with an explicit
+path before completion. Preserve unrelated untracked files; do not use a broad
+staging command that would include files outside the task.
+
 Once done, use /code-review to review the work.
 
 Commit your work to the issue's branch.
