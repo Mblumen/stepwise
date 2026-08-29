@@ -3,6 +3,7 @@ package de.hd.stepwise.repositories;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.LongSupplier;
+import java.time.LocalDate;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -51,13 +52,16 @@ public class AchievementProgressReconciler {
         int distinctCompletedTracks = userProgressDao.countDistinctTracksWithStatus(ProgressStatus.COMPLETED);
         int totalCreditedSteps = userProgressDao.getTotalCreditedSteps();
         float totalCreditedDistance = userProgressDao.getTotalCreditedDistance();
+        int longestStreak = new DailyActivityRepository(database)
+                .getStreakSummary(LocalDate.now()).longestDays;
         List<Achievement> newlyUnlocked = new ArrayList<>();
 
         List<Achievement> achievements = achievementDao.getAchievementsByType(List.of(
                 AchievementType.DISTANCE,
                 AchievementType.STEPS,
                 AchievementType.MILESTONES_REACHED,
-                AchievementType.TRACKS_COMPLETED
+                AchievementType.TRACKS_COMPLETED,
+                AchievementType.STREAK_DAYS
         ));
         for (Achievement achievement : achievements) {
             float canonicalValue = switch (achievement.type) {
@@ -65,6 +69,7 @@ public class AchievementProgressReconciler {
                 case STEPS -> totalCreditedSteps;
                 case MILESTONES_REACHED -> distinctMilestones;
                 case TRACKS_COMPLETED -> distinctCompletedTracks;
+                case STREAK_DAYS -> longestStreak;
                 default -> achievement.progressValue;
             };
             canonicalValue = Math.min(canonicalValue, achievement.targetValue);

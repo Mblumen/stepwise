@@ -110,4 +110,12 @@
     <string name="today_steps_remaining">%1$s steps remaining</string>
     <string name="today_step_goal_reached">Goal reached</string>
     <string name="today_step_status_description">Today: %1$s of %2$s steps. %3$s.</string>
+    <string name="daily_step_goal">Daily step goal</string>
+    <string name="daily_step_goal_current">Current goal: %1$s steps · changes take effect tomorrow</string>
+    <string name="daily_step_goal_pending">Current goal: %1$s steps · %2$s effective tomorrow</string>
+    <string name="daily_step_goal_invalid">Enter 1,000–50,000 steps in increments of 500</string>
+    <string name="step_reserve">Step reserve: %1$s / %2$s</string>
+    <string name="today_steps_reserve_available">%1$s steps remaining · reserve available</string>
+    <string name="today_steps_reserve_insufficient">%1$s steps remaining · reserve insufficient</string>
+    <string name="today_goal_reserve_added">Goal reached · %1$s steps added to reserve</string>
 </resources>
