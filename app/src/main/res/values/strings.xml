@@ -105,4 +105,9 @@
     <string name="selected_step_counter">Selected Step Counter</string>
     <string name="health_connect">Health Connect</string>
     <string name="refresh_time_in_minutes">Refresh time in minutes</string>
+    <string name="today">Today</string>
+    <string name="today_step_count">%1$s / %2$s steps</string>
+    <string name="today_steps_remaining">%1$s steps remaining</string>
+    <string name="today_step_goal_reached">Goal reached</string>
+    <string name="today_step_status_description">Today: %1$s of %2$s steps. %3$s.</string>
 </resources>

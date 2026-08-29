@@ -79,6 +79,11 @@ public class DailyActivityRepository {
         return activity == null ? 0 : activity.getTotalSteps();
     }
 
+    public LiveData<Integer> observeTotalSteps(LocalDate date) {
+        return Transformations.map(dailyActivityDao.observeByDate(date.toString()),
+                activity -> activity == null ? 0 : activity.getTotalSteps());
+    }
+
     public boolean hasFitbitBaseline() {
         return dailyActivityDao.countFitbitBaselines() > 0;
     }
