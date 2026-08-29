@@ -1,9 +1,12 @@
 package de.hd.stepwise.repositories;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import androidx.room.Room;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -15,6 +18,8 @@ import org.junit.runner.RunWith;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import de.hd.stepwise.database.AppDatabase;
 import de.hd.stepwise.helper.fitbit.FitbitSyncStateManager;
@@ -54,6 +59,25 @@ public class DailyActivityRepositoryTest {
         assertEquals(date, summary.currentStartDate);
         assertEquals(date, summary.longestStartDate);
         assertEquals(date, summary.longestEndDate);
+    }
+
+    @Test
+    public void observingTodayPublishesPersistedStepChanges() throws Exception {
+        LocalDate date = LocalDate.of(2026, 8, 23);
+        LiveData<Integer> totalSteps = repository.observeTotalSteps(date);
+        CountDownLatch updated = new CountDownLatch(1);
+        Observer<Integer> observer = steps -> {
+            if (steps != null && steps == 1_250) updated.countDown();
+        };
+
+        totalSteps.observeForever(observer);
+        try {
+            repository.recordSensorDelta(date, 1_250);
+
+            assertTrue(updated.await(2, TimeUnit.SECONDS));
+        } finally {
+            totalSteps.removeObserver(observer);
+        }
     }
 
     @Test

@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.MediatorLiveData;
+import androidx.lifecycle.Transformations;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ import de.hd.stepwise.repositories.AchievementRepository;
 import de.hd.stepwise.repositories.UserSettingsRepository;
 import de.hd.stepwise.repositories.DailyActivityRepository;
 import de.hd.stepwise.pojos.StreakSummary;
+import de.hd.stepwise.pojos.TodayStepStatus;
 import de.hd.stepwise.enums.RecordType;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -31,6 +33,9 @@ public class AchievementsViewModel extends BaseFragmentViewModel {
     private final AchievementDao achievementDao;
     private final LiveData<List<ListItem>> allAchievements;
     private final LiveData<List<AppRecord>> allAppRecords;
+    private final MutableLiveData<java.time.LocalDate> today =
+            new MutableLiveData<>(java.time.LocalDate.now());
+    private final LiveData<TodayStepStatus> todayStepStatus;
 
     private final MutableLiveData<AchievementFilter> achievementLiveData = new MutableLiveData<>();
     @Inject
@@ -42,6 +47,9 @@ public class AchievementsViewModel extends BaseFragmentViewModel {
         AppRecordDao appRecordDao = db.appRecordDao();
         allAchievements = achievementRepository.getAchievementsWithSeparators();
         allAppRecords = combineRecords(appRecordDao.getAll(), dailyActivityRepository);
+        todayStepStatus = Transformations.switchMap(today,
+                date -> Transformations.map(dailyActivityRepository.observeTotalSteps(date),
+                        steps -> new TodayStepStatus(steps, DailyActivityRepository.ACTIVE_DAY_STEPS)));
 
     }
 
@@ -100,6 +108,16 @@ public class AchievementsViewModel extends BaseFragmentViewModel {
     }
     public LiveData<List<AppRecord>> getAllAppRecords() {
         return allAppRecords;
+    }
+
+    public LiveData<TodayStepStatus> getTodayStepStatus() {
+        return todayStepStatus;
+    }
+
+    public void setToday(java.time.LocalDate date) {
+        if (!date.equals(today.getValue())) {
+            today.setValue(date);
+        }
     }
 
     public LiveData<Achievement> getAchiementById(long id) {
