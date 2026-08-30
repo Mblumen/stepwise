@@ -86,6 +86,9 @@ public interface UserProgressDao {
     @Query("SELECT * FROM reached_milestone WHERE progressId = :progressId AND milestoneId = :milestoneId")
     ReachedMilestone getReachedMilestone(long progressId, long milestoneId);
 
+    @Query("SELECT * FROM reached_milestone WHERE progressId = :progressId AND milestoneId = :milestoneId")
+    LiveData<ReachedMilestone> observeReachedMilestone(long progressId, long milestoneId);
+
     @Query("SELECT * FROM reached_milestone WHERE progressId = :progressId")
     LiveData<List<ReachedMilestone>> observeReachedMilestonesForProgress(long progressId);
 

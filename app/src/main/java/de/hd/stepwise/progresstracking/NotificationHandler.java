@@ -195,7 +195,8 @@ public class NotificationHandler {
             contentView.setImageViewResource(R.id.milestone_image, R.drawable.map);
         }
 
-        contentView.setOnClickPendingIntent(R.id.action_milestone, createMilestoneIntent(milestone));
+        contentView.setOnClickPendingIntent(R.id.action_milestone,
+                createMilestoneIntent(userProgress, milestone));
         contentView.setOnClickPendingIntent(R.id.action_progress, createProgressIntent(userProgress));
         return contentView;
     }
@@ -260,9 +261,11 @@ public class NotificationHandler {
         return contentView;
     }
 
-    private PendingIntent createMilestoneIntent(MilestoneWithTotalDistance milestone) {
+    private PendingIntent createMilestoneIntent(UserProgress progress,
+                                                MilestoneWithTotalDistance milestone) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra("milestone_id", milestone.id);
+        intent.putExtra("progress_id", progress.id);
         intent.putExtra("navigate_to", "milestone_fragment");
         // different request code
         return PendingIntent.getActivity(

@@ -105,4 +105,18 @@
     <string name="selected_step_counter">Selected Step Counter</string>
     <string name="health_connect">Health Connect</string>
     <string name="refresh_time_in_minutes">Refresh time in minutes</string>
+    <string name="stamp_collected">Stamp collected</string>
+    <string name="collected_stamp_description">Collected milestone stamp</string>
+    <string name="audio_narration">Audio narration</string>
+    <string name="audio_loading">Loading audio…</string>
+    <string name="audio_play">Play narration</string>
+    <string name="audio_pause">Pause narration</string>
+    <string name="audio_failed">Narration is unavailable. Read the text below instead.</string>
+    <string name="audio_progress">Narration playback progress</string>
+    <string name="audio_text_alternative">Narration text: %1$s</string>
+    <string name="discovery_source">Read source</string>
+    <string name="quiz_submit">Check answer</string>
+    <string name="quiz_select_answer">Choose an answer first.</string>
+    <string name="quiz_correct">Correct! %1$s</string>
+    <string name="quiz_incorrect">Not quite. %1$s</string>
 </resources>

@@ -154,9 +154,11 @@ public class TracksProgressFragment extends BaseFragment {
         adapter.submitList(filteredItems);
     }
 
-    public void openMilestone(MilestoneWithTotalDistance milestone) {
+    public void openMilestone(MilestoneWithTotalDistance milestone, long progressId) {
         Bundle args = new Bundle();
         args.putLong("milestone_id", milestone.id);
+        args.putLong("track_id", milestone.trackId);
+        args.putLong("progress_id", progressId);
         NavHostFragment.findNavController(this).navigate(R.id.nav_milestone, args);
     }
 

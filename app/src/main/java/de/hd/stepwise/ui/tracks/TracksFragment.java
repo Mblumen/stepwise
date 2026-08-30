@@ -61,7 +61,7 @@ public class TracksFragment extends BaseFragment {
         return root;
     }
 
-    public void openMilestone(MilestoneWithTotalDistance milestone) {
+    public void openMilestone(MilestoneWithTotalDistance milestone, long progressId) {
         Bundle args = new Bundle();
         args.putLong("track_id", milestone.trackId);
         args.putLong("milestone_id", milestone.id);

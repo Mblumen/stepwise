@@ -23,6 +23,7 @@
 
             <!-- Header with background image and title -->
             <FrameLayout
+                android:id="@+id/gallery_section"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/image_size_large">
 
@@ -124,6 +125,153 @@
                     android:background="@drawable/fade_right"
                     android:clickable="false" />
             </FrameLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/stamp_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/container_margin"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="@dimen/milestone_description_padding">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/stamp_collected"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/stamp_image"
+                        android:layout_width="160dp"
+                        android:layout_height="160dp"
+                        android:contentDescription="@string/collected_stamp_description"
+                        android:scaleType="centerInside" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/audio_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/container_margin"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/milestone_description_padding">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/audio_narration"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/audio_toggle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:enabled="false"
+                        android:text="@string/audio_loading" />
+
+                    <SeekBar
+                        android:id="@+id/audio_progress"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/audio_progress" />
+
+                    <TextView
+                        android:id="@+id/audio_status"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:accessibilityLiveRegion="polite"
+                        android:text="@string/audio_loading" />
+
+                    <TextView
+                        android:id="@+id/audio_transcript"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/discovery_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/container_margin"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/milestone_description_padding">
+
+                    <TextView
+                        android:id="@+id/discovery_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/discovery_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <Button
+                        android:id="@+id/discovery_source"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/discovery_source"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/quiz_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/container_margin"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/milestone_description_padding">
+
+                    <TextView
+                        android:id="@+id/quiz_question"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold" />
+
+                    <RadioGroup
+                        android:id="@+id/quiz_answers"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <Button
+                        android:id="@+id/quiz_submit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/quiz_submit" />
+
+                    <TextView
+                        android:id="@+id/quiz_feedback"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:accessibilityLiveRegion="polite" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </ScrollView>
     <!--<com.google.android.material.button.MaterialButton

@@ -296,9 +296,12 @@ public class MainActivity extends AppCompatActivity {
 
         if("milestone_fragment".equals(destination)) {
             long milestoneId = intent.getLongExtra("milestone_id", -1);
+            long progressId = intent.getLongExtra("progress_id", -1);
             intent.removeExtra("milestone_id");
+            intent.removeExtra("progress_id");
             Bundle args = new Bundle();
             args.putLong("milestone_id", milestoneId);
+            args.putLong("progress_id", progressId);
             navController.navigate(R.id.nav_milestone, args, navOptions);
         }
 

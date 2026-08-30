@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 import de.hd.stepwise.daos.MilestoneDao;
 import de.hd.stepwise.entities.MilestoneWithTotalDistance;
 import de.hd.stepwise.pojos.MilestoneImage;
+import de.hd.stepwise.pojos.MilestoneExperience;
 import de.hd.stepwise.repositories.MilestoneRepository;
 import de.hd.stepwise.repositories.UserSettingsRepository;
 import de.hd.stepwise.ui.BaseFragmentViewModel;
@@ -29,6 +30,15 @@ public class MilestoneViewModel extends BaseFragmentViewModel {
 
     public LiveData<MilestoneWithTotalDistance> getMilestoneById(long milestoneId) {
         return milestoneDao.getMilestoneByIdLive(milestoneId);
+    }
+
+    public LiveData<MilestoneExperience> getExperience(long progressId, long milestoneId) {
+        return milestoneRepository.observeExperience(progressId, milestoneId);
+    }
+
+    public void answerQuiz(long progressId, long milestoneId, int selectedAnswer,
+                           boolean correct) {
+        milestoneRepository.answerQuiz(progressId, milestoneId, selectedAnswer, correct);
     }
 
     public void downloadMilestoneImageIfNeeded(MilestoneWithTotalDistance milestone) {

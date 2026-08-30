@@ -272,7 +272,11 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
         holder.itemSelectedAccent.setVisibility(userProgress.status == ProgressStatus.ACTIVE ? View.VISIBLE : View.GONE);
 
         if(isExpanded) {
-            TracksProgressMilestoneListItemAdapter milestoneAdapter = new TracksProgressMilestoneListItemAdapter(context, mapsItemClickedListener, viewModel, onMilestoneClickListener, expandButtonClickListener, stepLength);
+            TracksProgressMilestoneListItemAdapter milestoneAdapter = new TracksProgressMilestoneListItemAdapter(
+                    context, mapsItemClickedListener, viewModel,
+                    (milestone, ignored) -> onMilestoneClickListener.onItemClick(
+                            milestone, userProgress.id),
+                    expandButtonClickListener, stepLength);
             if (holder.milestoneRecycler.getItemDecorationCount() == 0) {
                 holder.milestoneRecycler.addItemDecoration(new TracksProgressMilestoneListItemAdapter.DistanceTrackDecoration(context, milestoneAdapter));
             }

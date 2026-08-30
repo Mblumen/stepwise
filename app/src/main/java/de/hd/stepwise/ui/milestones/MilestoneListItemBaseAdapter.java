@@ -44,7 +44,7 @@ public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> exte
     protected final BaseTracksViewModel trackViewModel;
 
     public interface OnMilestoneClickListener {
-        void onItemClick(MilestoneWithTotalDistance milestone);
+        void onItemClick(MilestoneWithTotalDistance milestone, long progressId);
     }
 
     private final OnExpandButtonClickListener expandButtonClickListener;
@@ -111,7 +111,7 @@ public abstract class MilestoneListItemBaseAdapter<T extends MilestoneItem> exte
 
     protected void addOpenMilestoneClickListener(MilestoneBaseViewHolder holder, MilestoneWithTotalDistance milestone) {
         if (listener != null) {
-            holder.itemView.setOnClickListener(v -> listener.onItemClick(milestone));
+            holder.itemView.setOnClickListener(v -> listener.onItemClick(milestone, -1));
         }
     }
 
