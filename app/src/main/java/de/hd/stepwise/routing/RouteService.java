@@ -17,6 +17,7 @@ import javax.inject.Singleton;
 
 import de.hd.stepwise.dtos.geodata.GeoDataJson;
 import de.hd.stepwise.pojos.UserProgressWithTrackAndMilestones;
+import de.hd.stepwise.pojos.TrackRoute;
 
 @Singleton
 public class RouteService {
@@ -26,11 +27,15 @@ public class RouteService {
 
     }
     public List<GeoPoint> getGeoData(UserProgressWithTrackAndMilestones userProgressWithTrackAndMilestones) throws JSONException, IOException {
-        //return RouteFetcher.fetchRoute(userProgressWithTrackAndMilestones.trackWithMilestones.track.trackRoute);
-        if(userProgressWithTrackAndMilestones.trackWithMilestones.track.trackRoute.localGeoDataPath == null || userProgressWithTrackAndMilestones.trackWithMilestones.track.trackRoute.localGeoDataPath.isEmpty()) {
+        return getGeoData(userProgressWithTrackAndMilestones.trackWithMilestones.track.trackRoute);
+    }
+
+    public List<GeoPoint> getGeoData(TrackRoute trackRoute) throws JSONException, IOException {
+        if (trackRoute == null || trackRoute.localGeoDataPath == null
+                || trackRoute.localGeoDataPath.isEmpty()) {
             return Collections.emptyList();
         }
-        return convertToGeoPoints(parseGeoData(userProgressWithTrackAndMilestones.trackWithMilestones.track.trackRoute.localGeoDataPath));
+        return convertToGeoPoints(parseGeoData(trackRoute.localGeoDataPath));
     }
 
 

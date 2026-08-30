@@ -132,4 +132,33 @@
     <string name="today_steps_reserve_available">%1$s steps remaining · reserve available</string>
     <string name="today_steps_reserve_insufficient">%1$s steps remaining · reserve insufficient</string>
     <string name="today_goal_reserve_added">Goal reached · %1$s steps added to reserve</string>
+    <string name="journey_passport">Journey Passport</string>
+    <string name="view_passport">View passport</string>
+    <string name="share_passport">Share passport</string>
+    <string name="passport_not_available">This completed journey is no longer available.</string>
+    <string name="passport_track_image">Journey track image</string>
+    <string name="passport_route">%1$s → %2$s</string>
+    <string name="passport_dates">%1$s – %2$s</string>
+    <string name="passport_stats">%1$,d steps · %2$.1f km\nTotal %3$s · Active %4$s</string>
+    <string name="passport_date_unknown">Date unavailable</string>
+    <string name="passport_value_unknown">Unavailable</string>
+    <string name="passport_route_unavailable">Route map unavailable for this journey.</string>
+    <string name="passport_stamps_title">Collected stamps</string>
+    <string name="passport_no_stamps">No collectible stamps were available.</string>
+    <string name="passport_milestones_title">Journey chronology</string>
+    <string name="passport_milestone">%1$s · %2$s</string>
+    <string name="passport_stamp">Stamp collected at %1$s</string>
+    <string name="passport_share_preparing">Preparing share card…</string>
+    <string name="passport_share_failed">Could not create the share card. Please try again.</string>
+    <string name="passport_completed_action">Journey completed. Your passport is ready.</string>
+    <string name="passport_completed">✓ Journey completed</string>
+    <string name="passport_card_completed">Completed %1$s</string>
+    <string name="passport_card_stats">%1$,d steps · %2$.1f km</string>
+    <string name="passport_unknown_name">Unnamed journey</string>
+    <string name="passport_unknown_start">Unknown start</string>
+    <string name="passport_unknown_destination">Unknown destination</string>
+    <plurals name="passport_card_stamps">
+        <item quantity="one">%1$d stamp collected</item>
+        <item quantity="other">%1$d stamps collected</item>
+    </plurals>
 </resources>

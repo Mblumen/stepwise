@@ -59,6 +59,8 @@ public class TracksProgressViewModel extends BaseTracksViewModel {
     public LiveData<Event<GeoPoint>> pos = _pos;
     private final MediatorLiveData<Boolean> _refreshing = new MediatorLiveData<>();
     public LiveData<Boolean> refreshing = _refreshing;
+    private final MutableLiveData<Event<Long>> _passportReady = new MutableLiveData<>();
+    public LiveData<Event<Long>> passportReady = _passportReady;
     private LiveData<WorkInfo> manualSyncWork;
 
 
@@ -156,6 +158,7 @@ public class TracksProgressViewModel extends BaseTracksViewModel {
                 if (finishProgressResult.methodResult.status == ResultStatus.SUCCESS) {
                     _methodResult.postValue(new Event<>(finishProgressResult.methodResult));
                     notifcationHandler.handleStepUpdate(finishProgressResult.stepUpdateResult);
+                    _passportReady.postValue(new Event<>(progressId));
                 } else {
                     Log.e("TracksProgressViewModel", "Error finishing progress: " + finishProgressResult.methodResult.message);
                 }
