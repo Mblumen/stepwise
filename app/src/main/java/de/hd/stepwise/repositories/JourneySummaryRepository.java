@@ -43,6 +43,10 @@ public class JourneySummaryRepository {
                 JourneySummaryRepository::summarize);
     }
 
+    public JourneySummary getCurrentJourneySync() {
+        return summarize(userProgressDao.getCurrentProgressWithTrackAndMilestones());
+    }
+
     static JourneySummary summarize(UserProgressWithTrackAndMilestones relation) {
         return summarize(relation, System.currentTimeMillis());
     }

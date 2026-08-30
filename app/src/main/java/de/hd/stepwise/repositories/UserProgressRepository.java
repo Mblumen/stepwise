@@ -3,6 +3,7 @@ package de.hd.stepwise.repositories;
 import android.net.DnsResolver;
 import android.util.Log;
 import android.util.Pair;
+import android.content.Context;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -13,6 +14,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 
 import de.hd.stepwise.daos.MilestoneDao;
 import de.hd.stepwise.daos.TrackDao;
@@ -33,6 +35,7 @@ import de.hd.stepwise.pojos.events.FinishProgressResult;
 import de.hd.stepwise.pojos.events.MilestoneWithProgressEvent;
 import de.hd.stepwise.pojos.events.StepUpdateResult;
 import de.hd.stepwise.pojos.events.TrackWithProgressEvent;
+import de.hd.stepwise.widget.JourneyWidgetUpdater;
 
 @Singleton
 public class UserProgressRepository extends BaseRepository{
@@ -42,22 +45,26 @@ public class UserProgressRepository extends BaseRepository{
     private final UserSettingsDao userSettingsDao;
     private final AppDatabase appDatabase;
     private final AchievementProgressReconciler achievementProgressReconciler;
+    private final Context appContext;
     //private final MutableLiveData<MilestoneWithProgressEvent> milestoneWithProgressEvents = new MutableLiveData<>();
     //private final MutableLiveData<AchievementEvent> achievementEvents = new MutableLiveData<>();
     //private final MutableLiveData<TrackWithProgressEvent> trackWithProgressEvents = new MutableLiveData<>();
 
     @Inject
-    public UserProgressRepository(AppDatabase appDatabase, AchievementProgressReconciler achievementProgressReconciler) {
+    public UserProgressRepository(AppDatabase appDatabase,
+                                  AchievementProgressReconciler achievementProgressReconciler,
+                                  @ApplicationContext Context context) {
         this.appDatabase = appDatabase;
         this.userProgressDao = appDatabase.userProgressDao();
         this.trackDao = appDatabase.trackDao();
         this.milestoneDao = appDatabase.milestoneDao();
         this.userSettingsDao = appDatabase.userSettingsDao();
         this.achievementProgressReconciler = achievementProgressReconciler;
+        this.appContext = context;
     }
 
     UserProgressRepository(AppDatabase appDatabase) {
-        this(appDatabase, new AchievementProgressReconciler(appDatabase));
+        this(appDatabase, new AchievementProgressReconciler(appDatabase), null);
     }
 
     /*public LiveData<MilestoneWithProgressEvent> getMilestoneProgressEvents() {
@@ -145,6 +152,7 @@ public class UserProgressRepository extends BaseRepository{
             newProgress.startedAt = System.currentTimeMillis(); // Set the start time
             // Insert the new UserProgress entry into the database
             userProgressDao.insertUserProgress(newProgress);
+            refreshWidget();
             // Post a success result
             result.postValue(new MethodResult(ResultStatus.SUCCESS, "Track started successfully."));
         });
@@ -152,7 +160,10 @@ public class UserProgressRepository extends BaseRepository{
     }
 
     public StepUpdateResult updateStepsWalked(int stepsWalked) {
-        return appDatabase.runInTransaction(() -> updateStepsWalkedInTransaction(stepsWalked));
+        StepUpdateResult result = appDatabase.runInTransaction(
+                () -> updateStepsWalkedInTransaction(stepsWalked));
+        if (result.progress != null) refreshWidget();
+        return result;
     }
 
     private StepUpdateResult updateStepsWalkedInTransaction(int stepsWalked) {
@@ -211,6 +222,7 @@ public class UserProgressRepository extends BaseRepository{
                 progress.status = ProgressStatus.PAUSED;
                 progress.pausedAt = System.currentTimeMillis();
                 userProgressDao.insertUserProgress(progress);
+                refreshWidget();
                 result.postValue(new MethodResult(ResultStatus.SUCCESS, "Track progress paused successfully."));
             } else {
                 result.postValue(new MethodResult(ResultStatus.ERROR, "Track progress not found."));
@@ -238,6 +250,7 @@ public class UserProgressRepository extends BaseRepository{
                     progress.pausedAt = null;
                 }
                 userProgressDao.insertUserProgress(progress);
+                refreshWidget();
                 result.postValue(new MethodResult(ResultStatus.SUCCESS, "Track progress resumed successfully."));
             } else {
                 result.postValue(new MethodResult(ResultStatus.ERROR, "Track progress not found."));
@@ -255,8 +268,13 @@ public class UserProgressRepository extends BaseRepository{
                     () -> finishProgressInTransaction(progressId)
             );
             result.postValue(finishResult);
+            if (finishResult.methodResult.status == ResultStatus.SUCCESS) refreshWidget();
         });
         return result;
+    }
+
+    private void refreshWidget() {
+        if (appContext != null) JourneyWidgetUpdater.requestUpdate(appContext);
     }
 
     private FinishProgressResult finishProgressInTransaction(long progressId) {

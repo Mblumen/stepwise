@@ -1,5 +1,7 @@
 package de.hd.stepwise.repositories;
 
+import android.content.Context;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Transformations;
 
@@ -13,6 +15,7 @@ import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 
 import de.hd.stepwise.daos.MilestoneDao;
 import de.hd.stepwise.daos.TrackDao;
@@ -20,15 +23,18 @@ import de.hd.stepwise.database.AppDatabase;
 import de.hd.stepwise.entities.Milestone;
 import de.hd.stepwise.entities.MilestoneWithTotalDistance;
 import de.hd.stepwise.pojos.TrackWithMilestones;
+import de.hd.stepwise.widget.JourneyWidgetUpdater;
 
 @Singleton
 public class TrackRepository extends BaseRepository {
     private final TrackDao trackDao;
     private final MilestoneDao milestoneDao;
+    private final Context appContext;
     @Inject
-    public TrackRepository(AppDatabase db) {
+    public TrackRepository(AppDatabase db, @ApplicationContext Context context) {
         this.trackDao = db.trackDao();
         this.milestoneDao = db.milestoneDao();
+        this.appContext = context;
     }
     public LiveData<Map<Long, List<Milestone>>> getAllMilestonesByTrack() {
         return Transformations.map(
@@ -79,5 +85,6 @@ public class TrackRepository extends BaseRepository {
 
     public void updateTrackImagePath(long trackId, String localImagePath) {
        trackDao.updateLocalImagePath(trackId, localImagePath);
+       JourneyWidgetUpdater.requestUpdate(appContext);
     }
 }
