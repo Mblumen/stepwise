@@ -41,5 +41,9 @@
             android:name="milestone_id"
             app:argType="long"
             android:defaultValue="-1L"/>
+        <argument
+            android:name="progress_id"
+            app:argType="long"
+            android:defaultValue="-1L"/>
     </fragment>
 </navigation>

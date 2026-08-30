@@ -42,6 +42,7 @@ import de.hd.stepwise.pojos.MethodResult;
 //import de.hd.stepwise.progresstracking.StepCounterService;
 import de.hd.stepwise.progresstracking.StepManager;
 import de.hd.stepwise.ui.MainSharedViewModel;
+import de.hd.stepwise.ui.milestones.MilestoneFragmentArgs;
 import de.hd.stepwise.ui.UpdateViewModel;
 
 @AndroidEntryPoint
@@ -296,10 +297,14 @@ public class MainActivity extends AppCompatActivity {
 
         if("milestone_fragment".equals(destination)) {
             long milestoneId = intent.getLongExtra("milestone_id", -1);
+            long progressId = intent.getLongExtra("progress_id", -1);
             intent.removeExtra("milestone_id");
-            Bundle args = new Bundle();
-            args.putLong("milestone_id", milestoneId);
-            navController.navigate(R.id.nav_milestone, args, navOptions);
+            intent.removeExtra("progress_id");
+            MilestoneFragmentArgs args = new MilestoneFragmentArgs.Builder()
+                    .setMilestoneId(milestoneId)
+                    .setProgressId(progressId)
+                    .build();
+            navController.navigate(R.id.nav_milestone, args.toBundle(), navOptions);
         }
 
         if("achievement_fragment".equals(destination)) {

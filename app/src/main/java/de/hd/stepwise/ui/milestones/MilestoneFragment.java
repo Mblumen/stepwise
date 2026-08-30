@@ -1,10 +1,16 @@
 package de.hd.stepwise.ui.milestones;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RadioButton;
+import android.widget.SeekBar;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModelProvider;
@@ -27,6 +33,8 @@ import de.hd.stepwise.entities.MilestoneWithTotalDistance;
 import de.hd.stepwise.interfaces.MapsItemClickedListener;
 import de.hd.stepwise.pojos.MapsItem;
 import de.hd.stepwise.pojos.MilestoneImage;
+import de.hd.stepwise.pojos.MilestoneExperience;
+import de.hd.stepwise.pojos.MilestoneQuiz;
 import de.hd.stepwise.ui.BaseFragment;
 import de.hd.stepwise.ui.layouthelper.CarouselLayoutManager;
 import de.hd.stepwise.ui.layouthelper.CenterSnapHelper;
@@ -41,19 +49,37 @@ public class MilestoneFragment extends BaseFragment {
     private SnapHelper snapHelper;
     private MilestoneImageAdapter imageAdapter;
     private RecyclerView recyclerView;
+    private MilestoneBinding binding;
+    private MilestoneAudioPlayer audioPlayer;
+    private String loadedAudioPath;
+    private final Handler playbackHandler = new Handler(Looper.getMainLooper());
+    private final Runnable playbackProgress = new Runnable() {
+        @Override
+        public void run() {
+            if (audioPlayer == null) return;
+            binding.audioProgress.setProgress(audioPlayer.getCurrentPosition());
+            if (audioPlayer.isPlaying()) playbackHandler.postDelayed(this, 250);
+        }
+    };
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(MilestoneViewModel.class);
-        MilestoneBinding binding = MilestoneBinding.inflate(inflater, container, false);
+        binding = MilestoneBinding.inflate(inflater, container, false);
         holder = new MilestoneHolder(binding);
         long trackId = MilestoneFragmentArgs.fromBundle(getArguments()).getTrackId();
         long milestoneId = MilestoneFragmentArgs.fromBundle(getArguments()).getMilestoneId();
+        long progressId = MilestoneFragmentArgs.fromBundle(getArguments()).getProgressId();
+        hideRichContent();
         List<MilestoneImage> oldList = new ArrayList<>();
         viewModel.getMilestoneById(milestoneId).observe(getViewLifecycleOwner(), milestone -> {
             if (milestone != null) {
                 holder.bind(milestone, this, viewModel);
-                if(milestone.extraImages.isEmpty()) return;
+                if(milestone.extraImages == null || milestone.extraImages.isEmpty()) {
+                    binding.gallerySection.setVisibility(View.GONE);
+                    return;
+                }
+                binding.gallerySection.setVisibility(View.VISIBLE);
                 recyclerView = holder.binding.imageGallery;
 
                 if(imageAdapter == null) {
@@ -124,12 +150,158 @@ public class MilestoneFragment extends BaseFragment {
                 oldList.addAll(newList);
             }
         });
+        if (progressId > 0) {
+            viewModel.getExperience(progressId, milestoneId).observe(
+                    getViewLifecycleOwner(),
+                    experience -> renderRichContent(experience, progressId, milestoneId));
+        }
         viewModel.getStepLength().observe(getViewLifecycleOwner(), stepLength -> {
             if(stepLength != null) {
                 holder.updateStepCount(stepLength);
             }
         });
         return binding.getRoot();
+    }
+
+    private void renderRichContent(MilestoneExperience experience, long progressId,
+                                   long milestoneId) {
+        hideRichContent();
+        if (experience == null || !experience.canRevealRichContent()) return;
+        MilestoneWithTotalDistance milestone = experience.milestone;
+
+        if (MilestoneContentRules.hasText(milestone.localStampImagePath)) {
+            binding.stampSection.setVisibility(View.VISIBLE);
+            Glide.with(binding.stampImage)
+                    .load(new File(milestone.localStampImagePath))
+                    .into(binding.stampImage);
+        }
+        if (MilestoneContentRules.hasText(milestone.localAudioPath)
+                || MilestoneContentRules.hasText(milestone.audioUrl)) {
+            binding.audioSection.setVisibility(View.VISIBLE);
+            binding.audioTranscript.setText(getString(
+                    R.string.audio_text_alternative, milestone.description));
+            if (MilestoneContentRules.hasText(milestone.localAudioPath)) {
+                prepareAudio(milestone.localAudioPath);
+            } else {
+                showAudioFailure();
+            }
+        }
+        if (milestone.discovery != null && MilestoneContentRules.hasText(milestone.discovery.title)
+                && MilestoneContentRules.hasText(milestone.discovery.text)) {
+            binding.discoverySection.setVisibility(View.VISIBLE);
+            binding.discoveryTitle.setText(milestone.discovery.title);
+            binding.discoveryText.setText(milestone.discovery.text);
+            if (MilestoneContentRules.hasText(milestone.discovery.sourceUrl)) {
+                binding.discoverySource.setVisibility(View.VISIBLE);
+                binding.discoverySource.setOnClickListener(view -> startActivity(new Intent(
+                        Intent.ACTION_VIEW, Uri.parse(milestone.discovery.sourceUrl))));
+            }
+        }
+        if (MilestoneContentRules.validQuiz(milestone.quiz)) {
+            renderQuiz(milestone.quiz, experience, progressId, milestoneId);
+        }
+    }
+
+    private void renderQuiz(MilestoneQuiz quiz, MilestoneExperience experience,
+                            long progressId, long milestoneId) {
+        binding.quizSection.setVisibility(View.VISIBLE);
+        binding.quizQuestion.setText(quiz.question);
+        binding.quizAnswers.removeAllViews();
+        boolean completed = experience.reachedMilestone.quizCompletedAt != null;
+        for (int index = 0; index < quiz.answers.size(); index++) {
+            RadioButton answer = new RadioButton(requireContext());
+            answer.setId(View.generateViewId());
+            answer.setTag(index);
+            answer.setText(quiz.answers.get(index));
+            answer.setEnabled(!completed);
+            if (experience.reachedMilestone.selectedQuizAnswer != null
+                    && experience.reachedMilestone.selectedQuizAnswer == index) {
+                answer.setChecked(true);
+            }
+            binding.quizAnswers.addView(answer);
+        }
+        if (completed) {
+            binding.quizSubmit.setEnabled(false);
+            binding.quizFeedback.setText(getString(R.string.quiz_correct, quiz.explanation));
+        } else {
+            binding.quizSubmit.setEnabled(true);
+            binding.quizSubmit.setOnClickListener(view -> {
+                int checkedId = binding.quizAnswers.getCheckedRadioButtonId();
+                RadioButton selected = binding.quizAnswers.findViewById(checkedId);
+                if (selected == null) {
+                    binding.quizFeedback.setText(R.string.quiz_select_answer);
+                    return;
+                }
+                int selectedIndex = (int) selected.getTag();
+                boolean correct = selectedIndex == quiz.correctAnswerIndex;
+                binding.quizFeedback.setText(getString(correct
+                        ? R.string.quiz_correct : R.string.quiz_incorrect, quiz.explanation));
+                if (correct) binding.quizSubmit.setEnabled(false);
+                viewModel.answerQuiz(progressId, milestoneId, selectedIndex, correct);
+            });
+        }
+    }
+
+    private void prepareAudio(String path) {
+        if (path.equals(loadedAudioPath) && audioPlayer != null) return;
+        releaseAudio();
+        loadedAudioPath = path;
+        binding.audioToggle.setEnabled(false);
+        binding.audioStatus.setText(R.string.audio_loading);
+        try {
+            audioPlayer = new MilestoneAudioPlayer(path, new MilestoneAudioPlayer.Listener() {
+                @Override public void onReady(int durationMillis) {
+                    binding.audioProgress.setMax(durationMillis);
+                    binding.audioToggle.setEnabled(true);
+                    binding.audioToggle.setText(R.string.audio_play);
+                    binding.audioStatus.setText("");
+                }
+                @Override public void onPlayingChanged(boolean playing) {
+                    binding.audioToggle.setText(playing ? R.string.audio_pause : R.string.audio_play);
+                    playbackHandler.removeCallbacks(playbackProgress);
+                    if (playing) playbackHandler.post(playbackProgress);
+                }
+                @Override public void onFailure() { showAudioFailure(); }
+            });
+            binding.audioToggle.setOnClickListener(view -> audioPlayer.toggle());
+            binding.audioProgress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (fromUser && audioPlayer != null) audioPlayer.seekTo(progress);
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) { }
+                @Override public void onStopTrackingTouch(SeekBar seekBar) { }
+            });
+        } catch (Exception exception) {
+            showAudioFailure();
+        }
+    }
+
+    private void showAudioFailure() {
+        binding.audioToggle.setEnabled(false);
+        binding.audioStatus.setText(R.string.audio_failed);
+    }
+
+    private void hideRichContent() {
+        binding.stampSection.setVisibility(View.GONE);
+        binding.audioSection.setVisibility(View.GONE);
+        binding.discoverySection.setVisibility(View.GONE);
+        binding.discoverySource.setVisibility(View.GONE);
+        binding.quizSection.setVisibility(View.GONE);
+    }
+
+    private void releaseAudio() {
+        playbackHandler.removeCallbacks(playbackProgress);
+        if (audioPlayer != null) audioPlayer.release();
+        audioPlayer = null;
+        loadedAudioPath = null;
+    }
+
+    @Override
+    public void onDestroyView() {
+        releaseAudio();
+        binding = null;
+        holder = null;
+        super.onDestroyView();
     }
 
     private void notifyImageChanged(MilestoneImage updatedImage) {

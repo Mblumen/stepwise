@@ -33,6 +33,7 @@ import de.hd.stepwise.pojos.Separator;
 import de.hd.stepwise.pojos.UserProgressWithTrackAndMilestones;
 import de.hd.stepwise.ui.BaseFragment;
 import de.hd.stepwise.ui.MainSharedViewModel;
+import de.hd.stepwise.ui.milestones.MilestoneFragmentArgs;
 
 /**
  * Fragment that demonstrates a responsive layout pattern where the format of the content
@@ -154,10 +155,13 @@ public class TracksProgressFragment extends BaseFragment {
         adapter.submitList(filteredItems);
     }
 
-    public void openMilestone(MilestoneWithTotalDistance milestone) {
-        Bundle args = new Bundle();
-        args.putLong("milestone_id", milestone.id);
-        NavHostFragment.findNavController(this).navigate(R.id.nav_milestone, args);
+    public void openMilestone(MilestoneWithTotalDistance milestone, long progressId) {
+        MilestoneFragmentArgs args = new MilestoneFragmentArgs.Builder()
+                .setTrackId(milestone.trackId)
+                .setMilestoneId(milestone.id)
+                .setProgressId(progressId)
+                .build();
+        NavHostFragment.findNavController(this).navigate(R.id.nav_milestone, args.toBundle());
     }
 
     @Override

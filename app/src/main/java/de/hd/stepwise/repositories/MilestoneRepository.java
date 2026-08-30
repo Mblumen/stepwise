@@ -17,6 +17,7 @@ import de.hd.stepwise.database.AppDatabase;
 import de.hd.stepwise.entities.MilestoneWithTotalDistance;
 import de.hd.stepwise.entities.ReachedMilestone;
 import de.hd.stepwise.pojos.MilestoneImage;
+import de.hd.stepwise.pojos.MilestoneExperience;
 import de.hd.stepwise.pojos.MilestoneWithStatus;
 
 @Singleton
@@ -53,6 +54,26 @@ public class MilestoneRepository extends BaseRepository {
         });
 
         return result;
+    }
+
+    public LiveData<MilestoneExperience> observeExperience(long progressId, long milestoneId) {
+        MediatorLiveData<MilestoneExperience> result = new MediatorLiveData<>();
+        LiveData<MilestoneWithTotalDistance> milestone =
+                milestoneDao.getMilestoneByIdLive(milestoneId);
+        LiveData<ReachedMilestone> reached =
+                userProgressDao.observeReachedMilestone(progressId, milestoneId);
+        result.addSource(milestone, value ->
+                result.setValue(new MilestoneExperience(value, reached.getValue())));
+        result.addSource(reached, value ->
+                result.setValue(new MilestoneExperience(milestone.getValue(), value)));
+        return result;
+    }
+
+    public void answerQuiz(long progressId, long milestoneId, int selectedAnswer,
+                           boolean correct) {
+        executor.execute(() -> userProgressDao.updateReachedMilestoneQuizState(
+                progressId, milestoneId, selectedAnswer,
+                correct ? System.currentTimeMillis() : null));
     }
 
     private List<MilestoneWithStatus> combine(List<MilestoneWithTotalDistance> milestones,
