@@ -34,6 +34,7 @@ import org.osmdroid.views.overlay.Polyline;
 import java.io.File;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.LongConsumer;
 
 import de.hd.stepwise.R;
 import de.hd.stepwise.databinding.DetailsListItemSharedBinding;
@@ -63,13 +64,15 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
     private long progressId = RecyclerView.NO_POSITION;
     private final BiConsumer<MilestoneWithTotalDistance, Long> onMilestoneClickListener;
     private final Consumer<ProgressStatus> toggleCallback;
+    private final LongConsumer passportClickListener;
 
     private OnExpandButtonClickListener expandButtonClickListener;
 
 
     public TracksProgressAdapter(Context context, TracksProgressViewModel viewModel, LifecycleOwner liveCycleOwner, MapsItemClickedListener mapsItemClickedListener,
                                  BiConsumer<MilestoneWithTotalDistance, Long> onMilestoneClickListener,
-                                 Consumer<ProgressStatus> toggleCallback) {
+                                 Consumer<ProgressStatus> toggleCallback,
+                                 LongConsumer passportClickListener) {
         super(new DiffUtil.ItemCallback<>() {
             @Override
             public boolean areItemsTheSame(@NonNull ListItem oldItem, @NonNull ListItem newItem) {
@@ -88,6 +91,7 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
         this.mapsItemClickedListener = mapsItemClickedListener;
         this.onMilestoneClickListener = onMilestoneClickListener;
         this.toggleCallback = toggleCallback;
+        this.passportClickListener = passportClickListener;
         viewModel.geoData.observe(lifecycleOwner, event -> {
             List<GeoPoint> gps = event.getContentIfNotHandled();
             Log.i("TracksProgressAdapter", "Position update received");
@@ -274,6 +278,7 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
         holder.itemSelectedAccent.setVisibility(userProgress.status == ProgressStatus.ACTIVE ? View.VISIBLE : View.GONE);
 
         if(isExpanded) {
+            holder.actionButton.setVisibility(View.VISIBLE);
             TracksProgressMilestoneListItemAdapter milestoneAdapter = new TracksProgressMilestoneListItemAdapter(
                     context, mapsItemClickedListener, viewModel,
                     milestone -> onMilestoneClickListener.accept(milestone, userProgress.id),
@@ -319,12 +324,16 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
                 } else {
                     holder.activeTime.setVisibility(View.GONE);
                 }
+                holder.actionButton.setText(R.string.view_passport);
+                holder.actionButton.setOnClickListener(v -> passportClickListener.accept(userProgress.id));
             } else {
                 holder.activeTime.setVisibility(View.GONE);
                 holder.pausedTime.setVisibility(View.GONE);
                 holder.totalTime.setVisibility(View.GONE);
             }
-            if(milestones.isEmpty()) {
+            if (userProgress.status == ProgressStatus.COMPLETED) {
+                holder.actionButton.setVisibility(View.VISIBLE);
+            } else if(milestones.isEmpty()) {
                 holder.actionButton.setVisibility(View.GONE);
             } else if(userProgress.distanceWalked >= milestones.get(milestones.size() - 1).totalDistance
                     && userProgress.status != ProgressStatus.COMPLETED) {
@@ -336,7 +345,7 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
             } else if(userProgress.status == ProgressStatus.PAUSED) {
                 holder.actionButton.setText(R.string.resume_progress);
                 holder.actionButton.setOnClickListener(v -> viewModel.resumeTrackProgress(userProgress.id));
-            } else {
+            } else if (!userProgress.status.equals(ProgressStatus.COMPLETED)) {
                 holder.actionButton.setVisibility(View.GONE);
             }
         }

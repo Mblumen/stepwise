@@ -46,4 +46,13 @@
             app:argType="long"
             android:defaultValue="-1L"/>
     </fragment>
+    <fragment
+        android:id="@+id/nav_journey_passport"
+        android:name="de.hd.stepwise.ui.passport.JourneyPassportFragment"
+        android:label="@string/journey_passport"
+        tools:layout="@layout/fragment_journey_passport">
+        <argument
+            android:name="progress_id"
+            app:argType="long" />
+    </fragment>
 </navigation>

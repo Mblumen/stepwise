@@ -34,6 +34,8 @@ import de.hd.stepwise.pojos.UserProgressWithTrackAndMilestones;
 import de.hd.stepwise.ui.BaseFragment;
 import de.hd.stepwise.ui.MainSharedViewModel;
 import de.hd.stepwise.ui.milestones.MilestoneFragmentArgs;
+import de.hd.stepwise.ui.passport.JourneyPassportFragmentArgs;
+import com.google.android.material.snackbar.Snackbar;
 
 /**
  * Fragment that demonstrates a responsive layout pattern where the format of the content
@@ -71,7 +73,8 @@ public class TracksProgressFragment extends BaseFragment {
         viewModel.refreshing.observe(getViewLifecycleOwner(), refreshing ->
                 binding.progressRefresh.setRefreshing(Boolean.TRUE.equals(refreshing)));
 
-        adapter = new TracksProgressAdapter(requireContext(), viewModel, getViewLifecycleOwner(), this, this::openMilestone, this::onSectionToggled);
+        adapter = new TracksProgressAdapter(requireContext(), viewModel, getViewLifecycleOwner(),
+                this, this::openMilestone, this::onSectionToggled, this::openPassport);
         recyclerView.setAdapter(adapter);
         viewModel.getAllProgress().observe(getViewLifecycleOwner(), newList -> {
             previousList.clear();
@@ -104,6 +107,14 @@ public class TracksProgressFragment extends BaseFragment {
             if (data != null) {
                 adapter.setProgressId(data);
             }
+        });
+        viewModel.passportReady.observe(getViewLifecycleOwner(), event -> {
+            Long progressId = event.getContentIfNotHandled();
+            if (progressId == null) return;
+            Snackbar.make(binding.getRoot(), R.string.passport_completed_action,
+                            Snackbar.LENGTH_LONG)
+                    .setAction(R.string.view_passport, view -> openPassport(progressId))
+                    .show();
         });
         // Assuming you have a way to get all milestones mapped by trackId
         adapter.setRecyclerView(recyclerView);
@@ -162,6 +173,13 @@ public class TracksProgressFragment extends BaseFragment {
                 .setProgressId(progressId)
                 .build();
         NavHostFragment.findNavController(this).navigate(R.id.nav_milestone, args.toBundle());
+    }
+
+    public void openPassport(long progressId) {
+        JourneyPassportFragmentArgs args = new JourneyPassportFragmentArgs.Builder(progressId)
+                .build();
+        NavHostFragment.findNavController(this)
+                .navigate(R.id.nav_journey_passport, args.toBundle());
     }
 
     @Override

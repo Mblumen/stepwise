@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/passport_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="32dp"
+            android:text="@string/passport_not_available"
+            android:textAlignment="center" />
+
+        <LinearLayout
+            android:id="@+id/passport_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <ImageView android:id="@+id/passport_track_image" android:layout_width="match_parent"
+                android:layout_height="220dp" android:scaleType="centerCrop"
+                android:contentDescription="@string/passport_track_image" />
+            <TextView android:id="@+id/passport_title" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:textSize="28sp" android:textStyle="bold" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:padding="8dp" android:text="@string/passport_completed"
+                android:textStyle="bold" />
+            <TextView android:id="@+id/passport_route_name" android:layout_width="match_parent" android:layout_height="wrap_content" />
+            <TextView android:id="@+id/passport_dates" android:layout_width="match_parent" android:layout_height="wrap_content" />
+            <TextView android:id="@+id/passport_stats" android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+            <org.osmdroid.views.MapView android:id="@+id/passport_map"
+                android:layout_width="match_parent" android:layout_height="260dp"
+                android:layout_marginTop="16dp" />
+            <TextView android:id="@+id/route_unavailable" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="@string/passport_route_unavailable"
+                android:visibility="gone" />
+
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" android:text="@string/passport_stamps_title" android:textStyle="bold" />
+            <LinearLayout android:id="@+id/passport_stamps" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="horizontal" />
+            <TextView android:id="@+id/no_stamps" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="@string/passport_no_stamps" />
+
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" android:text="@string/passport_milestones_title" android:textStyle="bold" />
+            <LinearLayout android:id="@+id/passport_milestones" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical" />
+            <Button android:id="@+id/share_passport" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="@string/share_passport" />
+            <TextView android:id="@+id/share_status" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:accessibilityLiveRegion="polite" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
