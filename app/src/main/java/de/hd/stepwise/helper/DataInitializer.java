@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import de.hd.stepwise.widget.JourneyWidgetUpdater;
 
 import de.hd.stepwise.database.AppDatabase;
 import de.hd.stepwise.dtos.AchievementJson;
@@ -207,6 +208,7 @@ public class DataInitializer {
             try {
                 String localPath = DownloadHelper.downloadTrackImage(context, track.imageUrl, track.id, null, null);
                 db.trackDao().updateLocalImagePath(track.id, localPath);
+                JourneyWidgetUpdater.requestUpdate(context);
             } catch (IOException e) { e.printStackTrace(); }
         }
 

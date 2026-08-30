@@ -295,6 +295,11 @@ public class MainActivity extends AppCompatActivity {
             bottomNavigationView.getMenu().findItem(R.id.nav_tracks_progress).setChecked(true);
         }
 
+        if ("tracks_fragment".equals(destination)) {
+            navController.navigate(R.id.nav_tracks, null, navOptions);
+            bottomNavigationView.getMenu().findItem(R.id.nav_tracks).setChecked(true);
+        }
+
         if("milestone_fragment".equals(destination)) {
             long milestoneId = intent.getLongExtra("milestone_id", -1);
             long progressId = intent.getLongExtra("progress_id", -1);

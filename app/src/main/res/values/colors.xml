@@ -22,4 +22,8 @@
     <color name="bronze">#FFCD7F32</color>
     <color name="silver">#FFCED2D2</color>
     <color name="gold">#FFD4AF37</color>
+    <color name="widget_background">#FFF8F5EC</color>
+    <color name="widget_text">#FF1E3C46</color>
+    <color name="widget_text_secondary">#FF52666D</color>
+    <color name="widget_accent">#FF146B55</color>
 </resources>

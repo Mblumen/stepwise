@@ -161,4 +161,16 @@
         <item quantity="one">%1$d stamp collected</item>
         <item quantity="other">%1$d stamps collected</item>
     </plurals>
+    <string name="widget_description">Your current Stepwise journey at a glance</string>
+    <string name="widget_active">Active</string>
+    <string name="widget_paused">Paused</string>
+    <string name="widget_percentage">%1$d%%</string>
+    <string name="widget_distance">%1$s km</string>
+    <string name="widget_next_milestone">Next: %1$s</string>
+    <string name="widget_empty">Choose a track to begin a journey</string>
+    <string name="widget_temporarily_unavailable">Journey temporarily unavailable</string>
+    <string name="widget_track_image">Current journey image</string>
+    <string name="widget_current_journey">Current journey</string>
+    <string name="widget_finish_line">Finish line</string>
+    <string name="widget_next_unknown">Next milestone</string>
 </resources>
