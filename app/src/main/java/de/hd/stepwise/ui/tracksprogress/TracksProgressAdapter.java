@@ -33,6 +33,7 @@ import org.osmdroid.views.overlay.Polyline;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 import de.hd.stepwise.R;
 import de.hd.stepwise.databinding.DetailsListItemSharedBinding;
@@ -60,14 +61,15 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
     private RecyclerView recyclerView;
     private final MapsItemClickedListener mapsItemClickedListener;
     private long progressId = RecyclerView.NO_POSITION;
-    private final MilestoneListItemBaseAdapter.OnMilestoneClickListener onMilestoneClickListener;
+    private final BiConsumer<MilestoneWithTotalDistance, Long> onMilestoneClickListener;
     private final Consumer<ProgressStatus> toggleCallback;
 
     private OnExpandButtonClickListener expandButtonClickListener;
 
 
     public TracksProgressAdapter(Context context, TracksProgressViewModel viewModel, LifecycleOwner liveCycleOwner, MapsItemClickedListener mapsItemClickedListener,
-                                 MilestoneListItemBaseAdapter.OnMilestoneClickListener onMilestoneClickListener, Consumer<ProgressStatus> toggleCallback) {
+                                 BiConsumer<MilestoneWithTotalDistance, Long> onMilestoneClickListener,
+                                 Consumer<ProgressStatus> toggleCallback) {
         super(new DiffUtil.ItemCallback<>() {
             @Override
             public boolean areItemsTheSame(@NonNull ListItem oldItem, @NonNull ListItem newItem) {
@@ -274,8 +276,7 @@ public class TracksProgressAdapter extends BaseAdapter<ListItem, RecyclerView.Vi
         if(isExpanded) {
             TracksProgressMilestoneListItemAdapter milestoneAdapter = new TracksProgressMilestoneListItemAdapter(
                     context, mapsItemClickedListener, viewModel,
-                    (milestone, ignored) -> onMilestoneClickListener.onItemClick(
-                            milestone, userProgress.id),
+                    milestone -> onMilestoneClickListener.accept(milestone, userProgress.id),
                     expandButtonClickListener, stepLength);
             if (holder.milestoneRecycler.getItemDecorationCount() == 0) {
                 holder.milestoneRecycler.addItemDecoration(new TracksProgressMilestoneListItemAdapter.DistanceTrackDecoration(context, milestoneAdapter));

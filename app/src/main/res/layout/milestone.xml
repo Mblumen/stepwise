@@ -23,7 +23,6 @@
 
             <!-- Header with background image and title -->
             <FrameLayout
-                android:id="@+id/gallery_section"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/image_size_large">
 
@@ -100,6 +99,7 @@
                 tools:text="This is a milestone description providing more detailed information." />
 
             <FrameLayout
+                android:id="@+id/gallery_section"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <androidx.recyclerview.widget.RecyclerView

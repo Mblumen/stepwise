@@ -18,6 +18,7 @@ import de.hd.stepwise.databinding.FragmentTracksBinding;
 import de.hd.stepwise.entities.MilestoneWithTotalDistance;
 import de.hd.stepwise.pojos.MethodResult;
 import de.hd.stepwise.ui.BaseFragment;
+import de.hd.stepwise.ui.milestones.MilestoneFragmentArgs;
 
 /**
  * Fragment that demonstrates a responsive layout pattern where the format of the content
@@ -61,11 +62,12 @@ public class TracksFragment extends BaseFragment {
         return root;
     }
 
-    public void openMilestone(MilestoneWithTotalDistance milestone, long progressId) {
-        Bundle args = new Bundle();
-        args.putLong("track_id", milestone.trackId);
-        args.putLong("milestone_id", milestone.id);
-        NavHostFragment.findNavController(this).navigate(R.id.nav_milestone, args);
+    public void openMilestone(MilestoneWithTotalDistance milestone) {
+        MilestoneFragmentArgs args = new MilestoneFragmentArgs.Builder()
+                .setTrackId(milestone.trackId)
+                .setMilestoneId(milestone.id)
+                .build();
+        NavHostFragment.findNavController(this).navigate(R.id.nav_milestone, args.toBundle());
     }
 
     @Override

@@ -26,6 +26,8 @@ public class MilestoneContentRulesTest {
         quiz.question = "Question?";
         quiz.answers = List.of("No", "Yes");
         quiz.correctAnswerIndex = 1;
+        assertFalse(MilestoneContentRules.validQuiz(quiz));
+        quiz.explanation = "Because.";
         assertTrue(MilestoneContentRules.validQuiz(quiz));
     }
 }

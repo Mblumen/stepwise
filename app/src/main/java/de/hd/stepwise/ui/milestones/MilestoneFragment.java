@@ -169,18 +169,22 @@ public class MilestoneFragment extends BaseFragment {
         if (experience == null || !experience.canRevealRichContent()) return;
         MilestoneWithTotalDistance milestone = experience.milestone;
 
-        if (MilestoneContentRules.hasText(milestone.localStampImagePath)
-                && new File(milestone.localStampImagePath).exists()) {
+        if (MilestoneContentRules.hasText(milestone.localStampImagePath)) {
             binding.stampSection.setVisibility(View.VISIBLE);
             Glide.with(binding.stampImage)
                     .load(new File(milestone.localStampImagePath))
                     .into(binding.stampImage);
         }
-        if (MilestoneContentRules.hasText(milestone.localAudioPath)) {
+        if (MilestoneContentRules.hasText(milestone.localAudioPath)
+                || MilestoneContentRules.hasText(milestone.audioUrl)) {
             binding.audioSection.setVisibility(View.VISIBLE);
             binding.audioTranscript.setText(getString(
                     R.string.audio_text_alternative, milestone.description));
-            prepareAudio(milestone.localAudioPath);
+            if (MilestoneContentRules.hasText(milestone.localAudioPath)) {
+                prepareAudio(milestone.localAudioPath);
+            } else {
+                showAudioFailure();
+            }
         }
         if (milestone.discovery != null && MilestoneContentRules.hasText(milestone.discovery.title)
                 && MilestoneContentRules.hasText(milestone.discovery.text)) {
@@ -232,6 +236,7 @@ public class MilestoneFragment extends BaseFragment {
                 boolean correct = selectedIndex == quiz.correctAnswerIndex;
                 binding.quizFeedback.setText(getString(correct
                         ? R.string.quiz_correct : R.string.quiz_incorrect, quiz.explanation));
+                if (correct) binding.quizSubmit.setEnabled(false);
                 viewModel.answerQuiz(progressId, milestoneId, selectedIndex, correct);
             });
         }
@@ -243,10 +248,6 @@ public class MilestoneFragment extends BaseFragment {
         loadedAudioPath = path;
         binding.audioToggle.setEnabled(false);
         binding.audioStatus.setText(R.string.audio_loading);
-        if (!new File(path).exists()) {
-            showAudioFailure();
-            return;
-        }
         try {
             audioPlayer = new MilestoneAudioPlayer(path, new MilestoneAudioPlayer.Listener() {
                 @Override public void onReady(int durationMillis) {
