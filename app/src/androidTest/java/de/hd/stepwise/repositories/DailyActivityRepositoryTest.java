@@ -1,9 +1,12 @@
 package de.hd.stepwise.repositories;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import androidx.room.Room;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -15,10 +18,13 @@ import org.junit.runner.RunWith;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import de.hd.stepwise.database.AppDatabase;
 import de.hd.stepwise.helper.fitbit.FitbitSyncStateManager;
 import de.hd.stepwise.pojos.StreakSummary;
+import de.hd.stepwise.pojos.DailyGoalState;
 
 @RunWith(AndroidJUnit4.class)
 public class DailyActivityRepositoryTest {
@@ -54,6 +60,27 @@ public class DailyActivityRepositoryTest {
         assertEquals(date, summary.currentStartDate);
         assertEquals(date, summary.longestStartDate);
         assertEquals(date, summary.longestEndDate);
+    }
+
+    @Test
+    public void observingTodayPublishesPersistedStepChanges() throws Exception {
+        LocalDate date = LocalDate.of(2026, 8, 23);
+        LiveData<Integer> totalSteps = repository.observeTotalSteps(date);
+        CountDownLatch updated = new CountDownLatch(1);
+        Observer<Integer> observer = steps -> {
+            if (steps != null && steps == 1_250) updated.countDown();
+        };
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                () -> totalSteps.observeForever(observer));
+        try {
+            repository.recordSensorDelta(date, 1_250);
+
+            assertTrue(updated.await(2, TimeUnit.SECONDS));
+        } finally {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                    () -> totalSteps.removeObserver(observer));
+        }
     }
 
     @Test
@@ -118,6 +145,33 @@ public class DailyActivityRepositoryTest {
         assertEquals(0, stepEvents.getUnhandledStepEvents(
                 de.hd.stepwise.enums.StepSource.FITBIT
         ).size());
+    }
+
+    @Test
+    public void scheduledGoalStartsTomorrowWithoutRewritingToday() {
+        LocalDate today = LocalDate.of(2026, 8, 23);
+        repository.recordSensorDelta(today, 5_000);
+
+        repository.scheduleDailyGoal(7_500, today);
+
+        DailyGoalState todayGoal = repository.getDailyGoalState(today);
+        DailyGoalState tomorrowGoal = repository.getDailyGoalState(today.plusDays(1));
+        assertEquals(5_000, todayGoal.activeSteps);
+        assertEquals(Integer.valueOf(7_500), todayGoal.pendingSteps);
+        assertEquals(7_500, tomorrowGoal.activeSteps);
+    }
+
+    @Test
+    public void latestPendingGoalReplacesOrCancelsThePreviousValue() {
+        LocalDate today = LocalDate.of(2026, 8, 23);
+
+        repository.scheduleDailyGoal(7_500, today);
+        repository.scheduleDailyGoal(8_000, today);
+        assertEquals(Integer.valueOf(8_000),
+                repository.getDailyGoalState(today).pendingSteps);
+
+        repository.scheduleDailyGoal(5_000, today);
+        assertEquals(null, repository.getDailyGoalState(today).pendingSteps);
     }
 
     private FitbitSyncStateManager.DailyStepRecord fitbit(LocalDate date, int steps) {

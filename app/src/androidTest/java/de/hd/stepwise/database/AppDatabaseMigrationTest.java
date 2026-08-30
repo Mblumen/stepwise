@@ -134,4 +134,38 @@ public class AppDatabaseMigrationTest {
             }
         }
     }
+
+    @Test
+    public void migrationFrom8To9KeepsDailyStepsAndStartsANewStreakLedger() throws Exception {
+        SupportSQLiteDatabase database = helper.createDatabase(TEST_DATABASE, 8);
+        database.execSQL("INSERT INTO user_settings "
+                + "(id, stepLengthInMeters, showCompletedTracks, useDarkMode, showLockedMilestones, "
+                + "refreshTimeInMinutesFitbit, stepSource, streakTrackingStartDate) "
+                + "VALUES (1, 0.75, 1, 1, 0, 5, 0, '2026-01-01')");
+        database.execSQL("INSERT INTO daily_activity "
+                + "(date, sensorSteps, fitbitSteps, fitbitLastObserved) "
+                + "VALUES ('2026-08-29', 3000, 2500, NULL)");
+        database.close();
+
+        database = helper.runMigrationsAndValidate(
+                TEST_DATABASE,
+                9,
+                true,
+                AppDatabase.MIGRATION_8_9
+        );
+
+        try (Cursor cursor = database.query("SELECT sensorSteps + fitbitSteps FROM daily_activity")) {
+            cursor.moveToFirst();
+            assertEquals(5_500, cursor.getInt(0));
+        }
+        try (Cursor cursor = database.query("SELECT steps, effectiveDate FROM daily_step_goal")) {
+            cursor.moveToFirst();
+            assertEquals(5_000, cursor.getInt(0));
+            assertNotNull(cursor.getString(1));
+        }
+        try (Cursor cursor = database.query("SELECT COUNT(*) FROM daily_streak_outcome")) {
+            cursor.moveToFirst();
+            assertEquals(0, cursor.getInt(0));
+        }
+    }
 }

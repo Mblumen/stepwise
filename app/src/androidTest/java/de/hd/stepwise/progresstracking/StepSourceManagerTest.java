@@ -53,9 +53,10 @@ public class StepSourceManagerTest {
     public void failedFitbitInitializationKeepsSensorSelectedAndRunning() throws Exception {
         FakeSensor sensor = new FakeSensor();
         StepSourceManager manager = new StepSourceManager(
-                settingsRepository,
+                settingsStore(),
                 callback -> callback.accept(false),
-                sensor
+                sensor,
+                Runnable::run
         );
 
         CountDownLatch completed = new CountDownLatch(1);
@@ -75,9 +76,10 @@ public class StepSourceManagerTest {
     public void successfulFitbitInitializationStopsSensorBeforePublishingSelection() throws Exception {
         FakeSensor sensor = new FakeSensor();
         StepSourceManager manager = new StepSourceManager(
-                settingsRepository,
+                settingsStore(),
                 callback -> callback.accept(true),
-                sensor
+                sensor,
+                Runnable::run
         );
         CountDownLatch switched = new CountDownLatch(1);
 
@@ -86,6 +88,20 @@ public class StepSourceManagerTest {
         assertTrue(switched.await(2, TimeUnit.SECONDS));
         assertTrue(sensor.stopped.get());
         assertEquals(StepSource.FITBIT, settingsRepository.getStepSourceSync());
+    }
+
+    private StepSourceManager.SettingsStore settingsStore() {
+        return new StepSourceManager.SettingsStore() {
+            @Override
+            public StepSource getStepSource() {
+                return settingsRepository.getStepSourceSync();
+            }
+
+            @Override
+            public void updateStepSource(StepSource stepSource) {
+                settingsRepository.updateStepSource(stepSource);
+            }
+        };
     }
 
     private static class FakeSensor implements StepSourceManager.SensorSource {

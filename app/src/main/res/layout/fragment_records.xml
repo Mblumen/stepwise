@@ -1,17 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="de.hd.stepwise.de.hd.stepwise.ui.achievements.AppRecordsFragment"
     >
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/today_step_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/container_margin"
+        android:backgroundTint="?attr/colorPrimary"
+        app:cardCornerRadius="@dimen/card_radius"
+        app:elevation="@dimen/card_elevation">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/padding_large">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/today"
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="@dimen/font_size_header"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/today_step_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/padding_small"
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="@dimen/font_size_normal"
+                tools:text="3,420 / 5,000 steps" />
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/today_step_progress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/padding_medium"
+                android:max="5000"
+                android:progress="3420"
+                app:indicatorColor="@color/selected_item_highlight"
+                app:trackColor="@color/light_gray" />
+
+            <TextView
+                android:id="@+id/today_step_detail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/padding_small"
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="@dimen/font_size_small"
+                tools:text="1,580 steps remaining" />
+
+            <TextView
+                android:id="@+id/today_step_reserve"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/padding_small"
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="@dimen/font_size_small"
+                tools:text="Step reserve: 2,000 / 5,000" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/records_list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         app:spanCount="2"
     />
-</FrameLayout>
+</LinearLayout>

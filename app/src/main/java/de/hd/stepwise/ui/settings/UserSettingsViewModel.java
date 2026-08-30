@@ -8,8 +8,10 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Transformations;
 
 import javax.inject.Inject;
+import java.time.LocalDate;
 import java.util.function.Consumer;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
@@ -23,6 +25,8 @@ import de.hd.stepwise.pojos.events.Event;
 import de.hd.stepwise.progresstracking.StepSourceManager;
 import de.hd.stepwise.progresstracking.StepSyncScheduler;
 import de.hd.stepwise.repositories.UserSettingsRepository;
+import de.hd.stepwise.repositories.DailyActivityRepository;
+import de.hd.stepwise.pojos.DailyGoalState;
 import de.hd.stepwise.ui.BaseFragmentViewModel;
 
 @HiltViewModel
@@ -45,18 +49,41 @@ public class UserSettingsViewModel extends BaseFragmentViewModel {
             new MutableLiveData<>();
     private final StepSourceManager stepSourceManager;
     private final FitbitSyncStateManager fitbitSyncStateManager;
+    private final DailyActivityRepository dailyActivityRepository;
+    private final MutableLiveData<LocalDate> today = new MutableLiveData<>(LocalDate.now());
+    private final LiveData<DailyGoalState> dailyGoalState;
     public LiveData<Event<MethodResult>> fitbitLoginResult = _fitbitLoginResult;
     public LiveData<Event<PendingIntent>> googleHealthAuthorizationResolution =
             _googleHealthAuthorizationResolution;
 
     @Inject
-    public UserSettingsViewModel(@NonNull Application application, UserSettingsRepository userSettingsRepository, GoogleHealthAuthManager googleHealthAuthManager, StepSyncScheduler stepSyncScheduler, StepSourceManager stepSourceManager, FitbitSyncStateManager fitbitSyncStateManager) {
+    public UserSettingsViewModel(@NonNull Application application, UserSettingsRepository userSettingsRepository, GoogleHealthAuthManager googleHealthAuthManager, StepSyncScheduler stepSyncScheduler, StepSourceManager stepSourceManager, FitbitSyncStateManager fitbitSyncStateManager, DailyActivityRepository dailyActivityRepository) {
         super(application, userSettingsRepository);
         this.repository = userSettingsRepository;
         this.googleHealthAuthManager = googleHealthAuthManager;
         this.stepSyncScheduler = stepSyncScheduler;
         this.stepSourceManager = stepSourceManager;
         this.fitbitSyncStateManager = fitbitSyncStateManager;
+        this.dailyActivityRepository = dailyActivityRepository;
+        dailyGoalState = Transformations.switchMap(today,
+                dailyActivityRepository::observeDailyGoalState);
+    }
+
+    public LiveData<DailyGoalState> getDailyGoalState() {
+        return dailyGoalState;
+    }
+
+    public boolean isValidDailyGoal(int steps) {
+        return DailyActivityRepository.isValidGoal(steps);
+    }
+
+    public void updateDailyGoal(int steps) {
+        LocalDate date = today.getValue() == null ? LocalDate.now() : today.getValue();
+        dailyActivityRepository.scheduleDailyGoalAsync(steps, date);
+    }
+
+    public void setToday(LocalDate date) {
+        if (!date.equals(today.getValue())) today.setValue(date);
     }
 
     public void saveSettings(UserSettings updatedSettings) {

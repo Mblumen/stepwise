@@ -17,6 +17,9 @@ public interface DailyActivityDao {
     @Query("SELECT * FROM daily_activity WHERE date = :date LIMIT 1")
     DailyActivity getByDate(String date);
 
+    @Query("SELECT * FROM daily_activity WHERE date = :date LIMIT 1")
+    LiveData<DailyActivity> observeByDate(String date);
+
     @Query("SELECT * FROM daily_activity ORDER BY date ASC")
     List<DailyActivity> getAll();
 

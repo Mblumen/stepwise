@@ -19,6 +19,7 @@ import de.hd.stepwise.daos.DailyActivityDao;
 import de.hd.stepwise.daos.DailyStepsDao;
 import de.hd.stepwise.daos.MilestoneDao;
 import de.hd.stepwise.daos.StepEventDao;
+import de.hd.stepwise.daos.StreakLedgerDao;
 import de.hd.stepwise.daos.TrackDao;
 import de.hd.stepwise.daos.UserProgressDao;
 import de.hd.stepwise.daos.UserSettingsDao;
@@ -26,6 +27,8 @@ import de.hd.stepwise.entities.Achievement;
 import de.hd.stepwise.entities.AppRecord;
 import de.hd.stepwise.entities.DailySteps;
 import de.hd.stepwise.entities.DailyActivity;
+import de.hd.stepwise.entities.DailyStepGoal;
+import de.hd.stepwise.entities.DailyStreakOutcome;
 import de.hd.stepwise.entities.Milestone;
 import de.hd.stepwise.entities.MilestoneWithTotalDistance;
 import de.hd.stepwise.entities.StepEvent;
@@ -35,9 +38,11 @@ import de.hd.stepwise.entities.ReachedMilestone;
 import de.hd.stepwise.entities.UserSettings;
 import de.hd.stepwise.enums.RecordType;
 
-@Database(entities = {Track.class, Milestone.class, UserProgress.class, ReachedMilestone.class, UserSettings.class, Achievement.class, AppRecord.class, DailySteps.class, DailyActivity.class, StepEvent.class},
+@Database(entities = {Track.class, Milestone.class, UserProgress.class, ReachedMilestone.class,
+        UserSettings.class, Achievement.class, AppRecord.class, DailySteps.class,
+        DailyActivity.class, StepEvent.class, DailyStepGoal.class, DailyStreakOutcome.class},
         views = {MilestoneWithTotalDistance.class},
-        version = 8)
+        version = 9)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
     private static volatile AppDatabase INSTANCE;
@@ -51,6 +56,7 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract DailyStepsDao dailyStepsDao();
     public abstract DailyActivityDao dailyActivityDao();
     public abstract StepEventDao stepEventDao();
+    public abstract StreakLedgerDao streakLedgerDao();
 
 
     public static AppDatabase getInstance(Context context) {
@@ -102,7 +108,9 @@ public abstract class AppDatabase extends RoomDatabase {
                                     AppDatabase.class,
                                     "stepwise_db"
                             )
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4,
+                                    MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7,
+                                    MIGRATION_7_8, MIGRATION_8_9)
                             .addCallback(new RoomDatabase.Callback() {
                                 @Override
                                 public void onCreate(@NonNull SupportSQLiteDatabase db) {
@@ -172,6 +180,25 @@ public abstract class AppDatabase extends RoomDatabase {
             database.execSQL("ALTER TABLE milestone ADD COLUMN localStampImagePath TEXT");
             database.execSQL("ALTER TABLE milestone ADD COLUMN discovery TEXT");
             database.execSQL("ALTER TABLE milestone ADD COLUMN quiz TEXT");
+        }
+    };
+
+    public static final Migration MIGRATION_8_9 = new Migration(8, 9) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS daily_step_goal ("
+                    + "effectiveDate TEXT NOT NULL PRIMARY KEY, "
+                    + "steps INTEGER NOT NULL)");
+            database.execSQL("CREATE TABLE IF NOT EXISTS daily_streak_outcome ("
+                    + "date TEXT NOT NULL PRIMARY KEY, "
+                    + "goalSteps INTEGER NOT NULL, "
+                    + "qualified INTEGER NOT NULL, "
+                    + "reserveUsed INTEGER NOT NULL, "
+                    + "reserveAfter INTEGER NOT NULL)");
+            database.execSQL("UPDATE user_settings SET streakTrackingStartDate = "
+                    + "date('now', 'localtime') WHERE id = 1");
+            database.execSQL("INSERT INTO daily_step_goal (effectiveDate, steps) "
+                    + "VALUES (date('now', 'localtime'), 5000)");
         }
     };
 
@@ -284,6 +311,8 @@ public abstract class AppDatabase extends RoomDatabase {
         userSettings.stepLengthInMeters = 1f; // Average step length
         userSettings.useDarkMode = true;
         db.userSettingsDao().insertOrUpdate(userSettings);
+        db.streakLedgerDao().upsertGoal(new DailyStepGoal(
+                userSettings.streakTrackingStartDate, 5_000));
     }
 
     /*private static long insertTrack(AppDatabase db, String name, String startLocation, String endLocation, String image, TrackRoute trackRoute) {
