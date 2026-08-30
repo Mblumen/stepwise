@@ -32,6 +32,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
+import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.util.Locale;
+
 import de.hd.stepwise.R;
 import de.hd.stepwise.databinding.FragmentSettingsBinding;
 import de.hd.stepwise.entities.UserSettings;
@@ -39,6 +43,7 @@ import de.hd.stepwise.enums.ResultStatus;
 import de.hd.stepwise.enums.StepSource;
 import de.hd.stepwise.helper.DataInitializer;
 import de.hd.stepwise.pojos.MethodResult;
+import de.hd.stepwise.pojos.DailyGoalState;
 import de.hd.stepwise.ui.BaseFragment;
 import de.hd.stepwise.ui.UpdateViewModel;
 
@@ -118,6 +123,10 @@ public class UserSettingsFragment extends BaseFragment {
             }
         });
 
+        holder.dailyStepGoalInput.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) lastFocusedEditText = (EditText) v;
+        });
+
         DataInitializer.checkUpdateAvailable(requireContext(), DataInitializer.DataType.TRACKS, (updateAvailable) -> requireActivity().runOnUiThread(() ->{
             holder.updateTracksButton.setEnabled(updateAvailable);
             holder.updateTracksAvailable.setVisibility(updateAvailable ? View.VISIBLE : View.GONE);
@@ -187,10 +196,42 @@ public class UserSettingsFragment extends BaseFragment {
             }
         });
 
+        holder.dailyStepGoalInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                handler.removeCallbacks(saveRunnable);
+                saveRunnable = () -> {
+                    String input = s.toString().trim();
+                    if (input.isEmpty()) return;
+                    try {
+                        int steps = Integer.parseInt(input);
+                        if (!viewModel.isValidDailyGoal(steps)) {
+                            holder.dailyStepGoalInput.setError(
+                                    getString(R.string.daily_step_goal_invalid));
+                        } else {
+                            holder.dailyStepGoalInput.setError(null);
+                            viewModel.updateDailyGoal(steps);
+                        }
+                    } catch (NumberFormatException exception) {
+                        holder.dailyStepGoalInput.setError(
+                                getString(R.string.daily_step_goal_invalid));
+                    }
+                };
+                handler.postDelayed(saveRunnable, 500);
+            }
+        });
+
         holder.darkModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.updateUseDarkMode(isChecked));
         holder.showCompletedTracksSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.updateShowCompletedTracks(isChecked));
         holder.showLockedMilestonesSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.updateShowLockedMilestones(isChecked));
         viewModel.getSettings().observe(getViewLifecycleOwner(), settings -> holder.bind(settings, requireContext()));
+        viewModel.getDailyGoalState().observe(getViewLifecycleOwner(), holder::bindDailyGoal);
         holder.updateTracksButton.setOnClickListener(v -> {
             updateViewModel.update(getContext(), DataInitializer.DataType.TRACKS);
             holder.updateTracksButton.setEnabled(false);
@@ -263,6 +304,12 @@ public class UserSettingsFragment extends BaseFragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        viewModel.setToday(LocalDate.now());
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
@@ -290,6 +337,8 @@ public class UserSettingsFragment extends BaseFragment {
         Spinner sensorSpinner;
         TextView refreshTimeFitbit;
         EditText refreshTimeFitbitInput;
+        EditText dailyStepGoalInput;
+        TextView dailyStepGoalStatus;
         public UserSettingsViewHolder(@NonNull FragmentSettingsBinding binding) {
             super(binding.getRoot());
             stepLengthInput = binding.stepLengthInput;
@@ -305,6 +354,8 @@ public class UserSettingsFragment extends BaseFragment {
             sensorSpinner = binding.sensorSpinner;
             refreshTimeFitbit = binding.refreshTimeFitbit;
             refreshTimeFitbitInput = binding.refreshTimeFitbitInput;
+            dailyStepGoalInput = binding.dailyStepGoalInput;
+            dailyStepGoalStatus = binding.dailyStepGoalStatus;
         }
 
         public void bind(UserSettings settings, Context context) {
@@ -334,6 +385,26 @@ public class UserSettingsFragment extends BaseFragment {
             spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             sensorSpinner.setAdapter(spinnerAdapter);
             sensorSpinner.setSelection(settings.stepSource.key);
+        }
+
+        public void bindDailyGoal(DailyGoalState goalState) {
+            if (goalState == null) return;
+            int displayedGoal = goalState.pendingSteps == null
+                    ? goalState.activeSteps : goalState.pendingSteps;
+            String input = String.valueOf(displayedGoal);
+            if (!dailyStepGoalInput.getText().toString().equals(input)) {
+                dailyStepGoalInput.setText(input);
+            }
+            NumberFormat format = NumberFormat.getIntegerInstance(Locale.getDefault());
+            if (goalState.pendingSteps == null) {
+                dailyStepGoalStatus.setText(itemView.getContext().getString(
+                        R.string.daily_step_goal_current, format.format(goalState.activeSteps)));
+            } else {
+                dailyStepGoalStatus.setText(itemView.getContext().getString(
+                        R.string.daily_step_goal_pending,
+                        format.format(goalState.activeSteps),
+                        format.format(goalState.pendingSteps)));
+            }
         }
     }
 

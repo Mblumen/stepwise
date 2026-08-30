@@ -59,11 +59,22 @@ public class AppRecordsFragment extends BaseFragment {
         binding.todayStepProgress.setMax(status.targetSteps);
         binding.todayStepProgress.setProgressCompat(status.progressSteps, true);
 
-        String detail = status.goalReached
-                ? getString(R.string.today_step_goal_reached)
-                : getString(R.string.today_steps_remaining,
-                        numberFormat.format(status.remainingSteps));
+        String detail;
+        if (status.goalReached && status.projectedReserveAdded > 0) {
+            detail = getString(R.string.today_goal_reserve_added,
+                    numberFormat.format(status.projectedReserveAdded));
+        } else if (status.goalReached) {
+            detail = getString(R.string.today_step_goal_reached);
+        } else if (status.reserveSufficient) {
+            detail = getString(R.string.today_steps_reserve_available,
+                    numberFormat.format(status.remainingSteps));
+        } else {
+            detail = getString(R.string.today_steps_reserve_insufficient,
+                    numberFormat.format(status.remainingSteps));
+        }
         binding.todayStepDetail.setText(detail);
+        binding.todayStepReserve.setText(getString(R.string.step_reserve,
+                numberFormat.format(status.projectedReserveSteps), target));
         binding.todayStepCard.setContentDescription(
                 getString(R.string.today_step_status_description, total, target, detail));
     }

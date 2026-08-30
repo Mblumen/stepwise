@@ -58,6 +58,15 @@
                 android:textColor="?attr/colorOnPrimary"
                 android:textSize="@dimen/font_size_small"
                 tools:text="1,580 steps remaining" />
+
+            <TextView
+                android:id="@+id/today_step_reserve"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/padding_small"
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="@dimen/font_size_small"
+                tools:text="Step reserve: 2,000 / 5,000" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

@@ -35,6 +35,35 @@
         </LinearLayout>
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/fragment_horizontal_margin"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:labelFor="@+id/daily_step_goal_input"
+            android:text="@string/daily_step_goal" />
+
+        <EditText
+            android:id="@+id/daily_step_goal_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints="none"
+            android:inputType="number"
+            android:maxLength="5" />
+
+        <TextView
+            android:id="@+id/daily_step_goal_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnPrimary"
+            android:textSize="@dimen/font_size_tiny"
+            tools:text="Current goal: 5,000 steps" />
+    </LinearLayout>
+
     <com.google.android.material.materialswitch.MaterialSwitch
         android:id="@+id/dark_mode_switch"
         android:layout_width="match_parent"

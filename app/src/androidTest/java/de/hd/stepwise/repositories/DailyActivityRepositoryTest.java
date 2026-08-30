@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import de.hd.stepwise.database.AppDatabase;
 import de.hd.stepwise.helper.fitbit.FitbitSyncStateManager;
 import de.hd.stepwise.pojos.StreakSummary;
+import de.hd.stepwise.pojos.DailyGoalState;
 
 @RunWith(AndroidJUnit4.class)
 public class DailyActivityRepositoryTest {
@@ -70,13 +71,15 @@ public class DailyActivityRepositoryTest {
             if (steps != null && steps == 1_250) updated.countDown();
         };
 
-        totalSteps.observeForever(observer);
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                () -> totalSteps.observeForever(observer));
         try {
             repository.recordSensorDelta(date, 1_250);
 
             assertTrue(updated.await(2, TimeUnit.SECONDS));
         } finally {
-            totalSteps.removeObserver(observer);
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(
+                    () -> totalSteps.removeObserver(observer));
         }
     }
 
@@ -142,6 +145,33 @@ public class DailyActivityRepositoryTest {
         assertEquals(0, stepEvents.getUnhandledStepEvents(
                 de.hd.stepwise.enums.StepSource.FITBIT
         ).size());
+    }
+
+    @Test
+    public void scheduledGoalStartsTomorrowWithoutRewritingToday() {
+        LocalDate today = LocalDate.of(2026, 8, 23);
+        repository.recordSensorDelta(today, 5_000);
+
+        repository.scheduleDailyGoal(7_500, today);
+
+        DailyGoalState todayGoal = repository.getDailyGoalState(today);
+        DailyGoalState tomorrowGoal = repository.getDailyGoalState(today.plusDays(1));
+        assertEquals(5_000, todayGoal.activeSteps);
+        assertEquals(Integer.valueOf(7_500), todayGoal.pendingSteps);
+        assertEquals(7_500, tomorrowGoal.activeSteps);
+    }
+
+    @Test
+    public void latestPendingGoalReplacesOrCancelsThePreviousValue() {
+        LocalDate today = LocalDate.of(2026, 8, 23);
+
+        repository.scheduleDailyGoal(7_500, today);
+        repository.scheduleDailyGoal(8_000, today);
+        assertEquals(Integer.valueOf(8_000),
+                repository.getDailyGoalState(today).pendingSteps);
+
+        repository.scheduleDailyGoal(5_000, today);
+        assertEquals(null, repository.getDailyGoalState(today).pendingSteps);
     }
 
     private FitbitSyncStateManager.DailyStepRecord fitbit(LocalDate date, int steps) {

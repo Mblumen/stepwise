@@ -45,4 +45,21 @@ public class TodayStepStatusTest {
         assertEquals(0, status.remainingSteps);
         assertTrue(status.goalReached);
     }
+
+    @Test
+    public void reserveAvailabilityIsProjectedWithoutSpendingItToday() {
+        TodayStepStatus status = new TodayStepStatus(4_000, 5_000, 1_500);
+
+        assertTrue(status.reserveSufficient);
+        assertEquals(1_500, status.reserveSteps);
+        assertEquals(1_500, status.projectedReserveSteps);
+    }
+
+    @Test
+    public void surplusFillsReserveOnlyUpToTheDailyGoal() {
+        TodayStepStatus status = new TodayStepStatus(10_000, 5_000, 1_500);
+
+        assertEquals(5_000, status.projectedReserveSteps);
+        assertEquals(3_500, status.projectedReserveAdded);
+    }
 }
