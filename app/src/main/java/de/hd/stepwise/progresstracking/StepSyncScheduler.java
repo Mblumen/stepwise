@@ -45,7 +45,8 @@ public class StepSyncScheduler {
                         .addTag(WORK_TAG)
                         .build();
 
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(WORK_TAG, ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE, work);
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                WORK_TAG, ExistingPeriodicWorkPolicy.KEEP, work);
     }
 
     public void stopWorker() {
