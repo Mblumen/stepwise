@@ -127,14 +127,21 @@ public class UserSettingsFragment extends BaseFragment {
             if (hasFocus) lastFocusedEditText = (EditText) v;
         });
 
-        DataInitializer.checkUpdateAvailable(requireContext(), DataInitializer.DataType.TRACKS, (updateAvailable) -> requireActivity().runOnUiThread(() ->{
-            holder.updateTracksButton.setEnabled(updateAvailable);
-            holder.updateTracksAvailable.setVisibility(updateAvailable ? View.VISIBLE : View.GONE);
-        }));
-        DataInitializer.checkUpdateAvailable(requireContext(), DataInitializer.DataType.ACHIEVEMENTS, (updateAvailable) ->  requireActivity().runOnUiThread(() -> {
-            holder.updateAchievementsButton.setEnabled(updateAvailable);
-            holder.updateAchievementsAvailable.setVisibility(updateAvailable ? View.VISIBLE : View.GONE);
-        }));
+        UserSettingsViewHolder updateCheckHolder = holder;
+        DataInitializer.checkUpdateAvailable(requireContext(), DataInitializer.DataType.TRACKS,
+                updateAvailable -> handler.post(() -> {
+                    if (binding == null || holder != updateCheckHolder) return;
+                    updateCheckHolder.updateTracksButton.setEnabled(updateAvailable);
+                    updateCheckHolder.updateTracksAvailable.setVisibility(
+                            updateAvailable ? View.VISIBLE : View.GONE);
+                }));
+        DataInitializer.checkUpdateAvailable(requireContext(), DataInitializer.DataType.ACHIEVEMENTS,
+                updateAvailable -> handler.post(() -> {
+                    if (binding == null || holder != updateCheckHolder) return;
+                    updateCheckHolder.updateAchievementsButton.setEnabled(updateAvailable);
+                    updateCheckHolder.updateAchievementsAvailable.setVisibility(
+                            updateAvailable ? View.VISIBLE : View.GONE);
+                }));
 
         holder.stepLengthInput.addTextChangedListener(new TextWatcher() {
             @Override
